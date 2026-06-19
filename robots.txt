@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://getrestash.gg/sitemap.xml
+Sitemap: https://tekpair.github.io/Restash/sitemap.xml
