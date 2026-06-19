@@ -376,6 +376,9 @@
     </footer>
   </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="js/api.js"></script>
 <script>
   const I = {
     chevron: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>',
@@ -409,34 +412,15 @@
     pin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s6.5-5.3 6.5-10a6.5 6.5 0 0 0-13 0c0 4.7 6.5 10 6.5 10Z"/><circle cx="12" cy="11" r="2.3"/></svg>'
   };
 
-  // ---- Catalog (placeholder buyback values for "Complete" condition — adjust from PriceCharting comps x your buyback rate) ----
-  const PLATFORMS = [
-    { id: 'switch', name: 'Nintendo Switch', icon: 'handheld', titles: [
-      { id: 'mk8d',    name: 'Mario Kart 8 Deluxe',                       editions: [{ id: 'std', name: 'Standard', base: 28 }] },
-      { id: 'smash',   name: 'Super Smash Bros. Ultimate',               editions: [{ id: 'std', name: 'Standard', base: 26 }] },
-      { id: 'totk',    name: 'The Legend of Zelda: Tears of the Kingdom', editions: [{ id: 'std', name: 'Standard', base: 30 }] },
-      { id: 'odyssey', name: 'Super Mario Odyssey',                       editions: [{ id: 'std', name: 'Standard', base: 24 }] }
-    ]},
-    { id: 'ps4', name: 'PlayStation 4', icon: 'gamepad', titles: [
-      { id: 'gow',     name: 'God of War',               editions: [{ id: 'std', name: 'Standard', base: 12 }, { id: 'hits', name: 'PS Hits (reprint)', base: 8, desc: 'Budget re-release — lower value' }] },
-      { id: 'witcher', name: 'The Witcher 3: Wild Hunt',  editions: [{ id: 'std', name: 'Standard', base: 10 }, { id: 'goty', name: 'Game of the Year Edition', base: 18, desc: 'Includes all expansions' }] },
-      { id: 'rdr2',    name: 'Red Dead Redemption 2',     editions: [{ id: 'std', name: 'Standard', base: 14 }] },
-      { id: 'spider',  name: "Marvel's Spider-Man",       editions: [{ id: 'std', name: 'Standard', base: 13 }] }
-    ]},
-    { id: 'xbox', name: 'Xbox One', icon: 'gamepad', titles: [
-      { id: 'halomcc', name: 'Halo: The Master Chief Collection', editions: [{ id: 'std', name: 'Standard', base: 11 }] },
-      { id: 'forza4',  name: 'Forza Horizon 4',                   editions: [{ id: 'std', name: 'Standard', base: 14 }] },
-      { id: 'rdr2x',   name: 'Red Dead Redemption 2',             editions: [{ id: 'std', name: 'Standard', base: 12 }] },
-      { id: 'gtav',    name: 'Grand Theft Auto V',                editions: [{ id: 'std', name: 'Standard', base: 10 }] }
-    ]}
-  ];
-  const CONDITIONS = [
+  // ---- Catalog (loaded from Supabase at boot; buyback values live in the DB) ----
+  let PLATFORMS = [];
+  let CONDITIONS = [
     { id: 'sealed',   name: 'Brand New (Sealed)', mult: 1.4, desc: 'Factory sealed, never opened' },
     { id: 'complete', name: 'Complete',           mult: 1.0, desc: 'Case, cover art, inserts, and a clean disc or cart' },
     { id: 'loose',    name: 'Game Only (Loose)',  mult: 0.6, desc: 'Disc or cart only — no case or artwork' },
     { id: 'broken',   name: 'Not Working / Counterfeit', mult: 0, desc: 'Won\u2019t play, cracked, or a reproduction', ineligible: true }
   ];
-  const COND_ICON = { sealed: 'box', complete: 'gamecase', loose: 'disc', broken: 'xcircle' };
+  let COND_ICON = { sealed: 'box', complete: 'gamecase', loose: 'disc', broken: 'xcircle' };
   function editionIconName(name) { if (/game of the year/i.test(name)) return 'star'; if (/hits|reprint/i.test(name)) return 'refresh'; return 'tag'; }
 
   const STEP_OF = { platform: 1, title: 2, edition: 3, condition: 4 };
@@ -456,18 +440,7 @@
     cart: [], payout: null, draft: {}, regDraft: {}, flash: null,
     loggedIn: false, user: { name: '', email: '', phone: '' },
     activeClaimRef: null,
-    claims: [
-      { ref: 'RS-7K2Q9P', itemName: 'Mario Kart 8 Deluxe', platform: 'Nintendo Switch',
-        items: [{ titleName: 'Mario Kart 8 Deluxe', platformName: 'Nintendo Switch', editionName: 'Standard', condName: 'Complete', qty: 1, lineMid: 28 }],
-        estLow: 25, estHigh: 31, payout: 'PayPal', offerAmount: 27, createdAt: 'Jun 9, 2026', status: 'offer',
-        history: [
-          { label: 'Claim submitted', date: 'Jun 9, 2026' },
-          { label: 'Under review', date: 'Jun 10, 2026' },
-          { label: 'Accepted — shipping label emailed', date: 'Jun 11, 2026' },
-          { label: 'Games received at facility', date: 'Jun 13, 2026' },
-          { label: 'Offer made: $27', date: 'Jun 14, 2026', note: 'Review it below within 5 days.' }
-        ] }
-    ]
+    claims: []
   };
 
   const plat = () => PLATFORMS.find(p => p.id === state.platformId);
@@ -644,6 +617,7 @@
     privacy() { return legalPage('Privacy Policy', PRIVACY_INTRO, PRIVACY); },
     login() {
       return '<div class="screen"><button class="backbtn" data-action="back-page">' + I.back + 'Back</button><h1 class="h1">Log in</h1><p class="sub">Access your claims and account.</p>'
+        + flashMsg('login')
         + '<div class="field"><label for="lg-email">Email</label><input id="lg-email" type="email" placeholder="you@email.com"></div>'
         + '<div class="field"><label for="lg-pass">Password</label><input id="lg-pass" type="password" placeholder="••••••••"></div>'
         + '<div class="forgot"><a data-action="goto" data-value="forgot">Forgot password?</a></div>'
@@ -683,7 +657,7 @@
       return '<div class="screen"><h1 class="h1">Your account</h1>'
         + '<div class="section"><div class="section-title">Profile</div><div class="section-sub">Payouts only go to a PayPal or check matching this name.</div><div class="panel">'
         + '<div class="field"><label for="ac-name">Full name</label><input id="ac-name" type="text" value="' + esc(u.name) + '"></div>'
-        + '<div class="field"><label for="ac-email">Email</label><input id="ac-email" type="email" value="' + esc(u.email) + '"></div>'
+        + '<div class="field"><label for="ac-email">Email</label><input id="ac-email" type="email" value="' + esc(u.email) + '" readonly></div>'
         + '<div class="field"><label for="ac-phone">Phone</label><input id="ac-phone" type="tel" value="' + esc(u.phone) + '"></div>'
         + '<div class="field"><label for="ac-addr">Mailing address <span class="opt">(for checks)</span></label><input id="ac-addr" type="text" placeholder="Street, City, State ZIP" value="' + esc(u.address || '') + '"></div>'
         + '<div class="field"><label for="ac-pass">New password</label><input id="ac-pass" type="password" placeholder="Leave blank to keep current"></div>'
@@ -698,7 +672,13 @@
       if (!c) return '<div class="screen">' + back + '<h1 class="h1">Claim not found</h1></div>';
       let moneyCard;
       if (c.status === 'offer' && c.offerAmount) {
-        moneyCard = goldCard('Your offer', '$' + c.offerAmount) + '<p class="offer-help">Accept to authorize payment via ' + c.payout + ', or decline and we\u2019ll return your games free.</p><div class="btn-row two"><button class="btn btn-primary" data-action="offer-accept" data-ref="' + c.ref + '">Accept offer</button><button class="btn btn-secondary" data-action="offer-decline" data-ref="' + c.ref + '">Decline</button></div>';
+        if (!c.customerResponse) {
+          moneyCard = goldCard('Your offer', '$' + c.offerAmount) + '<p class="offer-help">Accept to authorize payment via ' + c.payout + ', or decline and we\u2019ll return your games free.</p><div class="btn-row two"><button class="btn btn-primary" data-action="offer-accept" data-ref="' + c.ref + '">Accept offer</button><button class="btn btn-secondary" data-action="offer-decline" data-ref="' + c.ref + '">Decline</button></div>';
+        } else if (c.customerResponse === 'accepted') {
+          moneyCard = goldCard('Offer accepted', '$' + c.offerAmount) + '<p class="offer-help">You accepted this offer. We\u2019re processing your ' + c.payout + ' payment.</p>';
+        } else {
+          moneyCard = goldCard('Offer declined', '$' + c.offerAmount) + '<p class="offer-help">You declined this offer. We\u2019re returning your games and will email tracking.</p>';
+        }
       } else if (c.status === 'paid' && c.offerAmount) {
         moneyCard = goldCard('Amount paid', '$' + c.offerAmount);
       } else if (c.status === 'returned' && c.offerAmount) {
@@ -766,12 +746,12 @@
   function addCurrentItemToCart() {
     const p = plat(), t = title(), e = edition(), cd = cond();
     if (!p || !t || !e || !cd) return;
-    const existing = state.cart.find(it => it.titleName === t.name && it.platformName === p.name && it.editionName === e.name && it.condName === cd.name);
+    const existing = state.cart.find(it => it.editionId === e.id && it.conditionId === cd.id);
     if (existing) { existing.qty += 1; }
-    else { state.cart.push({ platformName: p.name, titleName: t.name, editionName: e.name, editionBase: e.base, condName: cd.name, condMult: cd.mult, qty: 1 }); }
+    else { state.cart.push({ platformName: p.name, titleName: t.name, editionName: e.name, editionId: e.id, editionBase: e.base, condName: cd.name, conditionId: cd.id, condMult: cd.mult, qty: 1 }); }
   }
 
-  document.body.addEventListener('click', (e) => {
+  document.body.addEventListener('click', async (e) => {
     const el = e.target.closest('[data-action]'); if (!el) return;
     const a = el.dataset.action, v = el.dataset.value, ref = el.dataset.ref, idx = el.dataset.idx != null ? parseInt(el.dataset.idx, 10) : null;
     if (el.tagName === 'A' && !el.getAttribute('href')) e.preventDefault();
@@ -803,15 +783,15 @@
       const address = state.payout === 'Check' ? document.getElementById('cf-addr').value.trim() : '';
       if (state.payout === 'Check' && !address) return showErr('cf-error', 'Please enter the mailing address for your check.');
       if (!terms) return showErr('cf-error', 'Please certify ownership and agree to the Terms to continue.');
-      const tot = cartTotals();
-      const items = state.cart.map(it => ({ titleName: it.titleName, platformName: it.platformName, editionName: it.editionName, condName: it.condName, qty: it.qty, lineMid: lineMidOf(it) }));
-      const totalGames = cartQty();
-      const label = items.length === 1 ? (items[0].titleName + (items[0].qty > 1 ? ' ×' + items[0].qty : '')) : (totalGames + ' games');
-      const platforms = items.map(i => i.platformName).filter((x, i, arr) => arr.indexOf(x) === i);
-      const platLabel = platforms.length === 1 ? platforms[0] : platforms.length + ' platforms';
-      const r = makeRef();
-      state.claims.push({ ref: r, cust: name, custEmail: email, items: items, itemName: label, platform: platLabel, estLow: tot.low, estHigh: tot.high, payout: state.payout, address: address, createdAt: todayStr(), status: 'submitted', history: [{ label: 'Claim submitted', date: todayStr() }] });
-      if (address) state.user.address = address; state.activeClaimRef = r; state.cart = []; state.draft = {}; resetItem(); go('success');
+      const notesEl = document.getElementById('cf-notes');
+      const notes = notesEl ? notesEl.value.trim() : '';
+      el.disabled = true;
+      try {
+        const items = state.cart.map(it => ({ edition_id: it.editionId, condition_id: it.conditionId, qty: it.qty }));
+        const r = await RestashAPI.submitClaim({ items, payout: state.payout, phone, address, notes });
+        await loadClaims();
+        state.activeClaimRef = r; state.cart = []; state.draft = {}; resetItem(); go('success');
+      } catch (err) { el.disabled = false; showErr('cf-error', err.message || 'Could not submit your claim.'); }
     }
     else if (a === 'goto') { goto(v, ref); }
     else if (a === 'account-icon') { goto(state.loggedIn ? 'account' : 'login'); }
@@ -819,11 +799,12 @@
     else if (a === 'back') { go(v); }
     else if (a === 'do-login') {
       const email = document.getElementById('lg-email').value.trim();
+      const pass = document.getElementById('lg-pass').value;
       if (!emailOk(email)) return showErr('auth-error', 'Please enter a valid email.');
-      if (!document.getElementById('lg-pass').value) return showErr('auth-error', 'Please enter your password.');
-      state.loggedIn = true;
-      state.user = { name: state.user.name || 'Alex Rivera', email: email, phone: state.user.phone || '(518) 555-0123' };
-      afterAuth();
+      if (!pass) return showErr('auth-error', 'Please enter your password.');
+      el.disabled = true;
+      try { await RestashAPI.signIn({ email, password: pass }); await loadSession(); await loadClaims(); afterAuth(); }
+      catch (err) { el.disabled = false; showErr('auth-error', err.message || 'Could not sign in. Check your email and password.'); }
     }
     else if (a === 'do-register') {
       const name = document.getElementById('rg-name').value.trim();
@@ -836,35 +817,84 @@
       if (!phoneOk(phone)) return showErr('auth-error', 'Please enter a valid phone number.');
       if (pass.length < 8) return showErr('auth-error', 'Password must be at least 8 characters.');
       if (!terms) return showErr('auth-error', 'Please agree to the Terms and Privacy Policy to continue.');
-      state.regDraft = {}; state.loggedIn = true; state.user = { name, email, phone }; afterAuth();
+      el.disabled = true;
+      try {
+        await RestashAPI.signUp({ name, email, phone, password: pass });
+        state.regDraft = {};
+        const u = await RestashAPI.currentUser();
+        if (u) { await loadSession(); await loadClaims(); afterAuth(); }
+        else { state.flash = { slot: 'login', kind: 'ok', text: 'Account created. Check your email to confirm, then log in.' }; go('login'); }
+      } catch (err) { el.disabled = false; showErr('auth-error', err.message || 'Could not create your account.'); }
     }
     else if (a === 'do-forgot') {
       const email = document.getElementById('fg-email').value.trim();
       if (!emailOk(email)) return showErr('auth-error', 'Please enter a valid email.');
+      try { await RestashAPI.resetPassword(email); } catch (err) { /* don't reveal which emails exist */ }
       state.flash = { slot: 'forgot', kind: 'ok', text: 'If that email has an account, a reset link is on its way.' };
       render();
     }
     else if (a === 'save-profile') {
-      state.user = { name: document.getElementById('ac-name').value.trim(), email: document.getElementById('ac-email').value.trim(), phone: document.getElementById('ac-phone').value.trim(), address: document.getElementById('ac-addr').value.trim() };
-      state.flash = { slot: 'profile', kind: 'ok', text: 'Profile saved.' };
+      el.disabled = true;
+      try {
+        const p = await RestashAPI.updateProfile({ full_name: document.getElementById('ac-name').value.trim(), phone: document.getElementById('ac-phone').value.trim(), address: document.getElementById('ac-addr').value.trim() });
+        const pw = document.getElementById('ac-pass'); if (pw && pw.value) { await RestashAPI.updatePassword(pw.value); pw.value = ''; }
+        state.user = { name: p.full_name, email: p.email, phone: p.phone, address: p.address };
+        state.flash = { slot: 'profile', kind: 'ok', text: 'Profile saved.' };
+      } catch (err) { state.flash = { slot: 'profile', kind: 'err', text: err.message || 'Could not save your profile.' }; }
+      el.disabled = false; render();
+    }
+    else if (a === 'offer-accept' || a === 'offer-decline') {
+      const resp = a === 'offer-accept' ? 'accepted' : 'declined';
+      el.disabled = true;
+      try { await RestashAPI.respondToOffer(ref, resp); await loadClaims(); }
+      catch (err) { alert(err.message || 'Could not submit your response.'); }
       render();
     }
-    else if (a === 'offer-accept') {
-      const c = findClaim(ref);
-      if (c) { c.history.push({ label: 'You accepted the offer', date: todayStr() }); c.history.push({ label: 'Payment authorized via ' + c.payout, date: todayStr(), note: c.payout === 'PayPal' ? 'PayPal 1–3 business days.' : 'Check 3–5 business days.' }); c.status = 'paid'; }
-      render();
-    }
-    else if (a === 'offer-decline') {
-      const c = findClaim(ref);
-      if (c) { c.history.push({ label: 'You declined the offer', date: todayStr() }); c.history.push({ label: 'Games being returned to you', date: todayStr(), note: 'We\u2019ll email tracking.' }); c.status = 'returned'; }
-      render();
-    }
-    else if (a === 'logout') { state.loggedIn = false; go('platform'); }
+    else if (a === 'logout') { try { await RestashAPI.signOut(); } catch (e) {} state.loggedIn = false; state.user = { name: '', email: '', phone: '' }; state.claims = []; go('platform'); }
     else if (a === 'restart') { resetItem(); state.activeClaimRef = null; go('platform'); }
   });
 
-  if (!state.loggedIn) state.view = 'welcome';
-  render();
+  // ---- data loading -------------------------------------------------
+  async function loadSession() {
+    const u = await RestashAPI.currentUser();
+    state.loggedIn = !!u;
+    if (u) {
+      const p = await RestashAPI.getProfile();
+      state.user = p ? { name: p.full_name, email: p.email, phone: p.phone, address: p.address }
+                     : { name: '', email: u.email || '', phone: '' };
+    } else {
+      state.user = { name: '', email: '', phone: '' };
+    }
+  }
+  async function loadClaims() {
+    state.claims = state.loggedIn ? await RestashAPI.myClaims() : [];
+  }
+  function configBanner() {
+    document.getElementById('progress').innerHTML = '';
+    document.getElementById('screen').innerHTML =
+      '<div class="screen center"><span class="status-icon amber">' + I.alert + '</span>'
+      + '<h1 class="h1">Almost there</h1><p class="sub">This site needs its Supabase connection before it can run. '
+      + 'Add your project URL and anon key to <strong>config.js</strong>, then reload.</p></div>';
+  }
+
+  async function boot() {
+    if (!RestashAPI.configured) { configBanner(); return; }
+    try {
+      const cat = await RestashAPI.getCatalog();
+      PLATFORMS = cat.platforms; CONDITIONS = cat.conditions;
+      COND_ICON = {}; CONDITIONS.forEach(c => { COND_ICON[c.id] = c.icon; });
+      await loadSession();
+      await loadClaims();
+    } catch (err) {
+      console.error(err);
+      document.getElementById('screen').innerHTML =
+        '<div class="screen center"><span class="status-icon amber">' + I.alert + '</span><h1 class="h1">Something went wrong</h1><p class="sub">' + esc(err.message || 'Could not reach the server.') + '</p></div>';
+      return;
+    }
+    state.view = state.loggedIn ? 'platform' : 'welcome';
+    render();
+  }
+  boot();
 </script>
 </body>
 </html>

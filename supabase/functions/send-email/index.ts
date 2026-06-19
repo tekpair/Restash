@@ -13,8 +13,11 @@
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
 const FN_SECRET = Deno.env.get("EMAIL_FN_SECRET") ?? "";
-const APP_URL = Deno.env.get("APP_URL") ?? "https://getrestash.gg";
-const FROM = "Restash <noreply@getrestash.gg>";          // must be a domain you've verified in Resend
+const APP_URL = Deno.env.get("APP_URL") ?? "https://tekpair.github.io/Restash";
+// EMAIL_FROM must use a domain you've verified in Resend. Until you verify one,
+// Resend only delivers from its test sender (onboarding@resend.dev) and only to
+// your own account email — fine for testing, not for real customer sends.
+const FROM = Deno.env.get("EMAIL_FROM") ?? "Restash <onboarding@resend.dev>";
 const LOGO = `${APP_URL}/email-logo.png`;                 // hosted PNG (SVGs don't render in many clients)
 
 // ---- Email shell (transparent background, dark-mode aware, purple brand) ----
@@ -100,6 +103,48 @@ function buildEmail(type: string, d: EmailData): { subject: string; html: string
             p(`Hi ${name}, you accepted the offer on claim <strong>${d.ref}</strong> — your payment of <strong>${d.amount}</strong> by ${d.method} has been authorized.`) +
             muted(d.method === "Check" ? "Checks typically arrive within 3&ndash;5 business days." : "PayPal transfers typically arrive within 1&ndash;3 business days.") +
             p("Thanks for selling with Restash.") +
+            button("View your claim", url),
+        ),
+      };
+    case "claim_accepted":
+      return {
+        subject: `Your Restash claim ${d.ref ?? ""} was accepted`.trim(),
+        html: shell(
+          "We accepted your claim — a prepaid shipping label is on the way.",
+          h1("Claim accepted") +
+            p(`Hi ${name}, we accepted claim <strong>${d.ref}</strong> for inspection. We'll email your prepaid shipping label shortly — pack your games well and send them in.`) +
+            muted("Once they arrive, we confirm and follow up with an outcome in 2&ndash;3 business days.") +
+            button("View your claim", url),
+        ),
+      };
+    case "games_received":
+      return {
+        subject: `We received your games — claim ${d.ref ?? ""}`.trim(),
+        html: shell(
+          "Your games arrived at our facility.",
+          h1("Games received") +
+            p(`Hi ${name}, your games for claim <strong>${d.ref}</strong> arrived safely. We're inspecting them now and will send an offer or a decision within 2&ndash;3 business days.`) +
+            button("View your claim", url),
+        ),
+      };
+    case "claim_declined":
+      return {
+        subject: `An update on your Restash claim ${d.ref ?? ""}`.trim(),
+        html: shell(
+          "An update on your claim.",
+          h1("Claim not accepted") +
+            p(`Hi ${name}, we're not able to accept claim <strong>${d.ref}</strong> this time. This is often due to limited capacity and isn't a reflection of your games.`) +
+            p("You're welcome to submit again in the future.") +
+            button("View your claim", url),
+        ),
+      };
+    case "games_returned":
+      return {
+        subject: `Your games are on their way back — claim ${d.ref ?? ""}`.trim(),
+        html: shell(
+          "We're returning your games.",
+          h1("Games being returned") +
+            p(`Hi ${name}, we're returning the games from claim <strong>${d.ref}</strong> to you. We'll email tracking as soon as it's available.`) +
             button("View your claim", url),
         ),
       };
