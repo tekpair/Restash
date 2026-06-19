@@ -273,6 +273,9 @@
   </header>
   <main><div id="screen"></div></main>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="js/api.js"></script>
 <script>
   const I = {
     chevron: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>',
@@ -329,51 +332,9 @@
   ];
 
   let state = {
-    view: 'login', loggedIn: false, admin: { name: 'Connor' },
+    view: 'login', loggedIn: false, admin: { name: '', id: null },
     tab: 'claims', filter: 'all', search: '', activeRef: null, activeEmail: null, offerOpen: false, flash: null,
-    team: [
-      { group: 'Founders', name: 'Connor Waugaman', role: 'Co-Founder & Operations', email: 'connor@getrestash.gg', location: 'Cohoes, NY', focus: ['Buyback pricing', 'Claim review', 'Payouts'], desc: 'Runs Restash day to day — sets the buyback pricing, reviews flagged and edge-case claims, and signs off on every payout.' },
-      { group: 'Founders', name: 'Kamryn Washington', role: 'Co-Founder & Intake / Inspection', email: 'kamryn@getrestash.gg', location: 'Cohoes, NY', focus: ['Intake', 'Condition grading', 'Counterfeit checks'], desc: 'Handles games once they arrive — receives shipments, grades condition, and flags counterfeit or non-working copies.' }
-    ],
-    accounts: [
-      { name: 'Alex Rivera', email: 'alex.rivera@email.com', phone: '(518) 555-0123', address: '14 Birch Ln, Cohoes, NY 12047', joined: 'May 2, 2026', flagged: false, notes: [{ text: 'Repeat seller — two smooth payouts so far.', by: 'Connor', date: 'Jun 2, 2026' }] },
-      { name: 'Maya Chen', email: 'maya.chen@email.com', phone: '(518) 555-0142', address: '203 Remsen St, Cohoes, NY 12047', joined: 'Jun 16, 2026', flagged: false, notes: [] },
-      { name: 'Devon Brooks', email: 'devon.brooks@email.com', phone: '(518) 555-0188', address: '88 Vliet Blvd, Cohoes, NY 12047', joined: 'Jun 16, 2026', flagged: false, notes: [] },
-      { name: 'Aisha Khan', email: 'aisha.k@email.com', phone: '(518) 555-0119', address: '5 Mohawk St, Cohoes, NY 12047', joined: 'Jun 15, 2026', flagged: false, notes: [] },
-      { name: 'Liam Foster', email: 'liam.foster@email.com', phone: '(518) 555-0173', address: '47 Ontario St, Cohoes, NY 12047', joined: 'Jun 14, 2026', flagged: false, notes: [] },
-      { name: 'Priya Patel', email: 'priya.patel@email.com', phone: '(518) 555-0150', address: '120 Saratoga St, Cohoes, NY 12047', joined: 'Jun 11, 2026', flagged: false, notes: [] },
-      { name: 'Sam Wright', email: 'sam.wright@email.com', phone: '(518) 555-0167', address: '9 Pleasant Ave, Cohoes, NY 12047', joined: 'Jun 8, 2026', flagged: false, notes: [] },
-      { name: 'Noah Kim', email: 'noah.kim@email.com', phone: '(518) 555-0195', address: '31 Howard St, Cohoes, NY 12047', joined: 'Jun 10, 2026', flagged: true, notes: [{ text: 'Submitted a non-working copy described as Complete. Review future claims carefully.', by: 'Kamryn', date: 'Jun 11, 2026' }] }
-    ],
-    claims: [
-      { ref: 'RS-8M4X2A', cust: 'Maya Chen', email: 'maya.chen@email.com', phone: '(518) 555-0142', payout: 'PayPal', status: 'submitted', createdAt: 'Jun 16, 2026', estLow: 27, estHigh: 33,
-        items: [{ titleName: 'The Legend of Zelda: Tears of the Kingdom', platformName: 'Nintendo Switch', editionName: 'Standard', condName: 'Complete', qty: 1, lineMid: 30 }],
-        history: [{ label: 'Claim submitted', date: 'Jun 16, 2026' }] },
-      { ref: 'RS-3K9P1B', cust: 'Devon Brooks', email: 'devon.brooks@email.com', phone: '(518) 555-0188', payout: 'Check', status: 'submitted', createdAt: 'Jun 16, 2026', estLow: 25, estHigh: 31,
-        items: [{ titleName: 'God of War', platformName: 'PlayStation 4', editionName: 'Standard', condName: 'Complete', qty: 1, lineMid: 12 }, { titleName: 'Red Dead Redemption 2', platformName: 'PlayStation 4', editionName: 'Standard', condName: 'Game Only (Loose)', qty: 2, lineMid: 16 }],
-        history: [{ label: 'Claim submitted', date: 'Jun 16, 2026' }] },
-      { ref: 'RS-5T2W7C', cust: 'Aisha Khan', email: 'aisha.k@email.com', phone: '(518) 555-0119', payout: 'PayPal', status: 'reviewing', assignee: 'Kamryn', createdAt: 'Jun 15, 2026', estLow: 33, estHigh: 40,
-        items: [{ titleName: 'Super Smash Bros. Ultimate', platformName: 'Nintendo Switch', editionName: 'Standard', condName: 'Brand New (Sealed)', qty: 1, lineMid: 36 }],
-        history: [{ label: 'Claim submitted', date: 'Jun 15, 2026' }, { label: 'Under review', date: 'Jun 16, 2026' }] },
-      { ref: 'RS-9B6Q3D', cust: 'Liam Foster', email: 'liam.foster@email.com', phone: '(518) 555-0173', payout: 'Check', status: 'accepted', createdAt: 'Jun 14, 2026', estLow: 10, estHigh: 12,
-        items: [{ titleName: 'Halo: The Master Chief Collection', platformName: 'Xbox One', editionName: 'Standard', condName: 'Complete', qty: 1, lineMid: 11 }],
-        history: [{ label: 'Claim submitted', date: 'Jun 14, 2026' }, { label: 'Under review', date: 'Jun 14, 2026' }, { label: 'Accepted — shipping label emailed', date: 'Jun 15, 2026' }] },
-      { ref: 'RS-7K2Q9P', cust: 'Alex Rivera', email: 'alex.rivera@email.com', phone: '(518) 555-0123', payout: 'PayPal', status: 'received', assignee: 'Connor', notes: [{ text: 'Light scratches on the disc but it plays clean — good for resale.', by: 'Kamryn', date: 'Jun 16, 2026' }], createdAt: 'Jun 12, 2026', estLow: 25, estHigh: 31,
-        items: [{ titleName: 'Mario Kart 8 Deluxe', platformName: 'Nintendo Switch', editionName: 'Standard', condName: 'Complete', qty: 1, lineMid: 28 }],
-        history: [{ label: 'Claim submitted', date: 'Jun 12, 2026' }, { label: 'Under review', date: 'Jun 12, 2026' }, { label: 'Accepted — shipping label emailed', date: 'Jun 13, 2026' }, { label: 'Games received at facility', date: 'Jun 16, 2026' }] },
-      { ref: 'RS-2W8E4F', cust: 'Priya Patel', email: 'priya.patel@email.com', phone: '(518) 555-0150', payout: 'PayPal', status: 'offer', offerAmount: 13, customerResponse: null, createdAt: 'Jun 11, 2026', estLow: 12, estHigh: 14,
-        items: [{ titleName: "Marvel's Spider-Man", platformName: 'PlayStation 4', editionName: 'Standard', condName: 'Complete', qty: 1, lineMid: 13 }],
-        history: [{ label: 'Claim submitted', date: 'Jun 11, 2026' }, { label: 'Under review', date: 'Jun 11, 2026' }, { label: 'Accepted — shipping label emailed', date: 'Jun 12, 2026' }, { label: 'Games received at facility', date: 'Jun 13, 2026' }, { label: 'Offer made: $13', date: 'Jun 14, 2026', note: 'Awaiting customer response.' }] },
-      { ref: 'RS-6N1R5G', cust: 'Sam Wright', email: 'sam.wright@email.com', phone: '(518) 555-0167', payout: 'PayPal', status: 'paid', offerAmount: 14, createdAt: 'Jun 8, 2026', estLow: 13, estHigh: 15,
-        items: [{ titleName: 'Forza Horizon 4', platformName: 'Xbox One', editionName: 'Standard', condName: 'Complete', qty: 1, lineMid: 14 }],
-        history: [{ label: 'Claim submitted', date: 'Jun 8, 2026' }, { label: 'Accepted — shipping label emailed', date: 'Jun 9, 2026' }, { label: 'Games received at facility', date: 'Jun 11, 2026' }, { label: 'Offer made: $14', date: 'Jun 12, 2026' }, { label: 'Customer accepted the offer', date: 'Jun 12, 2026' }, { label: 'Payment authorized via PayPal', date: 'Jun 12, 2026', note: 'PayPal 1–3 business days.' }] },
-      { ref: 'RS-4J7Y2H', cust: 'Noah Kim', email: 'noah.kim@email.com', phone: '(518) 555-0195', payout: 'PayPal', status: 'declined', flagged: true, notes: [{ text: 'Copy looked like a reproduction — poor label print and no hologram. Declined.', by: 'Kamryn', date: 'Jun 11, 2026' }], createdAt: 'Jun 10, 2026', estLow: 9, estHigh: 11,
-        items: [{ titleName: 'Grand Theft Auto V', platformName: 'Xbox One', editionName: 'Standard', condName: 'Complete', qty: 1, lineMid: 10 }],
-        history: [{ label: 'Claim submitted', date: 'Jun 10, 2026' }, { label: 'Declined — not accepted this cycle', date: 'Jun 11, 2026' }] },
-      { ref: 'RS-1A2B3C', cust: 'Alex Rivera', email: 'alex.rivera@email.com', phone: '(518) 555-0123', payout: 'Check', status: 'paid', offerAmount: 24, createdAt: 'May 28, 2026', estLow: 22, estHigh: 26,
-        items: [{ titleName: 'Super Mario Odyssey', platformName: 'Nintendo Switch', editionName: 'Standard', condName: 'Complete', qty: 1, lineMid: 24 }],
-        history: [{ label: 'Claim submitted', date: 'May 28, 2026' }, { label: 'Accepted — shipping label emailed', date: 'May 29, 2026' }, { label: 'Games received at facility', date: 'Jun 1, 2026' }, { label: 'Offer made: $24', date: 'Jun 2, 2026' }, { label: 'Customer accepted the offer', date: 'Jun 2, 2026' }, { label: 'Payment authorized via Check', date: 'Jun 2, 2026', note: 'Check 3–5 business days.' }] }
-    ]
+    team: [], accounts: [], claims: []
   };
 
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -384,7 +345,7 @@
   const initials = (name) => name.split(/\s+/).map(p => p[0]).slice(0, 2).join('').toUpperCase();
   const itemsSummary = (items) => { const n = items.reduce((s, i) => s + i.qty, 0); const plats = items.map(i => i.platformName).filter((x, i, a) => a.indexOf(x) === i); return n + ' game' + (n > 1 ? 's' : '') + ' · ' + plats.join(', '); };
   const estMid = (c) => Math.round((c.estLow + c.estHigh) / 2);
-  const destOf = (c) => c.payout === 'PayPal' ? c.email : (findAccount(c.email) ? findAccount(c.email).address : '—');
+  const destOf = (c) => c.payout === 'PayPal' ? c.email : (c.address || (findAccount(c.email) ? findAccount(c.email).address : '—'));
   const methodPill = (m) => '<span class="method-pill ' + (m === 'PayPal' ? 'm-pp' : 'm-ck') + '">' + m + '</span>';
   function pushHistory(c, label, note) { c.history.push(note ? { label, date: todayStr(), note } : { label, date: todayStr() }); }
   function flashMsg(slot) { return (state.flash && state.flash.slot === slot) ? '<div class="inline-msg ' + state.flash.kind + '">' + esc(state.flash.text) + '</div>' : ''; }
@@ -443,8 +404,7 @@
       live = true;
       if (!c.customerResponse) {
         header = 'Awaiting customer';
-        body = '<div class="action-cur">Offer of <strong>$' + c.offerAmount + '</strong> sent. The customer accepts or declines it in their account before you can pay or return — so this step is locked until they respond.</div>'
-          + '<div class="sim-box"><div class="sim-label">' + I.info + 'Preview only. In the live app this comes from the customer on restash.gg — here you can simulate their response.</div><div class="sim-buttons"><button class="btn btn-secondary btn-sm" data-action="cust-accept" data-ref="' + c.ref + '">Customer accepts</button><button class="btn btn-secondary btn-sm" data-action="cust-decline" data-ref="' + c.ref + '">Customer declines</button></div></div>';
+        body = '<div class="action-cur">Offer of <strong>$' + c.offerAmount + '</strong> sent. This step is locked until the customer accepts or declines it in their own account.</div>';
       } else if (c.customerResponse === 'accepted') {
         header = 'Customer accepted';
         body = '<div class="action-cur">The customer accepted the <strong>$' + c.offerAmount + '</strong> offer. Authorize the payout to close this claim.</div><div class="actions"><button class="btn btn-primary" data-action="authorize-pay" data-ref="' + c.ref + '">Authorize ' + esc(c.payout) + ' payment</button></div>';
@@ -466,7 +426,7 @@
   }
 
   function assignBar(c) {
-    const me = state.admin.name;
+    const mine = c.assigneeId && c.assigneeId === state.admin.id;
     const done = ['paid', 'declined', 'returned'].indexOf(c.status) !== -1;
     if (done) {
       if (!c.assignee) return '';
@@ -474,7 +434,7 @@
     }
     let info, btn;
     if (!c.assignee) { info = '<span class="none">Unassigned</span>'; btn = '<button class="btn btn-secondary btn-sm" data-action="claim-take" data-ref="' + c.ref + '">Claim this</button>'; }
-    else if (c.assignee === me) { info = '<span class="who">You’re handling this</span>'; btn = '<button class="btn btn-secondary btn-sm" data-action="claim-release" data-ref="' + c.ref + '">Release</button>'; }
+    else if (mine) { info = '<span class="who">You’re handling this</span>'; btn = '<button class="btn btn-secondary btn-sm" data-action="claim-release" data-ref="' + c.ref + '">Release</button>'; }
     else { info = '<span class="who">' + esc(c.assignee) + '</span> is handling this'; btn = '<button class="btn btn-secondary btn-sm" data-action="claim-take" data-ref="' + c.ref + '">Take over</button>'; }
     return '<div class="assign-bar"><span class="assign-info">' + I.user + info + '</span>' + btn + '</div>';
   }
@@ -615,7 +575,7 @@
     if (e.target && e.target.id === 'admin-search') { state.search = e.target.value; const r = document.getElementById('list-region'); if (r) r.innerHTML = listRegionHTML(); }
   });
 
-  document.body.addEventListener('click', (e) => {
+  document.body.addEventListener('click', async (e) => {
     const el = e.target.closest('[data-action]'); if (!el) return;
     const a = el.dataset.action, v = el.dataset.value, ref = el.dataset.ref;
 
@@ -625,48 +585,82 @@
       const err = document.getElementById('lg-error');
       if (!emailOk(email)) { err.textContent = 'Enter a valid email.'; err.hidden = false; return; }
       if (!pass) { err.textContent = 'Enter your password.'; err.hidden = false; return; }
-      state.loggedIn = true; state.tab = 'claims'; go('dashboard');
+      el.disabled = true;
+      try {
+        await RestashAPI.signIn({ email, password: pass });
+        const prof = await RestashAPI.getProfile();
+        if (!prof || prof.role !== 'staff') { await RestashAPI.signOut(); el.disabled = false; err.textContent = 'This account is not authorized for the console.'; err.hidden = false; return; }
+        state.admin = { name: prof.full_name, id: prof.id };
+        state.loggedIn = true; state.tab = 'claims';
+        await loadData(); go('dashboard');
+      } catch (e2) { el.disabled = false; err.textContent = e2.message || 'Could not sign in.'; err.hidden = false; }
     }
-    else if (a === 'logout') { state.loggedIn = false; state.search = ''; state.filter = 'all'; go('login'); }
-    else if (a === 'tab') { state.tab = v; state.search = ''; go(TAB_VIEW[v]); }
+    else if (a === 'logout') { try { await RestashAPI.signOut(); } catch (e3) {} state.loggedIn = false; state.search = ''; state.filter = 'all'; state.claims = []; state.accounts = []; state.team = []; go('login'); }
+    else if (a === 'tab') { state.tab = v; state.search = ''; if (v === 'team') await ensureTeam(); go(TAB_VIEW[v]); }
     else if (a === 'to-claims') { state.tab = 'claims'; go('dashboard'); }
     else if (a === 'to-accounts') { state.tab = 'accounts'; go('accounts'); }
     else if (a === 'filter' || a === 'stat') { state.filter = (a === 'stat' && state.filter === v) ? 'all' : v; render(); }
-    else if (a === 'open-claim') { state.activeRef = ref; go('claimDetail'); }
-    else if (a === 'open-account' || a === 'view-account') { state.activeEmail = v; go('accountDetail'); }
+    else if (a === 'open-claim') { state.activeRef = ref; await openClaim(ref); }
+    else if (a === 'open-account' || a === 'view-account') { state.activeEmail = v; await openAccount(v); }
 
-    else if (a === 'st-review') { const c = findClaim(ref); c.status = 'reviewing'; pushHistory(c, 'Under review'); render(); }
-    else if (a === 'st-accept') { const c = findClaim(ref); c.status = 'accepted'; pushHistory(c, 'Accepted — shipping label emailed'); render(); }
-    else if (a === 'st-decline') { const c = findClaim(ref); c.status = 'declined'; pushHistory(c, 'Declined — not accepted'); render(); }
-    else if (a === 'st-received') { const c = findClaim(ref); c.status = 'received'; pushHistory(c, 'Games received at facility'); render(); }
-    else if (a === 'st-offer') { state.flash = null; state.offerOpen = true; render(); }
+    else if (a === 'st-review')    { await act(function () { return RestashAPI.reviewClaim(ref); }, ref); }
+    else if (a === 'st-accept')    { await act(function () { return RestashAPI.acceptClaim(ref); }, ref); }
+    else if (a === 'st-decline')   { await act(function () { return RestashAPI.declineClaim(ref); }, ref); }
+    else if (a === 'st-received')  { await act(function () { return RestashAPI.markReceived(ref); }, ref); }
+    else if (a === 'st-offer')     { state.flash = null; state.offerOpen = true; render(); }
     else if (a === 'cancel-offer') { state.flash = null; state.offerOpen = false; render(); }
     else if (a === 'send-offer') {
-      const c = findClaim(ref); const amt = parseInt(document.getElementById('offer-amount').value, 10);
-      const mid = estMid(c), lo = Math.max(1, Math.round(mid * 0.7)), hi = Math.round(mid * 1.1);
-      if (!amt || amt < lo || amt > hi) { state.flash = { slot: 'offer', kind: 'err', text: 'Offer must be between $' + lo + ' and $' + hi + ' for this claim.' }; render(); return; }
-      c.offerAmount = amt; c.customerResponse = null; c.status = 'offer'; pushHistory(c, 'Offer made: $' + amt, 'Awaiting customer response.');
-      state.offerOpen = false; state.flash = null; render();
+      const amt = parseInt(document.getElementById('offer-amount').value, 10);
+      try { await RestashAPI.makeOffer(ref, amt); state.offerOpen = false; state.flash = null; await refreshAll(ref); }
+      catch (e2) { state.flash = { slot: 'offer', kind: 'err', text: e2.message }; render(); }
     }
-    else if (a === 'st-reject') { const c = findClaim(ref); c.status = 'returned'; pushHistory(c, 'Rejected on inspection — returning to seller', 'We\u2019ll email tracking.'); render(); }
-    else if (a === 'cust-accept') { const c = findClaim(ref); c.customerResponse = 'accepted'; pushHistory(c, 'Customer accepted the offer'); render(); }
-    else if (a === 'cust-decline') { const c = findClaim(ref); c.customerResponse = 'declined'; pushHistory(c, 'Customer declined the offer'); render(); }
-    else if (a === 'authorize-pay') { const c = findClaim(ref); c.status = 'paid'; pushHistory(c, 'Payment authorized via ' + c.payout, c.payout === 'PayPal' ? 'PayPal 1–3 business days.' : 'Check 3–5 business days.'); render(); }
-    else if (a === 'confirm-return') { const c = findClaim(ref); c.status = 'returned'; pushHistory(c, 'Games returned to seller', 'We\u2019ll email tracking.'); render(); }
+    else if (a === 'st-reject')      { await act(function () { return RestashAPI.rejectReturn(ref); }, ref); }
+    else if (a === 'authorize-pay')  { await act(function () { return RestashAPI.authorizePayment(ref); }, ref); }
+    else if (a === 'confirm-return') { await act(function () { return RestashAPI.confirmReturn(ref); }, ref); }
 
-    else if (a === 'flag-toggle') { const ac = findAccount(v); ac.flagged = !ac.flagged; render(); }
+    else if (a === 'flag-toggle') { const ac = findAccount(v); if (!ac) return; try { await RestashAPI.setAccountFlag(ac.id, !ac.flagged); await refreshAccount(v); } catch (e2) { alert(e2.message); } }
     else if (a === 'add-note') {
-      const ac = findAccount(v); const ta = document.getElementById('note-input'); const txt = ta.value.trim();
+      const ta = document.getElementById('note-input'); const txt = ta ? ta.value.trim() : '';
       if (!txt) { state.flash = { slot: 'note', kind: 'err', text: 'Write a note first.' }; render(); return; }
-      if (!ac.notes) ac.notes = []; ac.notes.push({ text: txt, by: state.admin.name, date: todayStr() }); state.flash = null; render();
+      const ac = findAccount(v); if (!ac) return;
+      try { await RestashAPI.addAccountNote(ac.id, txt); state.flash = null; await refreshAccount(v); } catch (e2) { state.flash = { slot: 'note', kind: 'err', text: e2.message }; render(); }
     }
-    else if (a === 'claim-flag') { const c = findClaim(v); c.flagged = !c.flagged; render(); }
-    else if (a === 'claim-note') { const c = findClaim(v); const ta = document.getElementById('claim-note-input'); const txt = ta.value.trim(); if (!txt) { state.flash = { slot: 'note', kind: 'err', text: 'Write a note first.' }; render(); return; } if (!c.notes) c.notes = []; c.notes.push({ text: txt, by: state.admin.name, date: todayStr() }); state.flash = null; render(); }
-    else if (a === 'claim-take') { const c = findClaim(ref); c.assignee = state.admin.name; pushHistory(c, state.admin.name + ' is handling this claim'); render(); }
-    else if (a === 'claim-release') { const c = findClaim(ref); pushHistory(c, state.admin.name + ' released this claim'); c.assignee = null; render(); }
+    else if (a === 'claim-flag') { const c = findClaim(v); if (!c) return; try { await RestashAPI.setClaimFlag(v, !c.flagged); await refreshAll(v); } catch (e2) { alert(e2.message); } }
+    else if (a === 'claim-note') {
+      const ta = document.getElementById('claim-note-input'); const txt = ta ? ta.value.trim() : '';
+      if (!txt) { state.flash = { slot: 'note', kind: 'err', text: 'Write a note first.' }; render(); return; }
+      try { await RestashAPI.addClaimNote(v, txt); state.flash = null; await refreshAll(v); } catch (e2) { state.flash = { slot: 'note', kind: 'err', text: e2.message }; render(); }
+    }
+    else if (a === 'claim-take')    { await act(function () { return RestashAPI.assignClaim(ref); }, ref); }
+    else if (a === 'claim-release') { await act(function () { return RestashAPI.releaseClaim(ref); }, ref); }
   });
 
-  render();
+  // ---- data loading + helpers ----
+  async function loadData() { state.claims = await RestashAPI.allClaims(); state.accounts = await RestashAPI.accounts(); }
+  async function ensureTeam() { if (!state.team.length) { try { state.team = await RestashAPI.team(); } catch (e) {} } }
+  async function mergeClaimDetail(ref) { const d = await RestashAPI.staffClaimByRef(ref); const i = state.claims.findIndex(function (c) { return c.ref === ref; }); if (i >= 0) state.claims[i] = d; else state.claims.unshift(d); }
+  async function mergeAccountDetail(email) { const d = await RestashAPI.accountByEmail(email); const i = state.accounts.findIndex(function (x) { return x.email === email; }); if (i >= 0) state.accounts[i] = d; else state.accounts.unshift(d); }
+  async function refreshAll(ref) { state.claims = await RestashAPI.allClaims(); if (ref) { try { await mergeClaimDetail(ref); } catch (e) {} } render(); }
+  async function refreshAccount(email) { state.accounts = await RestashAPI.accounts(); try { await mergeAccountDetail(email); } catch (e) {} render(); }
+  async function openClaim(ref) { try { await mergeClaimDetail(ref); } catch (e) { alert(e.message); } go('claimDetail'); }
+  async function openAccount(email) { try { await mergeAccountDetail(email); } catch (e) { alert(e.message); } go('accountDetail'); }
+  async function act(fn, ref) { try { await fn(); } catch (e) { alert(e.message || 'Action failed'); return; } await refreshAll(ref); }
+
+  async function boot() {
+    if (!RestashAPI.configured) {
+      document.getElementById('screen').innerHTML = '<div class="login-wrap"><div class="login-card"><h1 class="login-title">Console not configured</h1><p class="form-error" style="display:block">Add your Supabase URL and anon key to config.js, then reload.</p></div></div>';
+      syncTopbar(); return;
+    }
+    try {
+      const u = await RestashAPI.currentUser();
+      if (u) {
+        const prof = await RestashAPI.getProfile();
+        if (prof && prof.role === 'staff') { state.admin = { name: prof.full_name, id: prof.id }; state.loggedIn = true; state.tab = 'claims'; await loadData(); state.view = 'dashboard'; }
+      }
+    } catch (e) { console.error(e); }
+    render();
+  }
+  boot();
 </script>
 </body>
 </html>
