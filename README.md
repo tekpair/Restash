@@ -7,7 +7,7 @@ A recommerce platform for buying physical video games back from sellers. Custome
 
 Domain: **getrestash.gg** · Contact: **hello@getrestash.gg** · Governing law: **New York (Cohoes, Albany County)**
 
-Live URL (GitHub Pages): _add after enabling Pages_
+Live URL (GitHub Pages): **https://tekpair.github.io/Restash/** — staff console at **https://tekpair.github.io/Restash/console.html**
 
 ---
 
@@ -118,9 +118,10 @@ These are correct in the prototype and must carry into production:
 
 ## Deploying this prototype to GitHub Pages
 
-1. Put `index.html`, `admin.html`, and this `README.md` in the repo root on the `main` branch.
+1. Put `index.html`, `console.html`, and this `README.md` in the repo root on the `main` branch. (A `.nojekyll` file is included so GitHub Pages serves the files as-is, without Jekyll processing.)
 2. Repo **Settings → Pages → Build and deployment → Source: Deploy from a branch → `main` / `(root)` → Save.**
-3. Wait ~1 minute. The site is at `https://<username>.github.io/<repo>/`; the console at `…/admin.html`.
-4. Custom domain (getrestash.gg): **Settings → Pages → Custom domain**, enter the domain, then add the DNS records GitHub shows you at your registrar (apex A-records + a `www` CNAME). Follow GitHub's current Pages custom-domain docs for the exact values, then enable **Enforce HTTPS**.
+3. Wait ~1 minute. The site is at `https://tekpair.github.io/Restash/`; the console at `…/console.html`.
+4. **Asset/link paths are relative** so the project subpath (`/Restash/`) works. SEO/social tags (canonical, Open Graph, sitemap, robots) point at `https://tekpair.github.io/Restash/` — the current live URL.
+5. Custom domain (getrestash.gg) later: **Settings → Pages → Custom domain**, enter the domain, then add the DNS records GitHub shows you at your registrar (apex A-records + a `www` CNAME). Follow GitHub's current Pages custom-domain docs for the exact values, then enable **Enforce HTTPS**. When you do, update the SEO/social URLs (canonical, `og:url`, `og:image`, `sitemap.xml`, `robots.txt`) back to the custom domain — relative asset paths will keep working as-is.
 
 Reminder: this hosts the console publicly. Fine for a demo with fake data; move it behind real auth before launch (see section 1).
