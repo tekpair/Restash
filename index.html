@@ -595,8 +595,8 @@
         + '<button class="btn btn-primary full" data-action="submit-claim">Submit claim</button></div>';
     },
     success() {
-      const cl = findClaim(state.activeClaimRef) || state.claims[state.claims.length - 1];
-      const first = cl.cust ? cl.cust.split(/\s+/)[0] : '';
+      const cl = findClaim(state.activeClaimRef) || state.claims[0];
+      const first = (state.user.name || '').split(/\s+/)[0] || '';
       const steps = [
         { t: 'Submit your claim', done: true },
         { t: 'We review your claim within 2–3 business days', done: false },
@@ -650,7 +650,7 @@
     },
     account() {
       const u = state.user;
-      const mine = state.claims.slice().reverse();
+      const mine = state.claims.slice();
       const claimsHtml = mine.length ? mine.map(c =>
         '<button class="claim-row" data-action="goto" data-value="claimDetail" data-ref="' + c.ref + '"><span class="claim-main"><span class="claim-item">' + esc(c.itemName) + '</span><span class="claim-ref">' + esc(c.platform) + ' · ' + c.ref + ' · ' + c.createdAt + '</span></span>' + badge(c.status) + '<span class="chev">' + I.chevron + '</span></button>'
       ).join('') : '<div class="empty">No claims yet. <a data-action="home">Sell a game</a>.</div>';

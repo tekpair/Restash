@@ -2,41 +2,55 @@
 
 A recommerce platform for buying physical video games back from sellers. Customers submit games, get an estimate, ship them in, and get paid by PayPal or check. This repo holds two front-end surfaces:
 
-- **`index.html`** — the customer app (the public site at getrestash.gg). Buyback flow: platform → title → edition → condition → cart → claim → track status → accept or decline offers, plus account/profile.
-- **`admin.html`** — the internal staff console. Review claims, claim/assign ownership, inspect, make offers (with a fair-price guardrail), process payouts, manage customer accounts, leave notes/flags, and view the team/department directory.
+- **`index.html`** — the customer app. Buyback flow: platform → title → edition → condition → cart → claim → track status → accept or decline offers, plus account/profile.
+- **`console.html`** — the internal staff console. Review claims, claim/assign ownership, inspect, make offers (with a fair-price guardrail), record payouts, manage customer accounts, leave notes/flags, and view the team/department directory.
 
-Domain: **getrestash.gg** · Contact: **hello@getrestash.gg** · Governing law: **New York (Cohoes, Albany County)**
+Contact: **hello@getrestash.gg** · Governing law: **New York (Cohoes, Albany County)**
 
 Live URL (GitHub Pages): **https://tekpair.github.io/Restash/** — staff console at **https://tekpair.github.io/Restash/console.html**
 
 ---
 
-## Current status: front-end prototype (NOT production)
+## Current status: Supabase-backed, launching without a custom domain
 
-Both files are **single-file, front-end-only HTML/CSS/vanilla-JS prototypes** that run entirely in the browser with **in-memory seeded data**. There is:
+The two surfaces are static HTML/CSS/vanilla-JS, served on GitHub Pages and
+wired to **Supabase** for real auth, database, and server-side logic. **→ See
+[`SUPABASE-SETUP.md`](SUPABASE-SETUP.md) to take it live.**
 
-- no backend, no database (all data lives in JS `state.*` objects and resets on refresh),
-- no real authentication (both logins accept any credentials),
-- no real payments, email, or shipping labels.
+What's real now:
+- **Supabase Auth** — customer signup/login/reset; the console is gated by a
+  `staff` role + Row-Level Security (reachable URL, but no data/actions
+  without a staff account).
+- **Postgres + RLS** — customers see only their own claims; staff see all.
+- **Server-side pricing + offer guardrail** — estimates/line values are
+  computed from the catalog in the DB (client numbers ignored); staff offers
+  are forced into the fair band by the database.
+- **Shared claim state machine** with the customer-gated offer step.
 
-Treat the visuals, flows, copy, status machine, and policies as **the design spec**. Everything in the launch checklist below is what must be built or replaced to go live.
+What's deferred (by choice, for this first launch):
+- **Payouts are manual** — the app records them; staff send the actual
+  PayPal/check and mark it paid. (No PayPal Payouts API yet.)
+- **Email is wired but in test mode** until a sending domain is verified
+  (see [`EMAIL-SETUP.md`](EMAIL-SETUP.md)).
+- **Catalog pricing is placeholder** — replace before taking real claims.
+- **Legal copy is a template** — have an attorney review before launch.
 
-To preview: open either file in a browser. No build step.
+### Stack
+- **GitHub Pages** — static hosting for both surfaces (no build step).
+- **Supabase** — Postgres + Auth + Row-Level Security + Edge Functions.
+- **Resend** — transactional email (via a Supabase Edge Function).
+- Front-end talks to Supabase with the public **anon key** (`config.js`);
+  all privileged logic lives in SECURITY DEFINER functions / Edge Functions.
 
----
-
-## Production launch — what to build / change
-
-### Planned stack
-- **Next.js** (App Router) — replaces the static HTML. One app serves the public customer site; a separate protected area serves the console.
-- **Supabase** — Postgres + Auth + Row-Level Security (RLS) + Storage.
-- **Resend** — transactional email.
-
-### 1. Authentication & access control
-- Replace the fake logins (both files accept anything) with **Supabase Auth**.
-- Customers: email/password or magic link.
-- Staff: a separate **role** (e.g. `role = 'staff'`) enforced with **RLS** and a server-side check.
-- **The console must not be publicly reachable.** As shipped on GitHub Pages it is open to anyone with the URL (it only holds fake data, which is fine for a demo). For launch, gate it behind real auth + role and host it on a protected deployment — **not public GitHub Pages**.
+### 1. Authentication & access control — DONE
+- Fake logins replaced with **Supabase Auth** (`js/api.js`).
+- Customers: email/password (+ password reset).
+- Staff: `profiles.role = 'staff'`, enforced with **RLS** and checked both on
+  console sign-in and in every staff RPC.
+- **Console exposure:** the console HTML is reachable by URL on GitHub Pages,
+  but RLS makes it inert without a staff session — no data loads and no action
+  succeeds. `noindex` keeps it out of search. (If you later want stronger
+  isolation, move `console.html` to a separate access-restricted host.)
 
 ### 2. Database (replace the seeded arrays)
 The prototype `state.*` arrays show the intended shape. Model at least:
