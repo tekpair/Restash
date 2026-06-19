@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="color-scheme" content="light dark" />
+<meta name="supported-color-schemes" content="light dark" />
+<title>Restash</title>
+<!--
+  RESTASH EMAIL TEMPLATE (preview)
+  - This file mirrors the HTML produced by supabase/functions/send-email/index.ts.
+  - No background on the content: it sits on whatever surface the mail client shows
+    (white in light mode, near-black in dark mode), so it never looks "off" when a
+    user flips modes.
+  - Brand purple (#5b3fd6) is used for the logo, headings, amount, and button — it
+    reads on both light and dark. Body text swaps to a light tone in dark mode via the
+    media query below (supported in Apple Mail, etc.; Gmail does its own adjustment).
+  - The logo is a hosted PNG, not an SVG, because many clients don't render inline SVG.
+-->
+<style>
+  /* Dark-mode overrides. !important is required to beat inline styles. */
+  @media (prefers-color-scheme: dark) {
+    .t-ink   { color: #e8e8f2 !important; }
+    .t-muted { color: #a9a9c2 !important; }
+    .hairline td { border-color: #34345a !important; }
+  }
+  @media only screen and (max-width: 600px) {
+    .container { width: 100% !important; }
+    .px { padding-left: 22px !important; padding-right: 22px !important; }
+  }
+  a { text-decoration: none; }
+</style>
+</head>
+<body style="margin:0; padding:0; background:transparent; width:100%; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%;">
+  <!-- preheader (hidden preview text) -->
+  <div style="display:none; max-height:0; overflow:hidden; opacity:0;">You've got an offer on your Restash claim — review and accept to get paid.</div>
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:transparent;">
+    <tr>
+      <td align="center" style="padding:32px 16px;">
+        <table role="presentation" class="container" width="600" cellpadding="0" cellspacing="0" style="width:600px; max-width:600px;">
+
+          <!-- Logo -->
+          <tr>
+            <td class="px" style="padding:0 8px 28px;">
+              <img src="https://getrestash.gg/email-logo.png" alt="Restash" width="150" style="display:block; width:150px; height:auto; border:0; outline:none;" />
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td class="px" style="padding:0 8px;">
+              <h1 class="t-ink" style="margin:0 0 14px; font-family:'Bricolage Grotesque', Georgia, serif; font-size:26px; line-height:1.2; font-weight:700; letter-spacing:-0.02em; color:#5b3fd6;">
+                You've got an offer
+              </h1>
+              <p class="t-ink" style="margin:0 0 8px; font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:16px; line-height:1.55; color:#1b1d3a;">
+                Hi Alex, we reviewed the games in claim <strong>RS-7K2Q9P</strong> and made you an offer:
+              </p>
+
+              <!-- Amount (no box — purple reads on both modes) -->
+              <p style="margin:18px 0 4px; font-family:'Bricolage Grotesque', Georgia, serif; font-size:46px; line-height:1; font-weight:700; letter-spacing:-0.02em; color:#5b3fd6;">
+                $27
+              </p>
+              <p class="t-muted" style="margin:0 0 22px; font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:14px; line-height:1.5; color:#6a6d8c;">
+                for Mario Kart 8 Deluxe (Nintendo Switch)
+              </p>
+
+              <p class="t-ink" style="margin:0 0 26px; font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:16px; line-height:1.55; color:#1b1d3a;">
+                Review it in your account. Accept to get paid by PayPal, or decline and we'll send your games back to you free.
+              </p>
+
+              <!-- Button -->
+              <table role="presentation" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td align="center" bgcolor="#5b3fd6" style="border-radius:12px;">
+                    <a href="https://getrestash.gg/" style="display:inline-block; padding:14px 28px; font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:16px; font-weight:600; color:#ffffff; border-radius:12px;">
+                      Review your offer
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <p class="t-muted" style="margin:24px 0 0; font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:13.5px; line-height:1.5; color:#6a6d8c;">
+                This offer reflects the condition and authenticity we confirmed on inspection.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Divider -->
+          <tr>
+            <td class="px" style="padding:28px 8px 0;">
+              <table role="presentation" class="hairline" width="100%" cellpadding="0" cellspacing="0">
+                <tr><td style="border-top:1px solid #e6e5f1; font-size:0; line-height:0;">&nbsp;</td></tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td class="px" style="padding:18px 8px 0;">
+              <p class="t-muted" style="margin:0 0 6px; font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:12.5px; line-height:1.5; color:#6a6d8c;">
+                Restash · Cohoes, NY · <a href="mailto:hello@getrestash.gg" style="color:#5b3fd6;">hello@getrestash.gg</a>
+              </p>
+              <p class="t-muted" style="margin:0; font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:12px; line-height:1.5; color:#9a9ab4;">
+                You're receiving this because you have a claim with Restash. Estimates and offers are not guaranteed until accepted. PlayStation, Xbox, Nintendo, and all game titles are trademarks of their respective owners; Restash is not affiliated with them.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Restash · Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --ink: #1b1d3a; --muted: #6a6d8c;
+    --purple: #5b3fd6; --purple-deep: #46309f; --purple-tint: #ece8fb; --purple-tint-2: #f4f1fd;
+    --navy-1: #2b2e66; --navy-2: #15173a;
+    --gold-soft: #fbf4e3; --gold-label: #8a6a12;
+    --amber-tint: #fbf1dd; --amber: #9a6a06;
+    --red: #b3261e; --red-soft: #fbeae8; --red-border: #f0c7c3;
+    --blue: #1c5e8a; --blue-soft: #e6f0f6;
+    --bg: #f2f2f8; --surface: #ffffff; --border: #e6e5f1;
+    --display: "Bricolage Grotesque", "Plus Jakarta Sans", system-ui, sans-serif;
+    --body: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--body); background: var(--bg); color: var(--ink); -webkit-font-smoothing: antialiased; }
+  svg { display: block; }
+  a { color: var(--purple); }
+
+  .topbar { position: sticky; top: 0; z-index: 30; background: var(--surface); border-bottom: 1px solid var(--border); }
+  .tb-inner { max-width: 1000px; margin: 0 auto; padding: 13px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .tb-left { display: flex; align-items: center; gap: 9px; }
+  .logo-mark { width: 30px; height: 30px; border-radius: 9px; background: var(--purple-tint); color: var(--purple); display: flex; align-items: center; justify-content: center; }
+  .logo-mark svg { width: 18px; height: 18px; }
+  .logo-word { font-family: var(--display); font-weight: 700; font-size: 19px; letter-spacing: -0.02em; color: var(--ink); }
+  .admin-pill { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--purple); background: var(--purple-tint); padding: 3px 9px; border-radius: 999px; margin-left: 2px; }
+  .tb-right { display: flex; align-items: center; gap: 12px; font-size: 13.5px; }
+  .tb-user { font-weight: 600; color: var(--ink); }
+  .tb-logout { display: inline-flex; align-items: center; gap: 5px; background: none; border: 1.5px solid var(--border); color: var(--ink); font-family: var(--body); font-size: 13px; font-weight: 500; padding: 7px 12px; border-radius: 9px; cursor: pointer; }
+  .tb-logout svg { width: 15px; height: 15px; }
+  .tb-logout:hover { border-color: var(--purple); background: var(--purple-tint-2); color: var(--purple); }
+
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 24px 24px 60px; }
+  .screen { animation: fade .22s ease; }
+  @keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+  .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 20px; overflow-x: auto; }
+  .tab { flex: none; background: none; border: none; border-bottom: 2px solid transparent; font-family: var(--body); font-size: 14.5px; font-weight: 600; color: var(--muted); padding: 10px 4px; margin-right: 22px; cursor: pointer; margin-bottom: -1px; white-space: nowrap; }
+  .tab.on { color: var(--purple); border-bottom-color: var(--purple); }
+  .tab:hover { color: var(--ink); }
+  .tabs::-webkit-scrollbar, .chips::-webkit-scrollbar { display: none; }
+  .tabs, .chips { scrollbar-width: none; -ms-overflow-style: none; }
+
+
+  .stats { margin-top: 18px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .stat { text-align: left; background: var(--surface); border: 1.5px solid var(--border); border-radius: 14px; padding: 15px 16px; cursor: pointer; font-family: var(--body); transition: border-color .15s ease, transform .15s ease; }
+  .stat:hover { border-color: var(--purple); transform: translateY(-1px); }
+  .stat.on { border-color: var(--purple); background: var(--purple-tint-2); }
+  .stat-top { display: flex; align-items: center; gap: 8px; color: var(--muted); }
+  .stat-top svg { width: 16px; height: 16px; }
+  .stat-label { font-size: 12px; font-weight: 600; }
+  .stat-num { font-family: var(--display); font-weight: 700; font-size: 30px; letter-spacing: -0.02em; color: var(--ink); margin-top: 8px; line-height: 1; }
+  .stat.read { cursor: default; }
+  .stat.read:hover { border-color: var(--border); transform: none; }
+
+  .toolbar { margin-top: 20px; display: flex; flex-direction: column; gap: 14px; }
+  .search { position: relative; }
+  .search svg { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: #a7a6c0; }
+  .search input { width: 100%; font-family: var(--body); font-size: 14.5px; color: var(--ink); background: var(--surface); border: 1.5px solid var(--border); border-radius: 11px; padding: 11px 13px 11px 38px; }
+  .search input:focus { outline: none; border-color: var(--purple); box-shadow: 0 0 0 3px rgba(91,63,214,0.16); }
+  .chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; -webkit-overflow-scrolling: touch; }
+  .chip { flex: none; background: var(--surface); border: 1.5px solid var(--border); color: var(--muted); font-family: var(--body); font-size: 13px; font-weight: 600; padding: 7px 13px; border-radius: 999px; cursor: pointer; white-space: nowrap; }
+  .chip:hover { border-color: var(--purple); color: var(--purple); }
+  .chip.on { background: var(--purple); border-color: var(--purple); color: #fff; }
+
+  .rows { margin-top: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .row { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; background: var(--surface); border: 1.5px solid var(--border); border-radius: 14px; padding: 15px 17px; cursor: pointer; font-family: var(--body); color: var(--ink); transition: border-color .15s ease, background .15s ease; }
+  .row:hover { border-color: var(--purple); background: var(--purple-tint-2); }
+  .row:focus-visible { outline: none; border-color: var(--purple); box-shadow: 0 0 0 3px rgba(91,63,214,0.16); }
+  .row-avatar { flex: none; width: 42px; height: 42px; border-radius: 11px; background: var(--purple-tint); color: var(--purple); display: flex; align-items: center; justify-content: center; font-family: var(--display); font-weight: 700; font-size: 16px; }
+  .row-avatar svg { width: 21px; height: 21px; }
+  .row-main { flex: 1; min-width: 0; }
+  .row-line1 { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .row-name { font-size: 15.5px; font-weight: 600; letter-spacing: -0.01em; }
+  .row-meta { font-size: 12.5px; color: var(--muted); margin-top: 3px; overflow: hidden; text-overflow: ellipsis; }
+  .row-right { flex: none; text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
+  .row-amt { font-family: var(--display); font-weight: 700; font-size: 16px; letter-spacing: -0.01em; }
+  .row-date { font-size: 11.5px; color: #a7a6c0; }
+  .chev { flex: none; color: #c2c0d6; display: flex; }
+  .chev svg { width: 19px; height: 19px; }
+  .empty { text-align: center; padding: 40px 10px; color: var(--muted); font-size: 14px; }
+
+  .badge { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; padding: 3px 10px; border-radius: 999px; }
+  .badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .s-grey { color: #6b6e8c; background: #ecebf4; }
+  .s-amber { color: var(--amber); background: var(--amber-tint); }
+  .s-blue { color: var(--blue); background: var(--blue-soft); }
+  .s-gold { color: var(--gold-label); background: var(--gold-soft); }
+  .s-purple { color: var(--purple); background: var(--purple-tint); }
+  .s-red { color: var(--red); background: var(--red-soft); }
+
+  .backbtn { display: inline-flex; align-items: center; gap: 4px; font-family: var(--body); font-size: 13.5px; font-weight: 500; color: var(--muted); background: none; border: none; cursor: pointer; padding: 2px 0; margin-bottom: 8px; }
+  .backbtn svg { width: 16px; height: 16px; }
+  .backbtn:hover { color: var(--purple); }
+  .detail-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-top: 6px; }
+  .detail-ref { font-family: var(--display); font-weight: 700; font-size: 24px; letter-spacing: -0.02em; }
+  .detail-date { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .head-tags { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; align-items: start; }
+
+  .gold-card { position: relative; overflow: hidden; border-radius: 16px; padding: 22px 22px; text-align: center;
+    background:
+      radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1.6px) 0 0 / 16px 16px,
+      radial-gradient(120% 85% at 50% 0%, rgba(255,224,128,0.13) 0%, rgba(255,224,128,0) 58%),
+      linear-gradient(165deg, var(--navy-1) 0%, var(--navy-2) 100%);
+    border: 1px solid #353873; }
+  .gold-card .gl { font-size: 11px; font-weight: 600; letter-spacing: 0.10em; text-transform: uppercase; color: #aeb0db; }
+  .gold-num { display: block; font-family: var(--display); font-weight: 700; font-size: 38px; line-height: 1; letter-spacing: -0.02em; margin-top: 8px;
+    background: linear-gradient(96deg, #efc94a 0%, #ffe680 28%, #fff3b8 50%, #ffe680 72%, #efc94a 100%);
+    background-size: 220% auto; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent;
+    filter: drop-shadow(0 0 8px rgba(255,213,90,0.28)); animation: shimmer 3.2s linear infinite; }
+  @keyframes shimmer { to { background-position: 220% center; } }
+
+  .card { background: var(--surface); border: 1.5px solid var(--border); border-radius: 16px; padding: 18px 18px; }
+  .card + .card { margin-top: 16px; }
+  .gold-card.joined { border-radius: 16px 16px 0 0; }
+  .card.joined { border-radius: 0 0 16px 16px; border-top: none; }
+  .card-h { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+  .card-h.row-h { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .kv { display: flex; justify-content: space-between; gap: 14px; padding: 8px 0; font-size: 14px; border-bottom: 1px solid var(--border); }
+  .kv:last-child { border-bottom: none; }
+  .kv .k { color: var(--muted); display: inline-flex; align-items: center; gap: 8px; flex: none; }
+  .kv .k svg { width: 15px; height: 15px; color: #9a9ab4; }
+  .kv .v { font-weight: 600; text-align: right; word-break: break-word; }
+
+  .items .item-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .items .item-row:last-child { border-bottom: none; }
+  .item-ic { flex: none; width: 36px; height: 36px; border-radius: 9px; background: var(--purple-tint); color: var(--purple); display: flex; align-items: center; justify-content: center; }
+  .item-ic svg { width: 19px; height: 19px; }
+  .item-b { flex: 1; min-width: 0; }
+  .item-t { display: block; font-size: 14.5px; font-weight: 600; letter-spacing: -0.01em; }
+  .item-m { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .item-r { flex: none; font-size: 14px; font-weight: 700; white-space: nowrap; }
+  .item-r .q { color: var(--muted); font-weight: 600; margin-right: 6px; }
+
+  .timeline { margin-top: 4px; }
+  .tl-item { display: flex; gap: 13px; }
+  .tl-rail { display: flex; flex-direction: column; align-items: center; flex: none; }
+  .tl-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--purple-tint); border: 2px solid var(--purple); margin-top: 3px; }
+  .tl-line { width: 2px; flex: 1; background: var(--border); min-height: 12px; }
+  .tl-current .tl-dot { background: var(--purple); box-shadow: 0 0 0 4px var(--purple-tint); }
+  .tl-body { padding-bottom: 16px; }
+  .tl-label { display: block; font-size: 13.5px; font-weight: 600; }
+  .tl-current .tl-label { color: var(--purple); }
+  .tl-date { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; line-height: 1.45; }
+
+  .action-card { margin-top: 20px; background: var(--surface); border: 1.5px solid var(--border); border-radius: 16px; padding: 18px; }
+  .action-card.live { border-color: var(--purple); box-shadow: 0 0 0 3px rgba(91,63,214,0.08); }
+  .action-h { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+  .action-cur { font-size: 13.5px; line-height: 1.5; color: var(--muted); margin-bottom: 14px; }
+  .action-cur strong { color: var(--ink); }
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; }
+  .btn { font-family: var(--body); font-size: 14.5px; font-weight: 600; padding: 11px 18px; border-radius: 11px; border: 1.5px solid transparent; cursor: pointer; transition: background .15s ease, border-color .15s ease; display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
+  .btn svg { width: 16px; height: 16px; }
+  .btn-primary { background: var(--purple); color: #fff; }
+  .btn-primary:hover { background: var(--purple-deep); }
+  .btn-secondary { background: transparent; color: var(--ink); border-color: var(--border); }
+  .btn-secondary:hover { border-color: var(--purple); color: var(--purple); background: var(--purple-tint-2); }
+  .btn-danger { background: transparent; color: var(--red); border-color: var(--red-border); }
+  .btn-danger:hover { background: var(--red-soft); border-color: var(--red); }
+  .btn.full { width: 100%; }
+  .btn-sm { font-size: 13px; padding: 8px 13px; border-radius: 9px; }
+  .terminal-note { display: flex; align-items: center; gap: 9px; font-size: 13.5px; color: var(--muted); }
+  .terminal-note svg { width: 17px; height: 17px; flex: none; color: var(--muted); }
+
+  .sim-box { margin-top: 14px; border: 1.5px dashed #d3d2e4; border-radius: 12px; padding: 13px 14px; background: #fafaff; }
+  .sim-label { font-size: 11.5px; line-height: 1.5; color: #9a9ab4; display: flex; align-items: flex-start; gap: 7px; margin-bottom: 11px; }
+  .sim-label svg { width: 14px; height: 14px; flex: none; margin-top: 1px; }
+  .sim-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .offer-box label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 7px; }
+  .offer-input { display: flex; align-items: center; gap: 6px; background: var(--surface); border: 1.5px solid var(--border); border-radius: 11px; padding: 4px 13px; max-width: 200px; }
+  .offer-input span { font-size: 18px; font-weight: 700; color: var(--muted); }
+  .offer-input input { flex: 1; min-width: 0; border: none; outline: none; font-family: var(--display); font-weight: 700; font-size: 22px; color: var(--ink); padding: 8px 0; background: transparent; }
+  .offer-hint { font-size: 12px; color: var(--muted); margin-top: 7px; line-height: 1.5; }
+  .offer-buttons { display: flex; gap: 10px; margin-top: 14px; }
+
+  .note { padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .note-text { font-size: 14px; line-height: 1.5; color: var(--ink); }
+  .note-meta { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .note-empty { font-size: 13.5px; color: var(--muted); padding: 6px 0 10px; }
+  .note-input { margin-top: 14px; }
+  .note-input textarea { width: 100%; font-family: var(--body); font-size: 14px; color: var(--ink); background: var(--surface); border: 1.5px solid var(--border); border-radius: 11px; padding: 11px 13px; resize: vertical; }
+  .note-input textarea:focus { outline: none; border-color: var(--purple); box-shadow: 0 0 0 3px rgba(91,63,214,0.16); }
+  .note-input .btn { margin-top: 10px; }
+  .flag-btn { display: inline-flex; align-items: center; gap: 6px; font-family: var(--body); font-size: 12.5px; font-weight: 600; padding: 6px 11px; border-radius: 999px; border: 1.5px solid var(--border); background: #fff; color: var(--muted); cursor: pointer; }
+  .flag-btn svg { width: 14px; height: 14px; }
+  .flag-btn:hover { border-color: var(--amber); color: var(--amber); }
+  .flag-btn.on { background: var(--amber-tint); border-color: var(--amber-tint); color: var(--amber); }
+  .flag-banner { display: flex; align-items: center; gap: 8px; background: var(--amber-tint); color: var(--amber); font-size: 13px; font-weight: 500; padding: 10px 13px; border-radius: 11px; margin-bottom: 14px; }
+  .flag-banner svg { width: 16px; height: 16px; flex: none; }
+
+  .team-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; margin-top: 18px; }
+  .team-grid .card + .card { margin-top: 0; }
+  .team-top { display: flex; align-items: center; gap: 13px; }
+  .team-id { flex: 1; min-width: 0; }
+  .team-name { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
+  .team-role { font-size: 12.5px; font-weight: 600; color: var(--purple); margin-top: 2px; }
+  .team-desc { font-size: 13.5px; line-height: 1.55; color: #41435f; margin-top: 14px; }
+  .team-tags { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 13px; }
+  .tag-chip { font-size: 12px; font-weight: 600; color: var(--muted); background: #f0eff7; padding: 4px 10px; border-radius: 999px; }
+  .team-foot { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 15px; padding-top: 14px; border-top: 1px solid var(--border); }
+  .team-meta { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--muted); }
+  .team-meta svg { width: 15px; height: 15px; color: #9a9ab4; }
+
+  .method-pill { display: inline-flex; align-items: center; font-size: 11.5px; font-weight: 600; padding: 3px 9px; border-radius: 999px; }
+  .m-pp { color: var(--blue); background: var(--blue-soft); }
+  .m-ck { color: #6b6e8c; background: #ecebf4; }
+
+  .login-wrap { min-height: calc(100vh - 58px); display: flex; align-items: center; justify-content: center; padding: 24px; }
+  .login-card { width: 100%; max-width: 380px; background: var(--surface); border: 1.5px solid var(--border); border-radius: 20px; padding: 30px 28px; }
+  .login-mark { width: 50px; height: 50px; border-radius: 14px; background: var(--purple-tint); color: var(--purple); display: flex; align-items: center; justify-content: center; margin-bottom: 18px; }
+  .login-mark svg { width: 28px; height: 28px; }
+  .login-title { font-family: var(--display); font-weight: 700; font-size: 23px; letter-spacing: -0.02em; }
+  .field { margin-top: 16px; }
+  .field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+  .field input { width: 100%; font-family: var(--body); font-size: 15px; color: var(--ink); background: var(--surface); border: 1.5px solid var(--border); border-radius: 11px; padding: 12px 13px; }
+  .field input:focus { outline: none; border-color: var(--purple); box-shadow: 0 0 0 3px rgba(91,63,214,0.16); }
+  .form-error { margin-top: 12px; font-size: 13px; font-weight: 500; color: var(--red); }
+  .inline-msg { font-size: 13px; font-weight: 500; padding: 9px 12px; border-radius: 10px; margin-top: 10px; }
+  .inline-msg.err { color: var(--red); background: var(--red-soft); border: 1px solid var(--red-border); }
+  .inline-msg.ok { color: var(--purple); background: var(--purple-tint-2); border: 1px solid var(--purple-tint); }
+
+
+  .spark { position: absolute; color: #ffe89c; opacity: 0; animation: tw 2.6s ease-in-out infinite; pointer-events: none; }
+  .spark svg { width: 11px; height: 11px; }
+  .s1 { top: 16px; left: 20px; animation-delay: 0s; }
+  .s2 { top: 22px; right: 26px; animation-delay: .9s; }
+  .s3 { bottom: 18px; left: 44px; animation-delay: 1.5s; }
+  .s4 { bottom: 22px; right: 40px; animation-delay: 2.1s; }
+  @keyframes tw { 0%, 100% { opacity: .12; transform: scale(.8); } 50% { opacity: .8; transform: scale(1.15); } }
+  .assign-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 16px; background: var(--surface); border: 1.5px solid var(--border); border-radius: 12px; padding: 11px 15px; }
+  .assign-info { display: inline-flex; align-items: center; gap: 9px; font-size: 13.5px; color: var(--ink); }
+  .assign-info svg { width: 17px; height: 17px; color: var(--muted); }
+  .assign-info .who { font-weight: 600; }
+  .assign-info .none { color: var(--muted); }
+  .assign-pill { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; color: var(--muted); background: #f0eff7; padding: 3px 9px 3px 7px; border-radius: 999px; }
+  .assign-pill svg { width: 13px; height: 13px; }
+  .team-section { margin-top: 30px; }
+  .team-section.first { margin-top: 6px; }
+  .team-section-title { font-family: var(--display); font-size: 16px; font-weight: 700; letter-spacing: -0.01em; color: var(--ink); display: flex; align-items: center; gap: 12px; }
+  .team-section-title::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+  .team-section-sub { font-size: 12.5px; color: var(--muted); margin-top: 5px; }
+  .team-section + .team-grid { margin-top: 14px; }
+  .team-empty { font-size: 13px; color: var(--muted); background: #fafaff; border: 1.5px dashed #dcdbe9; border-radius: 14px; padding: 15px 17px; margin-top: 14px; }
+  @media (max-width: 720px) { .stats { grid-template-columns: 1fr 1fr; } .grid2 { grid-template-columns: 1fr; } .team-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 480px) { .tb-inner, .wrap { padding-left: 16px; padding-right: 16px; } .row-right { display: none; } }
+  @media (prefers-reduced-motion: reduce) { .screen, .stat, .row, .gold-num, #toast { animation: none; transition: none; } .spark { opacity: .4; animation: none; } }
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="tb-inner">
+      <div class="tb-left">
+        <span class="logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 13.5a6.5 6.5 0 0 1 10.4-5.2"/><path d="M16 5.7v3.2h-3.2"/><path d="M18.5 10.5a6.5 6.5 0 0 1-10.4 5.2"/><path d="M8 18.3v-3.2h3.2"/></svg></span>
+        <span class="logo-word">Restash</span>
+        <span class="admin-pill">Console</span>
+      </div>
+      <div class="tb-right" id="tbRight"></div>
+    </div>
+  </header>
+  <main><div id="screen"></div></main>
+
+<script>
+  const I = {
+    chevron: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>',
+    back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>',
+    check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>',
+    logout: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-2"/><path d="M10 12h10M17 9l3 3-3 3"/></svg>',
+    dollar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.3 9.2c0-1.1 1.2-1.9 2.7-1.9s2.7.8 2.7 1.9-1.2 1.7-2.7 1.7-2.7.8-2.7 1.9 1.2 1.9 2.7 1.9 2.7-.8 2.7-1.9"/></svg>',
+    card: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M3 9.5h18M7 14.5h4"/></svg>',
+    calendar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 9.5h16M8 3v4M16 3v4"/></svg>',
+    hash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 7.5 20M16.5 4 15 20M5 9h15M4 15h15"/></svg>',
+    mail: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M4 6.5l8 6 8-6"/></svg>',
+    phone: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3h3l1.5 4-2 1.5a12 12 0 0 0 4.5 4.5l1.5-2 4 1.5v3a2 2 0 0 1-2.2 2A16 16 0 0 1 4.5 5.2 2 2 0 0 1 6.5 3Z"/></svg>',
+    pin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s6.5-5.3 6.5-10a6.5 6.5 0 0 0-13 0c0 4.7 6.5 10 6.5 10Z"/><circle cx="12" cy="11" r="2.3"/></svg>',
+    gamepad: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 8h7a5 5 0 0 1 5 5v.2a3.1 3.1 0 0 1-5.6 1.9L14 14h-4l-.9 1.1A3.1 3.1 0 0 1 3.5 13.4V13a5 5 0 0 1 5-5Z"/><line x1="6.8" y1="11.3" x2="9.2" y2="11.3"/><line x1="8" y1="10.1" x2="8" y2="12.5"/><circle cx="15.4" cy="10.8" r="0.5" fill="currentColor" stroke="none"/><circle cx="17" cy="12.3" r="0.5" fill="currentColor" stroke="none"/></svg>',
+    search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>',
+    lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',
+    info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><circle cx="12" cy="7.8" r="0.5" fill="currentColor" stroke="none"/></svg>',
+    inbox: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13l3-8h12l3 8v4.5a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 17.5Z"/><path d="M3 13h5l1.2 2h5.6l1.2-2h5"/></svg>',
+    truck: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6.5" width="11" height="9" rx="1.2"/><path d="M13.5 9.5h3.5l3 3v3h-6.5"/><circle cx="7" cy="17.5" r="1.7"/><circle cx="17" cy="17.5" r="1.7"/></svg>',
+    box: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8 12 3.5 21 8v8l-9 4.5L3 16Z"/><path d="M3 8l9 4.5 9-4.5M12 12.5V21"/></svg>',
+    user: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5c0-3.6 3.1-5.5 7-5.5s7 1.9 7 5.5"/></svg>',
+    flag: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4"/><path d="M5 4h12l-2 3.5L17 11H5"/></svg>',
+    wallet: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10h18"/><circle cx="17" cy="14.3" r="1.1" fill="currentColor" stroke="none"/></svg>',
+    spark: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.7 6.6L20 12l-6.3 1.6L12 22l-1.7-8.4L4 12l6.3-1.6z"/></svg>'
+  };
+
+  const BADGES = {
+    submitted: ['New', 's-grey'], reviewing: ['Under review', 's-amber'],
+    accepted: ['Accepted', 's-blue'], received: ['Received', 's-blue'],
+    offer: ['Offer sent', 's-gold'], paid: ['Paid', 's-purple'],
+    declined: ['Declined', 's-red'], returned: ['Returned', 's-grey']
+  };
+  const badge = (st) => { const b = BADGES[st] || BADGES.submitted; return '<span class="badge ' + b[1] + '">' + b[0] + '</span>'; };
+  const flagBadge = () => '<span class="badge s-amber">Flagged</span>';
+
+  const FILTERS = [['all', 'All'], ['submitted', 'New'], ['reviewing', 'Review'], ['accepted', 'Accepted'], ['received', 'Received'], ['offer', 'Offer sent'], ['paid', 'Paid'], ['declined', 'Declined'], ['returned', 'Returned']];
+  const TAB_VIEW = { claims: 'dashboard', accounts: 'accounts', payouts: 'payouts', team: 'team' };
+  const CUR_TEXT = {
+    submitted: 'This claim is new and awaiting your review.',
+    reviewing: 'You\u2019re reviewing this claim. Accept it to email a shipping label, or decline.',
+    accepted: 'Shipping label sent. Mark received once the games arrive.',
+    received: 'Games are in. Inspect them, then make an offer or reject and return.',
+    paid: 'This claim is closed — payment was authorized.',
+    declined: 'This claim was declined. No further action.',
+    returned: 'These games were returned to the seller. No further action.'
+  };
+  const DEPTS = [
+    { name: 'Founders', sub: 'The two people running Restash end to end — from pricing and inspection to every payout.' },
+    { name: 'Intake & Inspection', sub: 'Receives incoming shipments, grades each game’s condition, and flags counterfeit or non-working copies.' },
+    { name: 'Pricing & Offers', sub: 'Sets buyback values, reviews submitted claims, and makes the offers customers accept or decline.' },
+    { name: 'Payments', sub: 'Processes PayPal and check payouts, mails the checks, and reconciles the payout ledger.' },
+    { name: 'Customer Experience', sub: 'Answers customer questions, manages claim updates, and handles returns and offer communication.' },
+    { name: 'Resale', sub: 'Lists and sells the games Restash acquires, and manages pricing across resale channels.' }
+  ];
+
+  let state = {
+    view: 'login', loggedIn: false, admin: { name: 'Connor' },
+    tab: 'claims', filter: 'all', search: '', activeRef: null, activeEmail: null, offerOpen: false, flash: null,
+    team: [
+      { group: 'Founders', name: 'Connor Waugaman', role: 'Co-Founder & Operations', email: 'connor@getrestash.gg', location: 'Cohoes, NY', focus: ['Buyback pricing', 'Claim review', 'Payouts'], desc: 'Runs Restash day to day — sets the buyback pricing, reviews flagged and edge-case claims, and signs off on every payout.' },
+      { group: 'Founders', name: 'Kamryn Washington', role: 'Co-Founder & Intake / Inspection', email: 'kamryn@getrestash.gg', location: 'Cohoes, NY', focus: ['Intake', 'Condition grading', 'Counterfeit checks'], desc: 'Handles games once they arrive — receives shipments, grades condition, and flags counterfeit or non-working copies.' }
+    ],
+    accounts: [
+      { name: 'Alex Rivera', email: 'alex.rivera@email.com', phone: '(518) 555-0123', address: '14 Birch Ln, Cohoes, NY 12047', joined: 'May 2, 2026', flagged: false, notes: [{ text: 'Repeat seller — two smooth payouts so far.', by: 'Connor', date: 'Jun 2, 2026' }] },
+      { name: 'Maya Chen', email: 'maya.chen@email.com', phone: '(518) 555-0142', address: '203 Remsen St, Cohoes, NY 12047', joined: 'Jun 16, 2026', flagged: false, notes: [] },
+      { name: 'Devon Brooks', email: 'devon.brooks@email.com', phone: '(518) 555-0188', address: '88 Vliet Blvd, Cohoes, NY 12047', joined: 'Jun 16, 2026', flagged: false, notes: [] },
+      { name: 'Aisha Khan', email: 'aisha.k@email.com', phone: '(518) 555-0119', address: '5 Mohawk St, Cohoes, NY 12047', joined: 'Jun 15, 2026', flagged: false, notes: [] },
+      { name: 'Liam Foster', email: 'liam.foster@email.com', phone: '(518) 555-0173', address: '47 Ontario St, Cohoes, NY 12047', joined: 'Jun 14, 2026', flagged: false, notes: [] },
+      { name: 'Priya Patel', email: 'priya.patel@email.com', phone: '(518) 555-0150', address: '120 Saratoga St, Cohoes, NY 12047', joined: 'Jun 11, 2026', flagged: false, notes: [] },
+      { name: 'Sam Wright', email: 'sam.wright@email.com', phone: '(518) 555-0167', address: '9 Pleasant Ave, Cohoes, NY 12047', joined: 'Jun 8, 2026', flagged: false, notes: [] },
+      { name: 'Noah Kim', email: 'noah.kim@email.com', phone: '(518) 555-0195', address: '31 Howard St, Cohoes, NY 12047', joined: 'Jun 10, 2026', flagged: true, notes: [{ text: 'Submitted a non-working copy described as Complete. Review future claims carefully.', by: 'Kamryn', date: 'Jun 11, 2026' }] }
+    ],
+    claims: [
+      { ref: 'RS-8M4X2A', cust: 'Maya Chen', email: 'maya.chen@email.com', phone: '(518) 555-0142', payout: 'PayPal', status: 'submitted', createdAt: 'Jun 16, 2026', estLow: 27, estHigh: 33,
+        items: [{ titleName: 'The Legend of Zelda: Tears of the Kingdom', platformName: 'Nintendo Switch', editionName: 'Standard', condName: 'Complete', qty: 1, lineMid: 30 }],
+        history: [{ label: 'Claim submitted', date: 'Jun 16, 2026' }] },
+      { ref: 'RS-3K9P1B', cust: 'Devon Brooks', email: 'devon.brooks@email.com', phone: '(518) 555-0188', payout: 'Check', status: 'submitted', createdAt: 'Jun 16, 2026', estLow: 25, estHigh: 31,
+        items: [{ titleName: 'God of War', platformName: 'PlayStation 4', editionName: 'Standard', condName: 'Complete', qty: 1, lineMid: 12 }, { titleName: 'Red Dead Redemption 2', platformName: 'PlayStation 4', editionName: 'Standard', condName: 'Game Only (Loose)', qty: 2, lineMid: 16 }],
+        history: [{ label: 'Claim submitted', date: 'Jun 16, 2026' }] },
+      { ref: 'RS-5T2W7C', cust: 'Aisha Khan', email: 'aisha.k@email.com', phone: '(518) 555-0119', payout: 'PayPal', status: 'reviewing', assignee: 'Kamryn', createdAt: 'Jun 15, 2026', estLow: 33, estHigh: 40,
+        items: [{ titleName: 'Super Smash Bros. Ultimate', platformName: 'Nintendo Switch', editionName: 'Standard', condName: 'Brand New (Sealed)', qty: 1, lineMid: 36 }],
+        history: [{ label: 'Claim submitted', date: 'Jun 15, 2026' }, { label: 'Under review', date: 'Jun 16, 2026' }] },
+      { ref: 'RS-9B6Q3D', cust: 'Liam Foster', email: 'liam.foster@email.com', phone: '(518) 555-0173', payout: 'Check', status: 'accepted', createdAt: 'Jun 14, 2026', estLow: 10, estHigh: 12,
+        items: [{ titleName: 'Halo: The Master Chief Collection', platformName: 'Xbox One', editionName: 'Standard', condName: 'Complete', qty: 1, lineMid: 11 }],
+        history: [{ label: 'Claim submitted', date: 'Jun 14, 2026' }, { label: 'Under review', date: 'Jun 14, 2026' }, { label: 'Accepted — shipping label emailed', date: 'Jun 15, 2026' }] },
+      { ref: 'RS-7K2Q9P', cust: 'Alex Rivera', email: 'alex.rivera@email.com', phone: '(518) 555-0123', payout: 'PayPal', status: 'received', assignee: 'Connor', notes: [{ text: 'Light scratches on the disc but it plays clean — good for resale.', by: 'Kamryn', date: 'Jun 16, 2026' }], createdAt: 'Jun 12, 2026', estLow: 25, estHigh: 31,
+        items: [{ titleName: 'Mario Kart 8 Deluxe', platformName: 'Nintendo Switch', editionName: 'Standard', condName: 'Complete', qty: 1, lineMid: 28 }],
+        history: [{ label: 'Claim submitted', date: 'Jun 12, 2026' }, { label: 'Under review', date: 'Jun 12, 2026' }, { label: 'Accepted — shipping label emailed', date: 'Jun 13, 2026' }, { label: 'Games received at facility', date: 'Jun 16, 2026' }] },
+      { ref: 'RS-2W8E4F', cust: 'Priya Patel', email: 'priya.patel@email.com', phone: '(518) 555-0150', payout: 'PayPal', status: 'offer', offerAmount: 13, customerResponse: null, createdAt: 'Jun 11, 2026', estLow: 12, estHigh: 14,
+        items: [{ titleName: "Marvel's Spider-Man", platformName: 'PlayStation 4', editionName: 'Standard', condName: 'Complete', qty: 1, lineMid: 13 }],
+        history: [{ label: 'Claim submitted', date: 'Jun 11, 2026' }, { label: 'Under review', date: 'Jun 11, 2026' }, { label: 'Accepted — shipping label emailed', date: 'Jun 12, 2026' }, { label: 'Games received at facility', date: 'Jun 13, 2026' }, { label: 'Offer made: $13', date: 'Jun 14, 2026', note: 'Awaiting customer response.' }] },
+      { ref: 'RS-6N1R5G', cust: 'Sam Wright', email: 'sam.wright@email.com', phone: '(518) 555-0167', payout: 'PayPal', status: 'paid', offerAmount: 14, createdAt: 'Jun 8, 2026', estLow: 13, estHigh: 15,
+        items: [{ titleName: 'Forza Horizon 4', platformName: 'Xbox One', editionName: 'Standard', condName: 'Complete', qty: 1, lineMid: 14 }],
+        history: [{ label: 'Claim submitted', date: 'Jun 8, 2026' }, { label: 'Accepted — shipping label emailed', date: 'Jun 9, 2026' }, { label: 'Games received at facility', date: 'Jun 11, 2026' }, { label: 'Offer made: $14', date: 'Jun 12, 2026' }, { label: 'Customer accepted the offer', date: 'Jun 12, 2026' }, { label: 'Payment authorized via PayPal', date: 'Jun 12, 2026', note: 'PayPal 1–3 business days.' }] },
+      { ref: 'RS-4J7Y2H', cust: 'Noah Kim', email: 'noah.kim@email.com', phone: '(518) 555-0195', payout: 'PayPal', status: 'declined', flagged: true, notes: [{ text: 'Copy looked like a reproduction — poor label print and no hologram. Declined.', by: 'Kamryn', date: 'Jun 11, 2026' }], createdAt: 'Jun 10, 2026', estLow: 9, estHigh: 11,
+        items: [{ titleName: 'Grand Theft Auto V', platformName: 'Xbox One', editionName: 'Standard', condName: 'Complete', qty: 1, lineMid: 10 }],
+        history: [{ label: 'Claim submitted', date: 'Jun 10, 2026' }, { label: 'Declined — not accepted this cycle', date: 'Jun 11, 2026' }] },
+      { ref: 'RS-1A2B3C', cust: 'Alex Rivera', email: 'alex.rivera@email.com', phone: '(518) 555-0123', payout: 'Check', status: 'paid', offerAmount: 24, createdAt: 'May 28, 2026', estLow: 22, estHigh: 26,
+        items: [{ titleName: 'Super Mario Odyssey', platformName: 'Nintendo Switch', editionName: 'Standard', condName: 'Complete', qty: 1, lineMid: 24 }],
+        history: [{ label: 'Claim submitted', date: 'May 28, 2026' }, { label: 'Accepted — shipping label emailed', date: 'May 29, 2026' }, { label: 'Games received at facility', date: 'Jun 1, 2026' }, { label: 'Offer made: $24', date: 'Jun 2, 2026' }, { label: 'Customer accepted the offer', date: 'Jun 2, 2026' }, { label: 'Payment authorized via Check', date: 'Jun 2, 2026', note: 'Check 3–5 business days.' }] }
+    ]
+  };
+
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const findClaim = (r) => state.claims.find(c => c.ref === r);
+  const findAccount = (e) => state.accounts.find(a => a.email === e);
+  const claimsForEmail = (e) => state.claims.filter(c => c.email === e).slice().sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
+  function todayStr() { return new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); }
+  const initials = (name) => name.split(/\s+/).map(p => p[0]).slice(0, 2).join('').toUpperCase();
+  const itemsSummary = (items) => { const n = items.reduce((s, i) => s + i.qty, 0); const plats = items.map(i => i.platformName).filter((x, i, a) => a.indexOf(x) === i); return n + ' game' + (n > 1 ? 's' : '') + ' · ' + plats.join(', '); };
+  const estMid = (c) => Math.round((c.estLow + c.estHigh) / 2);
+  const destOf = (c) => c.payout === 'PayPal' ? c.email : (findAccount(c.email) ? findAccount(c.email).address : '—');
+  const methodPill = (m) => '<span class="method-pill ' + (m === 'PayPal' ? 'm-pp' : 'm-ck') + '">' + m + '</span>';
+  function pushHistory(c, label, note) { c.history.push(note ? { label, date: todayStr(), note } : { label, date: todayStr() }); }
+  function flashMsg(slot) { return (state.flash && state.flash.slot === slot) ? '<div class="inline-msg ' + state.flash.kind + '">' + esc(state.flash.text) + '</div>' : ''; }
+
+  function counts() { const o = { submitted: 0, reviewing: 0, accepted: 0, received: 0, offer: 0, paid: 0, declined: 0, returned: 0 }; state.claims.forEach(c => { o[c.status] = (o[c.status] || 0) + 1; }); return o; }
+  function claimsFiltered() {
+    const q = state.search.trim().toLowerCase();
+    return state.claims.filter(c => {
+      if (state.filter !== 'all' && c.status !== state.filter) return false;
+      if (!q) return true;
+      return (c.cust + ' ' + c.ref + ' ' + c.email + ' ' + c.items.map(i => i.titleName).join(' ')).toLowerCase().indexOf(q) !== -1;
+    }).sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
+  }
+  function accountsFiltered() { const q = state.search.trim().toLowerCase(); return state.accounts.filter(a => !q || (a.name + ' ' + a.email).toLowerCase().indexOf(q) !== -1); }
+
+  function goldCard(label, amount, cls) { return '<div class="gold-card' + (cls ? ' ' + cls : '') + '"><span class="spark s1">' + I.spark + '</span><span class="spark s2">' + I.spark + '</span><span class="spark s3">' + I.spark + '</span><span class="spark s4">' + I.spark + '</span><span class="gl">' + label + '</span><span class="gold-num">' + amount + '</span></div>'; }
+  function itemsPanel(items) {
+    return '<div class="card items"><div class="card-h">Games (' + items.reduce((s, i) => s + i.qty, 0) + ')</div>' + items.map(it =>
+      '<div class="item-row"><span class="item-ic">' + I.gamepad + '</span><span class="item-b"><span class="item-t">' + esc(it.titleName) + '</span><span class="item-m">' + esc(it.platformName + ' · ' + it.editionName + ' · ' + it.condName) + '</span></span><span class="item-r">' + (it.qty > 1 ? '<span class="q">×' + it.qty + '</span>' : '') + '$' + it.lineMid + '</span></div>'
+    ).join('') + '</div>';
+  }
+  function timeline(history) {
+    return '<div class="timeline">' + history.map((h, i) => {
+      const last = i === history.length - 1;
+      const line = i < history.length - 1 ? '<span class="tl-line"></span>' : '';
+      return '<div class="tl-item' + (last ? ' tl-current' : '') + '"><span class="tl-rail"><span class="tl-dot"></span>' + line + '</span><span class="tl-body"><span class="tl-label">' + esc(h.label) + '</span><span class="tl-date">' + esc(h.date) + (h.note ? ' · ' + esc(h.note) : '') + '</span></span></div>';
+    }).join('') + '</div>';
+  }
+
+  function notesFlagsCard(o) {
+    const notes = o.notes || [];
+    const list = notes.length ? notes.slice().reverse().map(n => '<div class="note"><div class="note-text">' + esc(n.text) + '</div><div class="note-meta">' + esc(n.by) + ' · ' + esc(n.date) + '</div></div>').join('') : '<div class="note-empty">No notes yet.</div>';
+    return '<div class="card"><div class="card-h row-h">Notes &amp; flags <button class="flag-btn' + (o.flagged ? ' on' : '') + '" data-action="' + o.flagAction + '" data-value="' + esc(o.value) + '">' + I.flag + (o.flagged ? 'Flagged' : 'Flag ' + o.noun) + '</button></div>'
+      + (o.flagged ? '<div class="flag-banner">' + I.flag + 'This ' + o.noun + ' is flagged for review.</div>' : '')
+      + list
+      + '<div class="note-input"><textarea id="' + o.inputId + '" rows="2" placeholder="Add an internal note about this ' + o.noun + '…"></textarea>' + flashMsg('note') + '<button class="btn btn-primary" data-action="' + o.noteAction + '" data-value="' + esc(o.value) + '">Add note</button></div></div>';
+  }
+
+  function actionsFor(c) {
+    switch (c.status) {
+      case 'submitted': return [{ t: 'Mark under review', a: 'st-review', k: 'btn-secondary' }, { t: 'Accept &amp; send label', a: 'st-accept', k: 'btn-primary' }, { t: 'Decline', a: 'st-decline', k: 'btn-danger' }];
+      case 'reviewing': return [{ t: 'Accept &amp; send label', a: 'st-accept', k: 'btn-primary' }, { t: 'Decline', a: 'st-decline', k: 'btn-danger' }];
+      case 'accepted': return [{ t: 'Mark received', a: 'st-received', k: 'btn-primary' }];
+      case 'received': return [{ t: 'Make offer', a: 'st-offer', k: 'btn-primary' }, { t: 'Reject &amp; return', a: 'st-reject', k: 'btn-danger' }];
+      default: return [];
+    }
+  }
+
+  function actionCard(c) {
+    let header, body, live = false;
+    if (state.offerOpen && c.status === 'received') {
+      header = 'Make an offer'; live = true;
+      const mid = estMid(c), lo = Math.max(1, Math.round(mid * 0.7)), hi = Math.round(mid * 1.1);
+      body = '<div class="offer-box"><label for="offer-amount">Offer amount</label><div class="offer-input"><span>$</span><input id="offer-amount" type="number" min="' + lo + '" max="' + hi + '" value="' + mid + '"></div>' + flashMsg('offer') + '<div class="offer-hint">Customer estimate was $' + c.estLow + '–$' + c.estHigh + '. Offer must be between $' + lo + ' and $' + hi + ' to keep payouts fair.</div><div class="offer-buttons"><button class="btn btn-primary" data-action="send-offer" data-ref="' + c.ref + '">Send offer</button><button class="btn btn-secondary" data-action="cancel-offer">Cancel</button></div></div>';
+    } else if (c.status === 'offer') {
+      live = true;
+      if (!c.customerResponse) {
+        header = 'Awaiting customer';
+        body = '<div class="action-cur">Offer of <strong>$' + c.offerAmount + '</strong> sent. The customer accepts or declines it in their account before you can pay or return — so this step is locked until they respond.</div>'
+          + '<div class="sim-box"><div class="sim-label">' + I.info + 'Preview only. In the live app this comes from the customer on restash.gg — here you can simulate their response.</div><div class="sim-buttons"><button class="btn btn-secondary btn-sm" data-action="cust-accept" data-ref="' + c.ref + '">Customer accepts</button><button class="btn btn-secondary btn-sm" data-action="cust-decline" data-ref="' + c.ref + '">Customer declines</button></div></div>';
+      } else if (c.customerResponse === 'accepted') {
+        header = 'Customer accepted';
+        body = '<div class="action-cur">The customer accepted the <strong>$' + c.offerAmount + '</strong> offer. Authorize the payout to close this claim.</div><div class="actions"><button class="btn btn-primary" data-action="authorize-pay" data-ref="' + c.ref + '">Authorize ' + esc(c.payout) + ' payment</button></div>';
+      } else {
+        header = 'Customer declined';
+        body = '<div class="action-cur">The customer declined the offer. Send their games back to close this claim.</div><div class="actions"><button class="btn btn-secondary" data-action="confirm-return" data-ref="' + c.ref + '">Confirm return</button></div>';
+      }
+    } else {
+      const acts = actionsFor(c);
+      if (acts.length) {
+        header = 'Next step'; live = true;
+        body = '<div class="action-cur">' + CUR_TEXT[c.status] + '</div><div class="actions">' + acts.map(a => '<button class="btn ' + a.k + '" data-action="' + a.a + '" data-ref="' + c.ref + '">' + a.t + '</button>').join('') + '</div>';
+      } else {
+        header = 'Status';
+        body = '<div class="terminal-note">' + I.check + CUR_TEXT[c.status] + '</div>';
+      }
+    }
+    return '<div class="action-card' + (live ? ' live' : '') + '"><div class="action-h">' + header + '</div>' + body + '</div>';
+  }
+
+  function assignBar(c) {
+    const me = state.admin.name;
+    const done = ['paid', 'declined', 'returned'].indexOf(c.status) !== -1;
+    if (done) {
+      if (!c.assignee) return '';
+      return '<div class="assign-bar"><span class="assign-info">' + I.user + '<span class="who">' + esc(c.assignee) + '</span> handled this</span></div>';
+    }
+    let info, btn;
+    if (!c.assignee) { info = '<span class="none">Unassigned</span>'; btn = '<button class="btn btn-secondary btn-sm" data-action="claim-take" data-ref="' + c.ref + '">Claim this</button>'; }
+    else if (c.assignee === me) { info = '<span class="who">You’re handling this</span>'; btn = '<button class="btn btn-secondary btn-sm" data-action="claim-release" data-ref="' + c.ref + '">Release</button>'; }
+    else { info = '<span class="who">' + esc(c.assignee) + '</span> is handling this'; btn = '<button class="btn btn-secondary btn-sm" data-action="claim-take" data-ref="' + c.ref + '">Take over</button>'; }
+    return '<div class="assign-bar"><span class="assign-info">' + I.user + info + '</span>' + btn + '</div>';
+  }
+
+  const tbRight = () => state.loggedIn ? '<span class="tb-user">' + esc(state.admin.name) + '</span><button class="tb-logout" data-action="logout">' + I.logout + 'Sign out</button>' : '';
+  function tabs() {
+    const T = [['claims', 'Claims'], ['accounts', 'Accounts'], ['payouts', 'Payouts'], ['team', 'Team']];
+    return '<div class="tabs">' + T.map(t => '<button class="tab' + (state.tab === t[0] ? ' on' : '') + '" data-action="tab" data-value="' + t[0] + '">' + t[1] + '</button>').join('') + '</div>';
+  }
+
+  const views = {
+    login() {
+      return '<div class="login-wrap"><div class="login-card"><div class="login-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 13.5a6.5 6.5 0 0 1 10.4-5.2"/><path d="M16 5.7v3.2h-3.2"/><path d="M18.5 10.5a6.5 6.5 0 0 1-10.4 5.2"/><path d="M8 18.3v-3.2h3.2"/></svg></div>'
+        + '<h1 class="login-title">Restash Console</h1>'
+        + '<div class="field"><label for="lg-email">Email</label><input id="lg-email" type="email" placeholder="you@getrestash.gg"></div>'
+        + '<div class="field"><label for="lg-pass">Password</label><input id="lg-pass" type="password" placeholder="••••••••"></div>'
+        + '<p class="form-error" id="lg-error" hidden></p>'
+        + '<button class="btn btn-primary full" style="margin-top:18px;" data-action="signin">Sign in</button></div></div>';
+    },
+    dashboard() {
+      const c = counts();
+      const tiles = [
+        { label: 'New claims', n: c.submitted, f: 'submitted', icon: I.inbox },
+        { label: 'Awaiting arrival', n: c.accepted, f: 'accepted', icon: I.truck },
+        { label: 'To inspect', n: c.received, f: 'received', icon: I.box },
+        { label: 'Offers out', n: c.offer, f: 'offer', icon: I.dollar }
+      ].map(t => '<button class="stat' + (state.filter === t.f ? ' on' : '') + '" data-action="stat" data-value="' + t.f + '"><span class="stat-top">' + t.icon + '<span class="stat-label">' + t.label + '</span></span><span class="stat-num">' + t.n + '</span></button>').join('');
+      const chips = FILTERS.map(f => '<button class="chip' + (state.filter === f[0] ? ' on' : '') + '" data-action="filter" data-value="' + f[0] + '">' + f[1] + '</button>').join('');
+      return '<div class="screen wrap">' + tabs()
+        + '<div class="stats">' + tiles + '</div>'
+        + '<div class="toolbar"><div class="search">' + I.search + '<input id="admin-search" type="text" placeholder="Search by customer, reference, or game" value="' + esc(state.search) + '"></div><div class="chips">' + chips + '</div></div>'
+        + '<div id="list-region">' + claimsListHTML() + '</div></div>';
+    },
+    accounts() {
+      return '<div class="screen wrap">' + tabs()
+        + '<div class="toolbar"><div class="search">' + I.search + '<input id="admin-search" type="text" placeholder="Search by name or email" value="' + esc(state.search) + '"></div></div>'
+        + '<div id="list-region">' + accountsListHTML() + '</div></div>';
+    },
+    payouts() {
+      const paid = state.claims.filter(c => c.status === 'paid').sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
+      const total = paid.reduce((s, c) => s + (c.offerAmount || 0), 0);
+      const pp = paid.filter(c => c.payout === 'PayPal').length, ck = paid.filter(c => c.payout === 'Check').length;
+      const tiles = '<button class="stat read"><span class="stat-top">' + I.dollar + '<span class="stat-label">Total paid out</span></span><span class="stat-num">$' + total + '</span></button>'
+        + '<button class="stat read"><span class="stat-top">' + I.card + '<span class="stat-label">Via PayPal</span></span><span class="stat-num">' + pp + '</span></button>'
+        + '<button class="stat read"><span class="stat-top">' + I.mail + '<span class="stat-label">Via check (mail)</span></span><span class="stat-num">' + ck + '</span></button>';
+      const rows = paid.length ? paid.map(c =>
+        '<button class="row" data-action="open-claim" data-ref="' + c.ref + '"><span class="row-avatar">' + initials(c.cust) + '</span><span class="row-main"><span class="row-line1"><span class="row-name">' + esc(c.cust) + '</span>' + methodPill(c.payout) + '</span><span class="row-meta">' + esc(destOf(c)) + '</span></span><span class="row-right"><span class="row-amt">$' + c.offerAmount + '</span><span class="row-date">' + esc(c.createdAt) + '</span></span><span class="chev">' + I.chevron + '</span></button>'
+      ).join('') : '<div class="empty">No payments yet.</div>';
+      return '<div class="screen wrap">' + tabs()
+        + '<div class="stats" style="grid-template-columns:repeat(3,1fr);">' + tiles + '</div>'
+        + '<div class="rows" style="margin-top:22px;">' + rows + '</div></div>';
+    },
+    team() {
+      const card = (m) => '<div class="card team-card"><div class="team-top"><span class="row-avatar">' + initials(m.name) + '</span><div class="team-id"><div class="team-name">' + esc(m.name) + '</div><div class="team-role">' + esc(m.role) + '</div></div><span class="badge s-purple">Co-founder</span></div>'
+        + '<div class="team-desc">' + esc(m.desc) + '</div>'
+        + '<div class="team-tags">' + m.focus.map(f => '<span class="tag-chip">' + esc(f) + '</span>').join('') + '</div>'
+        + '<div class="team-foot"><span class="team-meta">' + I.pin + esc(m.location) + '</span><span class="team-meta">' + I.mail + esc(m.email) + '</span></div></div>';
+      const html = DEPTS.map((d, i) => {
+        const members = state.team.filter(m => m.group === d.name);
+        const body = members.length ? '<div class="team-grid">' + members.map(card).join('') + '</div>' : '<div class="team-empty">No one here yet — this is where the ' + esc(d.name) + ' team will go.</div>';
+        return '<div class="team-section' + (i === 0 ? ' first' : '') + '"><div class="team-section-title">' + esc(d.name) + '</div><div class="team-section-sub">' + esc(d.sub) + '</div></div>' + body;
+      }).join('');
+      return '<div class="screen wrap">' + tabs() + html + '</div>';
+    },
+    claimDetail() {
+      const c = findClaim(state.activeRef);
+      if (!c) return '<div class="screen wrap"><button class="backbtn" data-action="to-claims">' + I.back + 'Claims</button><div class="detail-ref">Claim not found</div></div>';
+      const amount = (c.status === 'paid') ? goldCard('Amount paid', '$' + c.offerAmount, 'joined')
+        : (c.status === 'offer') ? goldCard('Offer sent', '$' + c.offerAmount, 'joined')
+        : (c.status === 'returned' && c.offerAmount) ? goldCard('Last offer', '$' + c.offerAmount, 'joined')
+        : goldCard('Customer estimate', '$' + c.estLow + ' – $' + c.estHigh, 'joined');
+      const sendIcon = c.payout === 'PayPal' ? I.mail : I.pin;
+      const sendLabel = c.payout === 'PayPal' ? 'PayPal email' : 'Mailing address';
+      return '<div class="screen wrap"><button class="backbtn" data-action="to-claims">' + I.back + 'Claims</button>'
+        + '<div class="detail-head"><div><div class="detail-ref">' + c.ref + '</div><div class="detail-date">Submitted ' + esc(c.createdAt) + '</div></div><div class="head-tags">' + (c.flagged ? flagBadge() : '') + badge(c.status) + '</div></div>'
+        + assignBar(c)
+        + actionCard(c)
+        + '<div class="grid2"><div>' + amount
+        +   '<div class="card joined"><div class="card-h">Customer</div>'
+        +     '<div class="kv"><span class="k">' + I.user + 'Name</span><span class="v">' + esc(c.cust) + '</span></div>'
+        +     '<div class="kv"><span class="k">' + I.mail + 'Email</span><span class="v">' + esc(c.email) + '</span></div>'
+        +     '<div class="kv"><span class="k">' + I.phone + 'Phone</span><span class="v">' + esc(c.phone) + '</span></div>'
+        +     '<div class="kv"><span class="k">' + I.card + 'Payout</span><span class="v">' + esc(c.payout) + '</span></div>'
+        +     '<div class="kv"><span class="k">' + sendIcon + 'Send to</span><span class="v">' + esc(destOf(c)) + '</span></div>'
+        +     '<div style="margin-top:14px;"><button class="btn btn-secondary full" data-action="view-account" data-value="' + esc(c.email) + '">' + I.user + 'View account</button></div></div></div>'
+        +   '<div>' + itemsPanel(c.items) + '<div class="card"><div class="card-h">Status history</div>' + timeline(c.history) + '</div></div>'
+        + '</div>' + notesFlagsCard({ notes: c.notes, flagged: c.flagged, flagAction: 'claim-flag', noteAction: 'claim-note', value: c.ref, noun: 'claim', inputId: 'claim-note-input' }) + '</div>';
+    },
+    accountDetail() {
+      const a = findAccount(state.activeEmail);
+      if (!a) return '<div class="screen wrap"><button class="backbtn" data-action="to-accounts">' + I.back + 'Accounts</button><div class="detail-ref">Account not found</div></div>';
+      const cl = claimsForEmail(a.email);
+      const paidTotal = cl.filter(c => c.status === 'paid').reduce((s, c) => s + (c.offerAmount || 0), 0);
+      const rows = cl.length ? cl.map(c =>
+        '<button class="row" data-action="open-claim" data-ref="' + c.ref + '"><span class="row-avatar">' + I.gamepad + '</span><span class="row-main"><span class="row-line1"><span class="row-name">' + esc(c.items[0].titleName) + (c.items.length > 1 ? ' +' + (c.items.length - 1) : '') + '</span>' + badge(c.status) + '</span><span class="row-meta">' + c.ref + ' · ' + esc(c.createdAt) + '</span></span><span class="row-right"><span class="row-amt">$' + c.estLow + '–$' + c.estHigh + '</span></span><span class="chev">' + I.chevron + '</span></button>'
+      ).join('') : '<div class="empty">No claims for this account.</div>';
+      return '<div class="screen wrap"><button class="backbtn" data-action="to-accounts">' + I.back + 'Accounts</button>'
+        + '<div class="detail-head"><div class="detail-ref">' + esc(a.name) + '</div>' + (a.flagged ? '<div class="head-tags">' + flagBadge() + '</div>' : '') + '</div>'
+        + '<div class="card" style="margin-top:18px;"><div class="card-h">Profile</div>'
+        +   '<div class="kv"><span class="k">' + I.mail + 'Email</span><span class="v">' + esc(a.email) + '</span></div>'
+        +   '<div class="kv"><span class="k">' + I.phone + 'Phone</span><span class="v">' + esc(a.phone) + '</span></div>'
+        +   '<div class="kv"><span class="k">' + I.pin + 'Address</span><span class="v">' + esc(a.address) + '</span></div>'
+        +   '<div class="kv"><span class="k">' + I.calendar + 'Joined</span><span class="v">' + esc(a.joined) + '</span></div>'
+        +   '<div class="kv"><span class="k">' + I.hash + 'Claims</span><span class="v">' + cl.length + '</span></div>'
+        +   '<div class="kv"><span class="k">' + I.dollar + 'Paid to date</span><span class="v">$' + paidTotal + '</span></div></div>'
+        + notesFlagsCard({ notes: a.notes, flagged: a.flagged, flagAction: 'flag-toggle', noteAction: 'add-note', value: a.email, noun: 'account', inputId: 'note-input' })
+        + '<div class="card-h" style="margin-top:24px;">Claims</div><div class="rows" style="margin-top:0;">' + rows + '</div></div>';
+    }
+  };
+
+  function claimsListHTML() {
+    const list = claimsFiltered();
+    if (!list.length) return '<div class="empty">No claims match this filter.</div>';
+    return '<div class="rows">' + list.map(c =>
+      '<button class="row" data-action="open-claim" data-ref="' + c.ref + '"><span class="row-avatar">' + initials(c.cust) + '</span>'
+      + '<span class="row-main"><span class="row-line1"><span class="row-name">' + esc(c.cust) + '</span>' + badge(c.status) + (c.flagged ? flagBadge() : '') + (c.assignee ? '<span class="assign-pill">' + I.user + esc(c.assignee) + '</span>' : '') + '</span><span class="row-meta">' + c.ref + ' · ' + esc(itemsSummary(c.items)) + '</span></span>'
+      + '<span class="row-right"><span class="row-amt">' + ((c.status === 'paid' || c.status === 'offer') ? '$' + c.offerAmount : '$' + c.estLow + '–$' + c.estHigh) + '</span><span class="row-date">' + esc(c.createdAt) + '</span></span>'
+      + '<span class="chev">' + I.chevron + '</span></button>'
+    ).join('') + '</div>';
+  }
+  function accountsListHTML() {
+    const list = accountsFiltered();
+    if (!list.length) return '<div class="empty">No accounts match.</div>';
+    return '<div class="rows">' + list.map(a => {
+      const n = claimsForEmail(a.email).length;
+      return '<button class="row" data-action="open-account" data-value="' + esc(a.email) + '"><span class="row-avatar">' + initials(a.name) + '</span><span class="row-main"><span class="row-line1"><span class="row-name">' + esc(a.name) + '</span>' + (a.flagged ? flagBadge() : '') + '</span><span class="row-meta">' + esc(a.email) + ' · joined ' + esc(a.joined) + '</span></span><span class="row-right"><span class="row-amt" style="font-size:14px;">' + n + ' claim' + (n === 1 ? '' : 's') + '</span></span><span class="chev">' + I.chevron + '</span></button>';
+    }).join('') + '</div>';
+  }
+  function listRegionHTML() { return state.view === 'accounts' ? accountsListHTML() : claimsListHTML(); }
+
+  function syncTopbar() { document.getElementById('tbRight').innerHTML = tbRight(); }
+  function render() { document.getElementById('screen').innerHTML = views[state.view](); syncTopbar(); window.scrollTo({ top: 0, behavior: 'auto' }); }
+  function go(view) { state.view = view; state.offerOpen = false; state.flash = null; render(); }
+
+  const emailOk = v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+
+  document.body.addEventListener('input', (e) => {
+    if (e.target && e.target.id === 'admin-search') { state.search = e.target.value; const r = document.getElementById('list-region'); if (r) r.innerHTML = listRegionHTML(); }
+  });
+
+  document.body.addEventListener('click', (e) => {
+    const el = e.target.closest('[data-action]'); if (!el) return;
+    const a = el.dataset.action, v = el.dataset.value, ref = el.dataset.ref;
+
+    if (a === 'signin') {
+      const email = document.getElementById('lg-email').value.trim();
+      const pass = document.getElementById('lg-pass').value;
+      const err = document.getElementById('lg-error');
+      if (!emailOk(email)) { err.textContent = 'Enter a valid email.'; err.hidden = false; return; }
+      if (!pass) { err.textContent = 'Enter your password.'; err.hidden = false; return; }
+      state.loggedIn = true; state.tab = 'claims'; go('dashboard');
+    }
+    else if (a === 'logout') { state.loggedIn = false; state.search = ''; state.filter = 'all'; go('login'); }
+    else if (a === 'tab') { state.tab = v; state.search = ''; go(TAB_VIEW[v]); }
+    else if (a === 'to-claims') { state.tab = 'claims'; go('dashboard'); }
+    else if (a === 'to-accounts') { state.tab = 'accounts'; go('accounts'); }
+    else if (a === 'filter' || a === 'stat') { state.filter = (a === 'stat' && state.filter === v) ? 'all' : v; render(); }
+    else if (a === 'open-claim') { state.activeRef = ref; go('claimDetail'); }
+    else if (a === 'open-account' || a === 'view-account') { state.activeEmail = v; go('accountDetail'); }
+
+    else if (a === 'st-review') { const c = findClaim(ref); c.status = 'reviewing'; pushHistory(c, 'Under review'); render(); }
+    else if (a === 'st-accept') { const c = findClaim(ref); c.status = 'accepted'; pushHistory(c, 'Accepted — shipping label emailed'); render(); }
+    else if (a === 'st-decline') { const c = findClaim(ref); c.status = 'declined'; pushHistory(c, 'Declined — not accepted'); render(); }
+    else if (a === 'st-received') { const c = findClaim(ref); c.status = 'received'; pushHistory(c, 'Games received at facility'); render(); }
+    else if (a === 'st-offer') { state.flash = null; state.offerOpen = true; render(); }
+    else if (a === 'cancel-offer') { state.flash = null; state.offerOpen = false; render(); }
+    else if (a === 'send-offer') {
+      const c = findClaim(ref); const amt = parseInt(document.getElementById('offer-amount').value, 10);
+      const mid = estMid(c), lo = Math.max(1, Math.round(mid * 0.7)), hi = Math.round(mid * 1.1);
+      if (!amt || amt < lo || amt > hi) { state.flash = { slot: 'offer', kind: 'err', text: 'Offer must be between $' + lo + ' and $' + hi + ' for this claim.' }; render(); return; }
+      c.offerAmount = amt; c.customerResponse = null; c.status = 'offer'; pushHistory(c, 'Offer made: $' + amt, 'Awaiting customer response.');
+      state.offerOpen = false; state.flash = null; render();
+    }
+    else if (a === 'st-reject') { const c = findClaim(ref); c.status = 'returned'; pushHistory(c, 'Rejected on inspection — returning to seller', 'We\u2019ll email tracking.'); render(); }
+    else if (a === 'cust-accept') { const c = findClaim(ref); c.customerResponse = 'accepted'; pushHistory(c, 'Customer accepted the offer'); render(); }
+    else if (a === 'cust-decline') { const c = findClaim(ref); c.customerResponse = 'declined'; pushHistory(c, 'Customer declined the offer'); render(); }
+    else if (a === 'authorize-pay') { const c = findClaim(ref); c.status = 'paid'; pushHistory(c, 'Payment authorized via ' + c.payout, c.payout === 'PayPal' ? 'PayPal 1–3 business days.' : 'Check 3–5 business days.'); render(); }
+    else if (a === 'confirm-return') { const c = findClaim(ref); c.status = 'returned'; pushHistory(c, 'Games returned to seller', 'We\u2019ll email tracking.'); render(); }
+
+    else if (a === 'flag-toggle') { const ac = findAccount(v); ac.flagged = !ac.flagged; render(); }
+    else if (a === 'add-note') {
+      const ac = findAccount(v); const ta = document.getElementById('note-input'); const txt = ta.value.trim();
+      if (!txt) { state.flash = { slot: 'note', kind: 'err', text: 'Write a note first.' }; render(); return; }
+      if (!ac.notes) ac.notes = []; ac.notes.push({ text: txt, by: state.admin.name, date: todayStr() }); state.flash = null; render();
+    }
+    else if (a === 'claim-flag') { const c = findClaim(v); c.flagged = !c.flagged; render(); }
+    else if (a === 'claim-note') { const c = findClaim(v); const ta = document.getElementById('claim-note-input'); const txt = ta.value.trim(); if (!txt) { state.flash = { slot: 'note', kind: 'err', text: 'Write a note first.' }; render(); return; } if (!c.notes) c.notes = []; c.notes.push({ text: txt, by: state.admin.name, date: todayStr() }); state.flash = null; render(); }
+    else if (a === 'claim-take') { const c = findClaim(ref); c.assignee = state.admin.name; pushHistory(c, state.admin.name + ' is handling this claim'); render(); }
+    else if (a === 'claim-release') { const c = findClaim(ref); pushHistory(c, state.admin.name + ' released this claim'); c.assignee = null; render(); }
+  });
+
+  render();
+</script>
+</body>
+</html>

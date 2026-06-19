@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Page not found — Restash</title>
+<meta name="robots" content="noindex" />
+<meta name="color-scheme" content="light dark" />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --ink: #1b1d3a; --muted: #6a6d8c; --purple: #5b3fd6; --purple-deep: #46309f; --purple-tint: #ece8fb; --purple-tint-2: #f4f1fd;
+    --bg: #f4f4fb; --border: #e6e5f1;
+    --display: "Bricolage Grotesque", "Plus Jakarta Sans", system-ui, sans-serif;
+    --body: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--body); background: var(--bg); color: var(--ink); -webkit-font-smoothing: antialiased; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+  svg { display: block; }
+  a { text-decoration: none; }
+
+  .card { max-width: 460px; text-align: center; }
+  .big { font-family: var(--display); font-weight: 700; font-size: clamp(72px, 18vw, 120px); line-height: 1; letter-spacing: -0.04em;
+    background: linear-gradient(135deg, var(--purple), #8b6ff0); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: var(--purple); }
+  h1 { font-family: var(--display); font-weight: 700; font-size: clamp(24px, 5vw, 30px); letter-spacing: -0.02em; margin-top: 12px; }
+  p { color: var(--muted); font-size: 16px; line-height: 1.55; margin-top: 12px; }
+  .btn-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 28px; }
+  .btn { font-family: var(--body); font-weight: 600; font-size: 15px; padding: 13px 22px; border-radius: 12px; border: 1.5px solid transparent; display: inline-flex; align-items: center; gap: 8px; transition: background .15s ease, border-color .15s ease; }
+  .btn-primary { background: var(--purple); color: #fff; }
+  .btn-primary:hover { background: var(--purple-deep); }
+  .btn-secondary { background: transparent; color: var(--purple); border-color: var(--border); }
+  .btn-secondary:hover { border-color: var(--purple); background: var(--purple-tint-2); }
+</style>
+</head>
+<body>
+  <main class="card">
+    <div class="big">404</div>
+    <h1>This page wandered off.</h1>
+    <p>The link may be broken or the page may have moved. Let's get you back to turning games into cash.</p>
+    <div class="btn-row">
+      <a class="btn btn-primary" href="/">Start a new claim</a>
+      <a class="btn btn-secondary" href="/">Back to home</a>
+    </div>
+  </main>
+</body>
+</html>
