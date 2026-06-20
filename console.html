@@ -187,6 +187,38 @@
   .offer-hint { font-size: 12px; color: var(--muted); margin-top: 7px; line-height: 1.5; }
   .offer-buttons { display: flex; gap: 10px; margin-top: 14px; }
 
+  /* inspection grade panel */
+  .assessed { margin-left: auto; font-size: 13px; font-weight: 700; color: var(--purple); background: var(--purple-tint); padding: 3px 10px; border-radius: 999px; }
+  .grade-row { display: flex; align-items: center; gap: 12px; padding: 13px 0; border-bottom: 1px solid var(--border); }
+  .grade-row:last-of-type { border-bottom: none; }
+  .grade-row .item-ic { flex: none; width: 34px; height: 34px; border-radius: 9px; background: var(--purple-tint); color: var(--purple); display: flex; align-items: center; justify-content: center; }
+  .grade-row .item-ic svg { width: 18px; height: 18px; }
+  .grade-row .item-b { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .grade-row .item-t { font-weight: 600; font-size: 14.5px; }
+  .grade-row .item-m { font-size: 12.5px; color: var(--muted); }
+  .grade-row .claimed { font-size: 12px; color: var(--amber); margin-top: 3px; }
+  .grade-r { display: flex; align-items: center; gap: 10px; }
+  .grade-sel { font-family: var(--body); font-size: 13px; font-weight: 600; color: var(--ink); background: var(--surface); border: 1.5px solid var(--border); border-radius: 9px; padding: 7px 9px; cursor: pointer; }
+  .grade-sel:hover { border-color: var(--purple); }
+  .grade-amt { font-family: var(--display); font-weight: 700; font-size: 15px; min-width: 44px; text-align: right; }
+  .regrade-hint { display: flex; gap: 9px; align-items: flex-start; font-size: 12.5px; color: var(--muted); line-height: 1.5; margin-top: 13px; padding-top: 13px; border-top: 1px dashed var(--border); }
+  .regrade-hint svg { flex: none; width: 16px; height: 16px; margin-top: 1px; color: var(--purple); }
+
+  /* resources / checksheet */
+  .res-head { margin-bottom: 18px; }
+  .res-title { font-family: var(--display); font-weight: 700; font-size: 22px; letter-spacing: -0.02em; }
+  .res-sub { color: var(--muted); font-size: 13.5px; margin-top: 6px; line-height: 1.5; }
+  .res-steps { list-style: none; counter-reset: rstep; margin: 0; padding: 0; }
+  .res-steps li { position: relative; padding: 12px 0 12px 40px; border-bottom: 1px solid var(--border); }
+  .res-steps li:last-child { border-bottom: none; }
+  .res-steps li::before { counter-increment: rstep; content: counter(rstep); position: absolute; left: 0; top: 11px; width: 26px; height: 26px; border-radius: 8px; background: var(--purple-tint); color: var(--purple); font-family: var(--display); font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center; }
+  .res-steps .rs-t { display: block; font-weight: 600; font-size: 14.5px; }
+  .res-steps .rs-d { display: block; font-size: 13px; color: var(--muted); line-height: 1.5; margin-top: 3px; }
+  .res-grades { display: grid; gap: 12px; }
+  .rg { border: 1px solid var(--border); border-radius: 12px; padding: 13px 15px; }
+  .rg-name { font-weight: 600; font-size: 14.5px; }
+  .rg-desc { font-size: 13px; color: var(--muted); line-height: 1.5; margin-top: 3px; }
+
   .note { padding: 12px 0; border-bottom: 1px solid var(--border); }
   .note-text { font-size: 14px; line-height: 1.5; color: var(--ink); }
   .note-meta { font-size: 12px; color: var(--muted); margin-top: 4px; }
@@ -312,7 +344,7 @@
   const flagBadge = () => '<span class="badge s-amber">Flagged</span>';
 
   const FILTERS = [['all', 'All'], ['submitted', 'New'], ['reviewing', 'Review'], ['accepted', 'Accepted'], ['received', 'Received'], ['offer', 'Offer sent'], ['paid', 'Paid'], ['declined', 'Declined'], ['returned', 'Returned']];
-  const TAB_VIEW = { claims: 'dashboard', accounts: 'accounts', payouts: 'payouts', team: 'team' };
+  const TAB_VIEW = { claims: 'dashboard', accounts: 'accounts', payouts: 'payouts', team: 'team', resources: 'resources' };
   const CUR_TEXT = {
     submitted: 'This claim is new and awaiting your review.',
     reviewing: 'You\u2019re reviewing this claim. Accept it to email a shipping label, or decline.',
@@ -334,7 +366,7 @@
   let state = {
     view: 'login', loggedIn: false, admin: { name: '', id: null },
     tab: 'claims', filter: 'all', search: '', activeRef: null, activeEmail: null, offerOpen: false, flash: null,
-    team: [], accounts: [], claims: []
+    team: [], accounts: [], claims: [], conditions: []
   };
 
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -367,6 +399,19 @@
       '<div class="item-row"><span class="item-ic">' + I.gamepad + '</span><span class="item-b"><span class="item-t">' + esc(it.titleName) + '</span><span class="item-m">' + esc(it.platformName + ' · ' + it.editionName + ' · ' + it.condName) + '</span></span><span class="item-r">' + (it.qty > 1 ? '<span class="q">×' + it.qty + '</span>' : '') + '$' + it.lineMid + '</span></div>'
     ).join('') + '</div>';
   }
+  // Inspection panel: confirm/adjust each item's grade. Used while a claim is "received".
+  function itemsGradePanel(c) {
+    const assessed = c.items.reduce((s, i) => s + i.lineMid, 0);
+    const opts = (sel) => state.conditions.map(cn => '<option value="' + cn.id + '"' + (cn.id === sel ? ' selected' : '') + '>' + esc(cn.name) + '</option>').join('');
+    return '<div class="card items"><div class="card-h row-h">Confirm grade (' + c.items.reduce((s, i) => s + i.qty, 0) + ') <span class="assessed">Assessed $' + assessed + '</span></div>'
+      + c.items.map(it =>
+        '<div class="grade-row"><span class="item-ic">' + I.gamepad + '</span>'
+        + '<span class="item-b"><span class="item-t">' + esc(it.titleName) + '</span><span class="item-m">' + esc(it.platformName + ' · ' + it.editionName) + (it.qty > 1 ? ' · ×' + it.qty : '') + '</span>'
+        + '<span class="claimed">Customer said: ' + esc(it.condName) + '</span></span>'
+        + '<span class="grade-r"><select class="grade-sel" data-item="' + it.id + '" aria-label="Condition for ' + esc(it.titleName) + '">' + opts(it.conditionId) + '</select><span class="grade-amt">$' + it.lineMid + '</span></span></div>'
+      ).join('')
+      + '<div class="regrade-hint">' + I.info + 'Set each game to the condition you confirmed on inspection. Any change is shown to the customer, and the offer band follows the assessed value above.</div></div>';
+  }
   function timeline(history) {
     return '<div class="timeline">' + history.map((h, i) => {
       const last = i === history.length - 1;
@@ -398,8 +443,9 @@
     let header, body, live = false;
     if (state.offerOpen && c.status === 'received') {
       header = 'Make an offer'; live = true;
-      const mid = estMid(c), lo = Math.max(1, Math.round(mid * 0.7)), hi = Math.round(mid * 1.1);
-      body = '<div class="offer-box"><label for="offer-amount">Offer amount</label><div class="offer-input"><span>$</span><input id="offer-amount" type="number" min="' + lo + '" max="' + hi + '" value="' + mid + '"></div><div class="offer-hint">Customer estimate was $' + c.estLow + '–$' + c.estHigh + '. Offer must be between $' + lo + ' and $' + hi + ' to keep payouts fair.</div><label for="offer-reason" style="margin-top:14px;">Why this offer <span style="font-weight:500;color:var(--muted);">— the customer sees this</span></label><textarea id="offer-reason" rows="2" placeholder="e.g. Graded Complete, light disc wear; priced to current market." style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-family:var(--body);font-size:14px;resize:vertical;"></textarea>' + flashMsg('offer') + '<div class="offer-buttons"><button class="btn btn-primary" data-action="send-offer" data-ref="' + c.ref + '">Send offer</button><button class="btn btn-secondary" data-action="cancel-offer">Cancel</button></div></div>';
+      const assessed = c.items.reduce((s, i) => s + i.lineMid, 0);
+      const mid = assessed, lo = Math.max(1, Math.round(mid * 0.7)), hi = Math.round(mid * 1.1);
+      body = '<div class="offer-box"><label for="offer-amount">Offer amount</label><div class="offer-input"><span>$</span><input id="offer-amount" type="number" min="' + lo + '" max="' + hi + '" value="' + mid + '"></div><div class="offer-hint">Customer estimate $' + c.estLow + '–$' + c.estHigh + ' · <strong>Assessed value $' + assessed + '</strong> (after your grading). Offer must be between $' + lo + ' and $' + hi + ' to keep payouts fair.</div><label for="offer-reason" style="margin-top:14px;">Why this offer <span style="font-weight:500;color:var(--muted);">— the customer sees this</span></label><textarea id="offer-reason" rows="2" placeholder="e.g. Graded Complete, light disc wear; priced to current market." style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-family:var(--body);font-size:14px;resize:vertical;"></textarea>' + flashMsg('offer') + '<div class="offer-buttons"><button class="btn btn-primary" data-action="send-offer" data-ref="' + c.ref + '">Send offer</button><button class="btn btn-secondary" data-action="cancel-offer">Cancel</button></div></div>';
     } else if (c.status === 'offer') {
       live = true;
       if (!c.customerResponse) {
@@ -441,7 +487,7 @@
 
   const tbRight = () => state.loggedIn ? '<span class="tb-user">' + esc(state.admin.name) + '</span><button class="tb-logout" data-action="logout">' + I.logout + 'Sign out</button>' : '';
   function tabs() {
-    const T = [['claims', 'Claims'], ['accounts', 'Accounts'], ['payouts', 'Payouts'], ['team', 'Team']];
+    const T = [['claims', 'Claims'], ['accounts', 'Accounts'], ['payouts', 'Payouts'], ['team', 'Team'], ['resources', 'Resources']];
     return '<div class="tabs">' + T.map(t => '<button class="tab' + (state.tab === t[0] ? ' on' : '') + '" data-action="tab" data-value="' + t[0] + '">' + t[1] + '</button>').join('') + '</div>';
   }
 
@@ -499,6 +545,33 @@
       }).join('');
       return '<div class="screen wrap">' + tabs() + html + '</div>';
     },
+    resources() {
+      const steps = [
+        ['Match the claim', 'Confirm title, platform, edition, region, and quantity match what the customer submitted.'],
+        ['Verify authenticity', 'Check official markings, label print, and build against a known-genuine reference. Counterfeit, reproduction, or pirated → reject &amp; return.'],
+        ['Test function', 'Boot the game and confirm it loads and plays. Won’t boot or play → grade Not Working.'],
+        ['Inspect the media', 'Disc scratches, cartridge contacts and label, and overall wear.'],
+        ['Inspect completeness', 'Sealed (original seal intact), Complete (case + art + inserts), or Loose (game only).'],
+        ['Set the grade', 'On the claim, set each game to the condition you confirmed. The value and offer band update automatically.'],
+        ['Photograph', 'Capture the media, label, and any defects for the claim record.'],
+        ['Write the customer reason', 'One plain-language line on the offer (or decline) — the customer sees it on their claim.'],
+        ['Flag edge cases', 'Suspected counterfeit, stolen, or a material mismatch → flag the claim for a second review before any offer.']
+      ];
+      const grades = [
+        ['Brand New (Sealed)', 'Factory sealed, original unbroken shrink wrap. Not for resealed copies.'],
+        ['Complete (CIB)', 'Original case, cover art, inserts, and a clean working disc or cartridge.'],
+        ['Game Only (Loose)', 'Genuine disc or cartridge only — no case or art — clean and fully working.'],
+        ['Not Working / Counterfeit', 'Won’t play, cracked, reproduction, or pirated. Not accepted — return to seller.']
+      ];
+      return '<div class="screen wrap">' + tabs()
+        + '<div class="res-head"><h2 class="res-title">Inspection checksheet</h2><p class="res-sub">Internal — run these steps on every game. The public grading guide for customers lives at <a href="grading.html" target="_blank" rel="noopener">/grading.html</a>.</p></div>'
+        + '<div class="card"><div class="card-h">Per-game inspection</div><ol class="res-steps">'
+        + steps.map(s => '<li><span class="rs-t">' + s[0] + '</span><span class="rs-d">' + s[1] + '</span></li>').join('')
+        + '</ol></div>'
+        + '<div class="card"><div class="card-h">Grade reference</div><div class="res-grades">'
+        + grades.map(g => '<div class="rg"><div class="rg-name">' + esc(g[0]) + '</div><div class="rg-desc">' + g[1] + '</div></div>').join('')
+        + '</div></div></div>';
+    },
     claimDetail() {
       const c = findClaim(state.activeRef);
       if (!c) return '<div class="screen wrap"><button class="backbtn" data-action="to-claims">' + I.back + 'Claims</button><div class="detail-ref">Claim not found</div></div>';
@@ -520,7 +593,7 @@
         +     '<div class="kv"><span class="k">' + I.card + 'Payout</span><span class="v">' + esc(c.payout) + '</span></div>'
         +     '<div class="kv"><span class="k">' + sendIcon + 'Send to</span><span class="v">' + esc(destOf(c)) + '</span></div>'
         +     '<div style="margin-top:14px;"><button class="btn btn-secondary full" data-action="view-account" data-value="' + esc(c.email) + '">' + I.user + 'View account</button></div></div></div>'
-        +   '<div>' + itemsPanel(c.items) + '<div class="card"><div class="card-h">Status history</div>' + timeline(c.history) + '</div></div>'
+        +   '<div>' + (c.status === 'received' ? itemsGradePanel(c) : itemsPanel(c.items)) + '<div class="card"><div class="card-h">Status history</div>' + timeline(c.history) + '</div></div>'
         + '</div>' + notesFlagsCard({ notes: c.notes, flagged: c.flagged, flagAction: 'claim-flag', noteAction: 'claim-note', value: c.ref, noun: 'claim', inputId: 'claim-note-input' }) + '</div>';
     },
     accountDetail() {
@@ -573,6 +646,16 @@
 
   document.body.addEventListener('input', (e) => {
     if (e.target && e.target.id === 'admin-search') { state.search = e.target.value; const r = document.getElementById('list-region'); if (r) r.innerHTML = listRegionHTML(); }
+  });
+
+  // Re-grade an item when staff change its condition dropdown (inspection).
+  document.body.addEventListener('change', async (e) => {
+    if (e.target && e.target.classList && e.target.classList.contains('grade-sel')) {
+      const itemId = e.target.dataset.item, condId = e.target.value;
+      e.target.disabled = true;
+      try { await RestashAPI.regradeItem(itemId, condId); await refreshAll(state.activeRef); }
+      catch (err) { alert(err.message || 'Could not update the grade.'); render(); }
+    }
   });
 
   document.body.addEventListener('click', async (e) => {
@@ -638,7 +721,11 @@
   });
 
   // ---- data loading + helpers ----
-  async function loadData() { state.claims = await RestashAPI.allClaims(); state.accounts = await RestashAPI.accounts(); }
+  async function loadData() {
+    state.claims = await RestashAPI.allClaims();
+    state.accounts = await RestashAPI.accounts();
+    try { state.conditions = await RestashAPI.conditions(); } catch (e) { state.conditions = []; }
+  }
   async function ensureTeam() { if (!state.team.length) { try { state.team = await RestashAPI.team(); } catch (e) {} } }
   async function mergeClaimDetail(ref) { const d = await RestashAPI.staffClaimByRef(ref); const i = state.claims.findIndex(function (c) { return c.ref === ref; }); if (i >= 0) state.claims[i] = d; else state.claims.unshift(d); }
   async function mergeAccountDetail(email) { const d = await RestashAPI.accountByEmail(email); const i = state.accounts.findIndex(function (x) { return x.email === email; }); if (i >= 0) state.accounts[i] = d; else state.accounts.unshift(d); }
