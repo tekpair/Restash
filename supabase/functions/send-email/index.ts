@@ -3,7 +3,9 @@
 // Sends Restash transactional emails via Resend.
 //
 //   Deploy:  supabase functions deploy send-email
-//   Secrets: supabase secrets set RESEND_API_KEY=re_xxx EMAIL_FN_SECRET=your-shared-secret APP_URL=https://getrestash.gg
+//   Secrets: supabase secrets set RESEND_API_KEY=re_xxx EMAIL_FN_SECRET=your-shared-secret \
+//            EMAIL_FROM="Restash <noreply@getrestash.gg>" EMAIL_REPLY_TO=support@getrestash.gg \
+//            APP_URL=https://tekpair.github.io/Restash  (see EMAIL-SETUP.md)
 //
 // SECURITY: call this server-side only (from a Supabase Database Webhook on claim status
 // changes, or from your own backend). Pass the shared secret in the "x-restash-secret"
@@ -14,10 +16,13 @@
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
 const FN_SECRET = Deno.env.get("EMAIL_FN_SECRET") ?? "";
 const APP_URL = Deno.env.get("APP_URL") ?? "https://tekpair.github.io/Restash";
-// EMAIL_FROM must use a domain you've verified in Resend. Until you verify one,
-// Resend only delivers from its test sender (onboarding@resend.dev) and only to
-// your own account email — fine for testing, not for real customer sends.
-const FROM = Deno.env.get("EMAIL_FROM") ?? "Restash <onboarding@resend.dev>";
+// Automated sends come from noreply@; customer replies route to support@.
+// Both must be on a domain you've verified in Resend (getrestash.gg works for
+// email even while the site stays on github.io). Before the domain is verified,
+// override EMAIL_FROM with Resend's test sender (onboarding@resend.dev), which
+// only delivers to your own Resend account email.
+const FROM = Deno.env.get("EMAIL_FROM") ?? "Restash <noreply@getrestash.gg>";
+const REPLY_TO = Deno.env.get("EMAIL_REPLY_TO") ?? "support@getrestash.gg";
 const LOGO = `${APP_URL}/email-logo.png`;                 // hosted PNG (SVGs don't render in many clients)
 
 // ---- Email shell (transparent background, dark-mode aware, purple brand) ----
@@ -180,7 +185,7 @@ Deno.serve(async (req: Request) => {
       "Authorization": `Bearer ${RESEND_API_KEY}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ from: FROM, to, subject: email.subject, html: email.html }),
+    body: JSON.stringify({ from: FROM, reply_to: REPLY_TO, to, subject: email.subject, html: email.html }),
   });
 
   if (!res.ok) {
