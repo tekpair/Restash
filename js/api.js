@@ -1,260 +1,255 @@
-// Restash — shared Supabase data layer for the customer app (index.html)
-// and the staff console (console.html). Exposes window.RestashAPI.
+// Restash — shared data layer for the customer app (index.html) and the staff
+// console (console.html). Exposes window.RestashAPI.
 //
-// Loads after the supabase-js UMD bundle and config.js.
+// If config.js holds real Supabase values, every call hits Supabase. Otherwise
+// it falls back to an in-memory DEMO backend (seeded data, the same offer
+// algorithm) so the whole site is testable with no setup. RestashAPI.demo is
+// true in that mode. Loads after the supabase-js UMD bundle and config.js.
 (function () {
   'use strict';
 
   var cfg = window.RESTASH_CONFIG || {};
-  var rawUrl = cfg.SUPABASE_URL || '';
-  var rawKey = cfg.SUPABASE_ANON_KEY || '';
+  var rawUrl = cfg.SUPABASE_URL || '', rawKey = cfg.SUPABASE_ANON_KEY || '';
   var configured = !!rawUrl && !!rawKey && !/YOUR-|REPLACE|EXAMPLE/i.test(rawUrl + rawKey);
+  var sb = (configured && window.supabase && window.supabase.createClient)
+    ? window.supabase.createClient(rawUrl, rawKey) : null;
 
-  var sb = null;
-  if (configured && window.supabase && window.supabase.createClient) {
-    sb = window.supabase.createClient(rawUrl, rawKey);
-  }
-
-  // ---- helpers ----------------------------------------------------
-  function fmtDate(iso) {
-    if (!iso) return '';
-    var d = new Date(iso);
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  }
-  function unwrap(res) {
-    if (res && res.error) throw new Error(res.error.message || 'Request failed');
-    return res ? res.data : null;
-  }
-  function bySortKey(key) { return function (a, b) { return (a[key] || 0) - (b[key] || 0); }; }
+  // ---- shared helpers ---------------------------------------------
+  function fmtDate(iso) { if (!iso) return ''; return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); }
+  function unwrap(res) { if (res && res.error) throw new Error(res.error.message || 'Request failed'); return res ? res.data : null; }
+  function bySortKey(k) { return function (a, b) { return (a[k] || 0) - (b[k] || 0); }; }
   function byCreatedAsc(a, b) { return Date.parse(a.created_at) - Date.parse(b.created_at); }
 
+  // ---- the offer algorithm (mirrors compute_offer in SQL) ----------
+  var DEFAULT_PRICING = { margin_low: 0.35, margin_mid: 0.45, margin_high: 0.57, tier_mid_min: 20, tier_high_min: 50, ship_cost: 4.50, fee_pct: 0.029, fee_flat: 0.30, min_quote: 25, min_games: 3 };
+  function marginFor(unit, c) { c = c || DEFAULT_PRICING; if (unit >= c.tier_high_min) return c.margin_high; if (unit >= c.tier_mid_min) return c.margin_mid; return c.margin_low; }
+  // items: [{ unit_market, qty }]
+  function computeOffer(items, c) {
+    c = c || DEFAULT_PRICING;
+    var sub = 0; (items || []).forEach(function (it) { sub += it.unit_market * it.qty * marginFor(it.unit_market, c); });
+    if (sub <= 0) return 0;
+    var offer = sub - c.ship_cost - (sub * c.fee_pct + c.fee_flat);
+    return offer < 0 ? 0 : Math.round(offer);
+  }
+
+  // ---- DB row -> view-model mappers --------------------------------
   function mapItems(rows) {
     return (rows || []).slice().sort(bySortKey('position')).map(function (it) {
-      return {
-        id: it.id, titleName: it.title_name, platformName: it.platform_name,
-        editionName: it.edition_name, condName: it.cond_name, conditionId: it.condition_id,
-        editionId: it.edition_id, qty: it.qty, lineMid: it.line_mid
-      };
+      return { id: it.id, titleName: it.title_name, platformName: it.platform_name, editionName: it.edition_name,
+        condName: it.cond_name, conditionId: it.condition_id, editionId: it.edition_id, qty: it.qty,
+        lineMid: it.line_mid, unitMarket: Number(it.unit_market || 0) };
     });
   }
-  function mapHistory(rows) {
-    return (rows || []).slice().sort(byCreatedAsc).map(function (h) {
-      return { label: h.label, date: fmtDate(h.created_at), note: h.note || undefined };
-    });
-  }
-  function mapNotes(rows) {
-    return (rows || []).slice().sort(byCreatedAsc).map(function (n) {
-      return { text: n.body, by: n.author_name || 'Staff', date: fmtDate(n.created_at) };
-    });
-  }
+  function mapHistory(rows) { return (rows || []).slice().sort(byCreatedAsc).map(function (h) { return { label: h.label, date: fmtDate(h.created_at), note: h.note || undefined }; }); }
+  function mapNotes(rows) { return (rows || []).slice().sort(byCreatedAsc).map(function (n) { return { text: n.body, by: n.author_name || 'Staff', date: fmtDate(n.created_at) }; }); }
   function deriveLabels(items) {
     var totalGames = items.reduce(function (s, i) { return s + i.qty; }, 0);
-    var itemName = items.length === 1
-      ? (items[0].titleName + (items[0].qty > 1 ? ' ×' + items[0].qty : ''))
-      : (totalGames + ' games');
-    var plats = items.map(function (i) { return i.platformName; })
-      .filter(function (x, i, a) { return a.indexOf(x) === i; });
-    var platform = plats.length === 1 ? plats[0] : plats.length + ' platforms';
-    return { itemName: itemName, platform: platform };
+    var itemName = items.length === 1 ? (items[0].titleName + (items[0].qty > 1 ? ' ×' + items[0].qty : '')) : (totalGames + ' games');
+    var plats = items.map(function (i) { return i.platformName; }).filter(function (x, i, a) { return a.indexOf(x) === i; });
+    return { itemName: itemName, platform: plats.length === 1 ? plats[0] : plats.length + ' platforms' };
   }
-
-  // claim row -> shape used by index.html (customer)
   function mapClaimCustomer(row) {
-    var items = mapItems(row.claim_items);
-    var labels = deriveLabels(items);
-    return {
-      ref: row.ref, itemName: labels.itemName, platform: labels.platform,
-      items: items, estLow: row.est_low, estHigh: row.est_high,
-      payout: row.payout, address: row.address || '',
-      offerAmount: row.offer_amount, customerResponse: row.customer_response,
-      createdAt: fmtDate(row.created_at), status: row.status,
-      history: mapHistory(row.claim_history)
-    };
+    var items = mapItems(row.claim_items), labels = deriveLabels(items);
+    return { ref: row.ref, itemName: labels.itemName, platform: labels.platform, items: items, estLow: row.est_low, estHigh: row.est_high,
+      payout: row.payout, address: row.address || '', offerAmount: row.offer_amount, customerResponse: row.customer_response,
+      createdAt: fmtDate(row.created_at), status: row.status, history: mapHistory(row.claim_history) };
   }
-  // claim row -> shape used by console.html (staff)
   function mapClaimStaff(row) {
-    return {
-      ref: row.ref, cust: row.cust_name, email: row.cust_email, phone: row.cust_phone,
-      payout: row.payout, address: row.address || '', status: row.status,
-      createdAt: fmtDate(row.created_at), estLow: row.est_low, estHigh: row.est_high,
-      items: mapItems(row.claim_items), history: mapHistory(row.claim_history),
-      assignee: row.assignee_name || null, assigneeId: row.assignee_id || null,
-      offerAmount: row.offer_amount, customerResponse: row.customer_response,
-      flagged: !!row.flagged, notes: mapNotes(row.claim_notes)
-    };
+    return { ref: row.ref, cust: row.cust_name, email: row.cust_email, phone: row.cust_phone, payout: row.payout, address: row.address || '',
+      status: row.status, createdAt: fmtDate(row.created_at), estLow: row.est_low, estHigh: row.est_high, items: mapItems(row.claim_items),
+      history: mapHistory(row.claim_history), assignee: row.assignee_name || null, assigneeId: row.assignee_id || null,
+      offerAmount: row.offer_amount, customerResponse: row.customer_response, flagged: !!row.flagged, notes: mapNotes(row.claim_notes) };
   }
-  function mapAccount(row) {
-    return {
-      id: row.id, name: row.full_name, email: row.email, phone: row.phone,
-      address: row.address, joined: fmtDate(row.created_at), flagged: !!row.flagged,
-      notes: mapNotes(row.account_notes)
-    };
-  }
+  function mapAccount(row) { return { id: row.id, name: row.full_name, email: row.email, phone: row.phone, address: row.address, joined: fmtDate(row.created_at), flagged: !!row.flagged, notes: mapNotes(row.account_notes) }; }
+  function mapPricing(row) { var o = {}; Object.keys(DEFAULT_PRICING).forEach(function (k) { o[k] = row && row[k] != null ? Number(row[k]) : DEFAULT_PRICING[k]; }); return o; }
 
-  function need() { if (!sb) throw new Error('Supabase is not configured. Edit config.js with your project URL and anon key.'); }
+  // =================================================================
+  // SUPABASE backend
+  // =================================================================
+  function need() { if (!sb) throw new Error('Supabase not configured'); }
   async function rpc(name, args) { need(); return unwrap(await sb.rpc(name, args || {})); }
-
-  // ---- public API -------------------------------------------------
-  var API = {
-    configured: configured,
-    client: function () { return sb; },
-    fmtDate: fmtDate,
-
-    // auth -----------------------------------------------------------
-    async currentUser() {
-      if (!sb) return null;
-      var data = unwrap(await sb.auth.getSession());
-      return (data && data.session) ? data.session.user : null;
-    },
-    onAuthChange: function (cb) {
-      if (!sb) return function () {};
-      var sub = sb.auth.onAuthStateChange(function (_evt, session) { cb(session ? session.user : null); });
-      return function () { if (sub && sub.data && sub.data.subscription) sub.data.subscription.unsubscribe(); };
-    },
-    async signUp(o) {
-      need();
-      var data = unwrap(await sb.auth.signUp({
-        email: o.email, password: o.password,
-        options: { data: { full_name: o.name || '', phone: o.phone || '' } }
-      }));
-      return data;
-    },
-    async signIn(o) { need(); return unwrap(await sb.auth.signInWithPassword({ email: o.email, password: o.password })); },
-    async signOut() { if (sb) await sb.auth.signOut(); },
-    async updatePassword(password) { need(); return unwrap(await sb.auth.updateUser({ password: password })); },
-    async resetPassword(email) {
-      need();
-      var redirectTo = window.location.origin + window.location.pathname;
-      return unwrap(await sb.auth.resetPasswordForEmail(email, { redirectTo: redirectTo }));
-    },
-
-    // profile --------------------------------------------------------
-    async getProfile() {
-      var u = await API.currentUser();
-      if (!u) return null;
-      var data = unwrap(await sb.from('profiles').select('*').eq('id', u.id).single());
-      return data;
-    },
-    async updateProfile(p) {
-      need();
-      var u = await API.currentUser();
-      if (!u) throw new Error('Not signed in');
-      var patch = {};
-      if (p.full_name != null) patch.full_name = p.full_name;
-      if (p.phone != null) patch.phone = p.phone;
-      if (p.address != null) patch.address = p.address;
-      return unwrap(await sb.from('profiles').update(patch).eq('id', u.id).select().single());
-    },
-
-    // catalog --------------------------------------------------------
+  var supa = {
+    demo: false,
+    async currentUser() { var d = unwrap(await sb.auth.getSession()); return (d && d.session) ? d.session.user : null; },
+    onAuthChange: function (cb) { var s = sb.auth.onAuthStateChange(function (_e, sess) { cb(sess ? sess.user : null); }); return function () { if (s && s.data && s.data.subscription) s.data.subscription.unsubscribe(); }; },
+    async signUp(o) { return unwrap(await sb.auth.signUp({ email: o.email, password: o.password, options: { data: { full_name: o.name || '', phone: o.phone || '' } } })); },
+    async signIn(o) { return unwrap(await sb.auth.signInWithPassword({ email: o.email, password: o.password })); },
+    async signOut() { await sb.auth.signOut(); },
+    async updatePassword(p) { return unwrap(await sb.auth.updateUser({ password: p })); },
+    async resetPassword(email) { return unwrap(await sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + window.location.pathname })); },
+    async getProfile() { var u = await supa.currentUser(); if (!u) return null; return unwrap(await sb.from('profiles').select('*').eq('id', u.id).single()); },
+    async updateProfile(p) { var u = await supa.currentUser(); if (!u) throw new Error('Not signed in'); var patch = {}; if (p.full_name != null) patch.full_name = p.full_name; if (p.phone != null) patch.phone = p.phone; if (p.address != null) patch.address = p.address; return unwrap(await sb.from('profiles').update(patch).eq('id', u.id).select().single()); },
     async getCatalog() {
-      need();
-      var r = await Promise.all([
-        sb.from('platforms').select('*').order('position'),
-        sb.from('titles').select('*').order('position'),
-        sb.from('editions').select('*').order('position'),
-        sb.from('conditions').select('*').order('position')
-      ]);
+      var r = await Promise.all([sb.from('platforms').select('*').order('position'), sb.from('titles').select('*').order('position'), sb.from('editions').select('*').order('position'), sb.from('conditions').select('*').order('position'), sb.from('pricing_config').select('*').eq('id', 1).single()]);
       var platforms = unwrap(r[0]), titles = unwrap(r[1]), editions = unwrap(r[2]), conditions = unwrap(r[3]);
-      var nested = platforms.map(function (p) {
-        return {
-          id: p.id, name: p.name, icon: p.icon,
-          titles: titles.filter(function (t) { return t.platform_id === p.id; }).map(function (t) {
-            return {
-              id: t.id, name: t.name,
-              editions: editions.filter(function (e) { return e.title_id === t.id; }).map(function (e) {
-                return { id: e.id, key: e.edition_key, name: e.name, base: e.base, desc: e.description || undefined };
-              })
-            };
-          })
-        };
-      });
-      var conds = conditions.map(function (c) {
-        return { id: c.id, name: c.name, mult: Number(c.mult), desc: c.description, ineligible: !!c.ineligible, icon: c.icon };
-      });
-      return { platforms: nested, conditions: conds };
+      var pricing = mapPricing(r[4] && r[4].data);
+      return { platforms: buildNested(platforms, titles, editions), conditions: mapConds(conditions), pricing: pricing };
     },
-
-    // customer claims ------------------------------------------------
-    async submitClaim(o) {
-      return rpc('submit_claim', {
-        p_items: o.items, p_payout: o.payout,
-        p_phone: o.phone || '', p_address: o.address || '', p_notes: o.notes || ''
-      });
-    },
-    async myClaims() {
-      need();
-      var rows = unwrap(await sb.from('claims')
-        .select('*, claim_items(*), claim_history(*)')
-        .order('created_at', { ascending: false }));
-      return rows.map(mapClaimCustomer);
-    },
-    async claimByRef(ref) {
-      need();
-      var row = unwrap(await sb.from('claims')
-        .select('*, claim_items(*), claim_history(*)').eq('ref', ref).single());
-      return mapClaimCustomer(row);
-    },
-    async respondToOffer(ref, response) { return rpc('respond_to_offer', { p_ref: ref, p_response: response }); },
-
-    // staff ----------------------------------------------------------
-    async allClaims() {
-      need();
-      var rows = unwrap(await sb.from('claims')
-        .select('*, claim_items(*), claim_history(*)')
-        .order('created_at', { ascending: false }));
-      return rows.map(mapClaimStaff);
-    },
-    async staffClaimByRef(ref) {
-      need();
-      var row = unwrap(await sb.from('claims')
-        .select('*, claim_items(*), claim_history(*), claim_notes(*)').eq('ref', ref).single());
-      return mapClaimStaff(row);
-    },
-    async accounts() {
-      need();
-      var rows = unwrap(await sb.from('profiles').select('*')
-        .eq('role', 'customer').order('created_at', { ascending: false }));
-      return rows.map(mapAccount);
-    },
-    async accountByEmail(email) {
-      need();
-      var row = unwrap(await sb.from('profiles').select('*, account_notes(*)').eq('email', email).single());
-      return mapAccount(row);
-    },
-    async conditions() {
-      need();
-      var rows = unwrap(await sb.from('conditions').select('*').order('position'));
-      return rows.map(function (c) {
-        return { id: c.id, name: c.name, mult: Number(c.mult), ineligible: !!c.ineligible };
-      });
-    },
-    async team() {
-      need();
-      var rows = unwrap(await sb.from('team_members').select('*').order('position'));
-      return rows.map(function (m) {
-        return { group: m.group_name, name: m.name, role: m.role, email: m.email,
-                 location: m.location, focus: m.focus || [], desc: m.description };
-      });
-    },
-
-    // staff actions (all enforce is_staff() + lifecycle server-side)
-    reviewClaim:      function (ref) { return rpc('review_claim', { p_ref: ref }); },
-    acceptClaim:      function (ref) { return rpc('accept_claim', { p_ref: ref }); },
-    declineClaim:     function (ref, reason) { return rpc('decline_claim', { p_ref: ref, p_reason: reason || '' }); },
-    markReceived:     function (ref) { return rpc('mark_received', { p_ref: ref }); },
-    regradeItem:      function (itemId, conditionId) { return rpc('regrade_item', { p_item_id: itemId, p_condition_id: conditionId }); },
-    makeOffer:        function (ref, amount, reason) { return rpc('make_offer', { p_ref: ref, p_amount: amount, p_reason: reason || '' }); },
-    rejectReturn:     function (ref, reason) { return rpc('reject_return', { p_ref: ref, p_reason: reason || '' }); },
-    authorizePayment: function (ref) { return rpc('authorize_payment', { p_ref: ref }); },
-    confirmReturn:    function (ref) { return rpc('confirm_return', { p_ref: ref }); },
-    assignClaim:      function (ref) { return rpc('assign_claim', { p_ref: ref }); },
-    releaseClaim:     function (ref) { return rpc('release_claim', { p_ref: ref }); },
-    setClaimFlag:     function (ref, on) { return rpc('set_claim_flag', { p_ref: ref, p_flag: on }); },
-    addClaimNote:     function (ref, body) { return rpc('add_claim_note', { p_ref: ref, p_body: body }); },
-    setAccountFlag:   function (id, on) { return rpc('set_account_flag', { p_profile: id, p_flag: on }); },
-    addAccountNote:   function (id, body) { return rpc('add_account_note', { p_profile: id, p_body: body }); }
+    async conditions() { var rows = unwrap(await sb.from('conditions').select('*').order('position')); return mapConds(rows); },
+    async pricing() { var row = unwrap(await sb.from('pricing_config').select('*').eq('id', 1).single()); return mapPricing(row); },
+    async submitClaim(o) { return rpc('submit_claim', { p_items: o.items, p_payout: o.payout, p_phone: o.phone || '', p_address: o.address || '', p_notes: o.notes || '' }); },
+    async myClaims() { var rows = unwrap(await sb.from('claims').select('*, claim_items(*), claim_history(*)').order('created_at', { ascending: false })); return rows.map(mapClaimCustomer); },
+    async claimByRef(ref) { var row = unwrap(await sb.from('claims').select('*, claim_items(*), claim_history(*)').eq('ref', ref).single()); return mapClaimCustomer(row); },
+    async respondToOffer(ref, r) { return rpc('respond_to_offer', { p_ref: ref, p_response: r }); },
+    async allClaims() { var rows = unwrap(await sb.from('claims').select('*, claim_items(*), claim_history(*)').order('created_at', { ascending: false })); return rows.map(mapClaimStaff); },
+    async staffClaimByRef(ref) { var row = unwrap(await sb.from('claims').select('*, claim_items(*), claim_history(*), claim_notes(*)').eq('ref', ref).single()); return mapClaimStaff(row); },
+    async accounts() { var rows = unwrap(await sb.from('profiles').select('*').eq('role', 'customer').order('created_at', { ascending: false })); return rows.map(mapAccount); },
+    async accountByEmail(email) { var row = unwrap(await sb.from('profiles').select('*, account_notes(*)').eq('email', email).single()); return mapAccount(row); },
+    async team() { var rows = unwrap(await sb.from('team_members').select('*').order('position')); return rows.map(mapTeam); },
+    reviewClaim: function (r) { return rpc('review_claim', { p_ref: r }); }, acceptClaim: function (r) { return rpc('accept_claim', { p_ref: r }); },
+    declineClaim: function (r, x) { return rpc('decline_claim', { p_ref: r, p_reason: x || '' }); }, markReceived: function (r) { return rpc('mark_received', { p_ref: r }); },
+    regradeItem: function (i, c) { return rpc('regrade_item', { p_item_id: i, p_condition_id: c }); },
+    makeOffer: function (r, a, x) { return rpc('make_offer', { p_ref: r, p_amount: a, p_reason: x || '' }); }, rejectReturn: function (r, x) { return rpc('reject_return', { p_ref: r, p_reason: x || '' }); },
+    authorizePayment: function (r) { return rpc('authorize_payment', { p_ref: r }); }, confirmReturn: function (r) { return rpc('confirm_return', { p_ref: r }); },
+    assignClaim: function (r) { return rpc('assign_claim', { p_ref: r }); }, releaseClaim: function (r) { return rpc('release_claim', { p_ref: r }); },
+    setClaimFlag: function (r, o) { return rpc('set_claim_flag', { p_ref: r, p_flag: o }); }, addClaimNote: function (r, b) { return rpc('add_claim_note', { p_ref: r, p_body: b }); },
+    setAccountFlag: function (i, o) { return rpc('set_account_flag', { p_profile: i, p_flag: o }); }, addAccountNote: function (i, b) { return rpc('add_account_note', { p_profile: i, p_body: b }); }
   };
+  function buildNested(platforms, titles, editions) {
+    return platforms.map(function (p) { return { id: p.id, name: p.name, icon: p.icon, titles: titles.filter(function (t) { return t.platform_id === p.id; }).map(function (t) { return { id: t.id, name: t.name, editions: editions.filter(function (e) { return e.title_id === t.id; }).map(function (e) { return { id: e.id, key: e.edition_key, name: e.name, base: e.base, desc: e.description || undefined }; }) }; }) }; });
+  }
+  function mapConds(rows) { return rows.map(function (c) { return { id: c.id, name: c.name, mult: Number(c.mult), desc: c.description, ineligible: !!c.ineligible, icon: c.icon }; }); }
+  function mapTeam(m) { return { group: m.group_name, name: m.name, role: m.role, email: m.email, location: m.location, focus: m.focus || [], desc: m.description }; }
 
+  // =================================================================
+  // DEMO backend (in-memory; no setup required)
+  // =================================================================
+  var demo = (function () {
+    var nowISO = new Date().toISOString();
+    function days(n) { return new Date(Date.now() - n * 864e5).toISOString(); }
+    var ed = {}; // edition lookup by id
+    function E(id, key, name, base, desc) { var o = { id: id, key: key, name: name, base: base, desc: desc }; ed[id] = o; return o; }
+    var platforms = [
+      { id: 'switch', name: 'Nintendo Switch', icon: 'handheld', titles: [
+        { id: 'mk8d', name: 'Mario Kart 8 Deluxe', editions: [E('ed-mk8d', 'std', 'Standard', 45)] },
+        { id: 'smash', name: 'Super Smash Bros. Ultimate', editions: [E('ed-smash', 'std', 'Standard', 52)] },
+        { id: 'totk', name: 'The Legend of Zelda: Tears of the Kingdom', editions: [E('ed-totk', 'std', 'Standard', 55)] },
+        { id: 'odyssey', name: 'Super Mario Odyssey', editions: [E('ed-ody', 'std', 'Standard', 42)] } ] },
+      { id: 'ps4', name: 'PlayStation 4', icon: 'gamepad', titles: [
+        { id: 'gow', name: 'God of War', editions: [E('ed-gow', 'std', 'Standard', 18), E('ed-gow-h', 'hits', 'PS Hits (reprint)', 12, 'Budget re-release — lower value')] },
+        { id: 'witcher', name: 'The Witcher 3: Wild Hunt', editions: [E('ed-w3', 'std', 'Standard', 14), E('ed-w3-g', 'goty', 'Game of the Year Edition', 28, 'Includes all expansions')] },
+        { id: 'rdr2', name: 'Red Dead Redemption 2', editions: [E('ed-rdr2', 'std', 'Standard', 22)] },
+        { id: 'spider', name: "Marvel's Spider-Man", editions: [E('ed-spider', 'std', 'Standard', 20)] } ] },
+      { id: 'xbox', name: 'Xbox One', icon: 'gamepad', titles: [
+        { id: 'halomcc', name: 'Halo: The Master Chief Collection', editions: [E('ed-halo', 'std', 'Standard', 16)] },
+        { id: 'forza4', name: 'Forza Horizon 4', editions: [E('ed-forza', 'std', 'Standard', 19)] },
+        { id: 'rdr2x', name: 'Red Dead Redemption 2', editions: [E('ed-rdr2x', 'std', 'Standard', 20)] },
+        { id: 'gtav', name: 'Grand Theft Auto V', editions: [E('ed-gtav', 'std', 'Standard', 14)] } ] } ];
+    var conds = [ { id: 'sealed', name: 'Brand New (Sealed)', mult: 1.40, desc: 'Factory sealed, never opened', ineligible: false, icon: 'box' },
+      { id: 'complete', name: 'Complete', mult: 1.00, desc: 'Case, cover art, inserts, and a clean disc or cart', ineligible: false, icon: 'gamecase' },
+      { id: 'loose', name: 'Game Only (Loose)', mult: 0.60, desc: 'Disc or cart only — no case or artwork', ineligible: false, icon: 'disc' },
+      { id: 'broken', name: 'Not Working / Counterfeit', mult: 0, desc: "Won't play, cracked, or a reproduction", ineligible: true, icon: 'xcircle' } ];
+    var condById = {}; conds.forEach(function (c) { condById[c.id] = c; });
+    var pricing = JSON.parse(JSON.stringify(DEFAULT_PRICING));
+
+    function item(edId, condId, qty, pos) { var e = ed[edId], c = condById[condId]; var unit = e.base * c.mult; return { id: 'di-' + (seq++), title_name: titleOf(edId), platform_name: platOf(edId), edition_name: e.name, cond_name: c.name, condition_id: condId, edition_id: edId, qty: qty, unit_market: unit, line_mid: Math.round(unit * qty), position: pos }; }
+    function titleOf(edId) { var r = ''; platforms.forEach(function (p) { p.titles.forEach(function (t) { t.editions.forEach(function (e) { if (e.id === edId) r = t.name; }); }); }); return r; }
+    function platOf(edId) { var r = ''; platforms.forEach(function (p) { p.titles.forEach(function (t) { t.editions.forEach(function (e) { if (e.id === edId) r = p.name; }); }); }); return r; }
+    var seq = 1;
+    function h(label, note, when) { return { label: label, note: note || null, created_at: when }; }
+
+    var profiles = [
+      { id: 'staff-connor', full_name: 'Connor Waugaman', email: 'admin@getrestash.gg', phone: '', address: '', role: 'staff', flagged: false, created_at: days(120), account_notes: [] },
+      { id: 'cust-maya', full_name: 'Maya Chen', email: 'maya.chen@email.com', phone: '(518) 555-0142', address: '203 Remsen St, Cohoes, NY 12047', role: 'customer', flagged: false, created_at: days(8), account_notes: [] },
+      { id: 'cust-devon', full_name: 'Devon Brooks', email: 'devon.brooks@email.com', phone: '(518) 555-0188', address: '88 Vliet Blvd, Cohoes, NY 12047', role: 'customer', flagged: false, created_at: days(9), account_notes: [] },
+      { id: 'cust-noah', full_name: 'Noah Kim', email: 'noah.kim@email.com', phone: '(518) 555-0195', address: '31 Howard St, Cohoes, NY 12047', role: 'customer', flagged: true, created_at: days(11), account_notes: [{ body: 'Submitted a non-working copy described as Complete. Review future claims carefully.', author_name: 'Connor Waugaman', created_at: days(10) }] } ];
+    var team = [
+      { group_name: 'Founders', name: 'Connor Waugaman', role: 'Co-Founder & Operations', email: 'connor@getrestash.gg', location: 'Cohoes, NY', focus: ['Buyback pricing', 'Claim review', 'Payouts'], description: 'Runs Restash day to day — sets pricing, reviews edge-case claims, and signs off on every payout.', position: 1 },
+      { group_name: 'Founders', name: 'Kamryn Washington', role: 'Co-Founder & Intake / Inspection', email: 'kamryn@getrestash.gg', location: 'Cohoes, NY', focus: ['Intake', 'Condition grading', 'Counterfeit checks'], description: 'Handles games on arrival — receives shipments, grades condition, and flags counterfeit or non-working copies.', position: 2 } ];
+
+    function newClaim(ref, prof, items, status, extra) {
+      var c = Object.assign({ id: 'dc-' + (seq++), ref: ref, customer_id: prof.id, cust_name: prof.full_name, cust_email: prof.email, cust_phone: prof.phone,
+        payout: 'PayPal', address: '', est_low: 0, est_high: 0, status: status, offer_amount: null, customer_response: null, assignee_id: null, assignee_name: null,
+        flagged: false, paid_amount: null, paid_method: null, created_at: days(6), claim_items: items, claim_history: [], claim_notes: [] }, extra || {});
+      var offer = computeOffer(items, pricing); c.est_high = offer; c.est_low = Math.round(offer * 0.85);
+      return c;
+    }
+    var claims = [
+      newClaim('RS-8M4X2A', profiles[1], [item('ed-totk', 'complete', 1, 1)], 'submitted', { created_at: days(1), claim_history: [h('Claim submitted', null, days(1))] }),
+      newClaim('RS-3K9P1B', profiles[2], [item('ed-gow', 'complete', 1, 1), item('ed-rdr2', 'loose', 2, 2)], 'received', { payout: 'Check', address: '88 Vliet Blvd, Cohoes, NY 12047', assignee_id: 'staff-connor', assignee_name: 'Connor Waugaman', created_at: days(3), claim_history: [h('Claim submitted', null, days(3)), h('Accepted — shipping label emailed', null, days(2)), h('Games received at facility', null, days(1))] }),
+      newClaim('RS-2W8E4F', profiles[1], [item('ed-smash', 'sealed', 1, 1)], 'offer', { offer_amount: 28, created_at: days(5), claim_history: [h('Claim submitted', null, days(5)), h('Accepted — shipping label emailed', null, days(4)), h('Games received at facility', null, days(3)), h('Offer made: $28', 'Confirmed sealed; priced to current market.', days(2))] }),
+      newClaim('RS-6N1R5G', profiles[2], [item('ed-forza', 'complete', 1, 1), item('ed-halo', 'complete', 1, 2)], 'paid', { offer_amount: 14, paid_amount: 14, paid_method: 'PayPal', created_at: days(12), claim_history: [h('Claim submitted', null, days(12)), h('Games received at facility', null, days(10)), h('Offer made: $14', null, days(9)), h('You accepted the offer', null, days(9)), h('Payment authorized via PayPal', 'PayPal 1–3 business days.', days(9))] }) ];
+
+    function findClaim(ref) { return claims.filter(function (c) { return c.ref === ref; })[0]; }
+    function findProfileById(id) { return profiles.filter(function (p) { return p.id === id; })[0]; }
+    function findProfileByEmail(e) { return profiles.filter(function (p) { return p.email === e; })[0]; }
+    function sessionProfile() { if (!demoApi._session) return null; return findProfileById(demoApi._session.id) || demoApi._session._prof; }
+    function requireStaff() { var p = sessionProfile(); if (!p || p.role !== 'staff') throw new Error('Staff only'); return p; }
+    function push(c, label, note) { c.claim_history.push(h(label, note, new Date().toISOString())); }
+    function isStaffEmail(e) { e = (e || '').toLowerCase(); return /(^|[.@])(admin|staff|connor|kamryn)([.@])/.test(e) || e === 'admin@getrestash.gg' || /@getrestash\.gg$/.test(e); }
+    function suggested(c) { return computeOffer(c.claim_items, pricing); }
+
+    var demoApi = {
+      demo: true, _session: null,
+      async currentUser() { return demoApi._session ? { id: demoApi._session.id, email: demoApi._session.email } : null; },
+      onAuthChange: function () { return function () {}; },
+      async signUp(o) {
+        var prof = findProfileByEmail(o.email);
+        if (!prof) { prof = { id: 'cust-' + (seq++), full_name: o.name || 'New User', email: o.email, phone: o.phone || '', address: '', role: 'customer', flagged: false, created_at: new Date().toISOString(), account_notes: [] }; profiles.push(prof); }
+        demoApi._session = { id: prof.id, email: prof.email, _prof: prof }; return { user: { id: prof.id } };
+      },
+      async signIn(o) {
+        var prof = findProfileByEmail(o.email);
+        if (!prof) { prof = { id: (isStaffEmail(o.email) ? 'staff-' : 'cust-') + (seq++), full_name: nameFromEmail(o.email), email: o.email, phone: '', address: '', role: isStaffEmail(o.email) ? 'staff' : 'customer', flagged: false, created_at: new Date().toISOString(), account_notes: [] }; profiles.push(prof); }
+        demoApi._session = { id: prof.id, email: prof.email, _prof: prof }; return { user: { id: prof.id } };
+      },
+      async signOut() { demoApi._session = null; },
+      async updatePassword() { return {}; },
+      async resetPassword() { return {}; },
+      async getProfile() { var p = sessionProfile(); return p ? JSON.parse(JSON.stringify(p)) : null; },
+      async updateProfile(patch) { var p = sessionProfile(); if (!p) throw new Error('Not signed in'); if (patch.full_name != null) p.full_name = patch.full_name; if (patch.phone != null) p.phone = patch.phone; if (patch.address != null) p.address = patch.address; return JSON.parse(JSON.stringify(p)); },
+      async getCatalog() { return { platforms: JSON.parse(JSON.stringify(platforms)), conditions: JSON.parse(JSON.stringify(conds)), pricing: JSON.parse(JSON.stringify(pricing)) }; },
+      async conditions() { return JSON.parse(JSON.stringify(conds)); },
+      async pricing() { return JSON.parse(JSON.stringify(pricing)); },
+      async submitClaim(o) {
+        var p = sessionProfile(); if (!p) throw new Error('Not signed in');
+        var items = o.items.map(function (x, i) { return item(x.edition_id, x.condition_id, x.qty, i + 1); });
+        var games = items.reduce(function (s, i) { return s + i.qty; }, 0);
+        var offer = computeOffer(items, pricing);
+        if (offer < pricing.min_quote && games < pricing.min_games) throw new Error('MIN_RULE: A claim needs an estimated offer of at least $' + pricing.min_quote + ' or at least ' + pricing.min_games + ' games.');
+        var ref = 'RS-' + Math.random().toString(36).slice(2, 8).toUpperCase();
+        var c = newClaim(ref, p, items, 'submitted', { payout: o.payout, address: o.address || '', cust_phone: o.phone || p.phone, created_at: new Date().toISOString(), claim_history: [h('Claim submitted', null, new Date().toISOString())] });
+        if (o.phone) p.phone = o.phone; if (o.payout === 'Check' && o.address) p.address = o.address;
+        claims.unshift(c); return ref;
+      },
+      async myClaims() { var p = sessionProfile(); if (!p) return []; return claims.filter(function (c) { return c.customer_id === p.id; }).sort(function (a, b) { return Date.parse(b.created_at) - Date.parse(a.created_at); }).map(mapClaimCustomer); },
+      async claimByRef(ref) { var c = findClaim(ref); if (!c) throw new Error('Claim not found'); return mapClaimCustomer(c); },
+      async respondToOffer(ref, r) { var c = findClaim(ref); if (!c) throw new Error('Claim not found'); var p = sessionProfile(); if (!p || c.customer_id !== p.id) throw new Error('Not your claim'); if (c.status !== 'offer') throw new Error('No open offer'); if (c.customer_response) throw new Error('You already responded'); c.customer_response = r; push(c, r === 'accepted' ? 'You accepted the offer' : 'You declined the offer', r === 'declined' ? "We'll return your games and email tracking." : null); },
+      async allClaims() { requireStaff(); return claims.slice().sort(function (a, b) { return Date.parse(b.created_at) - Date.parse(a.created_at); }).map(mapClaimStaff); },
+      async staffClaimByRef(ref) { requireStaff(); var c = findClaim(ref); if (!c) throw new Error('Claim not found'); return mapClaimStaff(c); },
+      async accounts() { requireStaff(); return profiles.filter(function (p) { return p.role === 'customer'; }).map(mapAccount); },
+      async accountByEmail(e) { requireStaff(); var p = findProfileByEmail(e); if (!p) throw new Error('Account not found'); return mapAccount(p); },
+      async team() { return team.map(mapTeam); },
+      reviewClaim: sa(function (c) { st(c, 'submitted', 'reviewing', 'Under review'); }),
+      acceptClaim: sa(function (c) { st(c, ['submitted', 'reviewing'], 'accepted', 'Accepted — shipping label emailed'); }),
+      declineClaim: sa(function (c, x) { st(c, ['submitted', 'reviewing'], 'declined', 'Declined — not accepted', x || "We weren't able to accept this claim this cycle."); }),
+      markReceived: sa(function (c) { st(c, 'accepted', 'received', 'Games received at facility'); }),
+      regradeItem: function (itemId, condId) { return wrap(function () { requireStaff(); var c = claims.filter(function (cl) { return cl.claim_items.some(function (i) { return i.id === itemId; }); })[0]; if (!c) throw new Error('Item not found'); if (c.status !== 'received') throw new Error('Items can only be re-graded during inspection'); var it = c.claim_items.filter(function (i) { return i.id === itemId; })[0]; var e = ed[it.edition_id], cn = condById[condId]; if (!cn) throw new Error('Unknown condition'); var old = it.cond_name; it.condition_id = condId; it.cond_name = cn.name; it.unit_market = e.base * cn.mult; it.line_mid = Math.round(it.unit_market * it.qty); if (old !== cn.name) push(c, 'Re-graded ' + it.title_name + ': ' + old + ' → ' + cn.name, 'Condition confirmed on inspection.'); }); },
+      makeOffer: function (ref, amt, x) { return wrap(function () { requireStaff(); var c = findClaim(ref); if (!c) throw new Error('Claim not found'); if (c.status !== 'received') throw new Error('Can only offer on a received claim'); var s = suggested(c), lo = Math.max(1, Math.floor(s * 0.85)), hi = Math.max(lo, Math.ceil(s * 1.15)); if (!amt || amt < lo || amt > hi) throw new Error('Offer must be between $' + lo + ' and $' + hi + ' for this claim (algorithm suggests $' + s + ')'); c.status = 'offer'; c.offer_amount = amt; c.customer_response = null; push(c, 'Offer made: $' + amt, (x || '').trim() || null); }); },
+      rejectReturn: sa(function (c, x) { if (c.status !== 'received') throw new Error('Claim is not in inspection'); c.status = 'returned'; push(c, 'Rejected on inspection — returning to seller', (x || '').trim() || "We'll email tracking."); }),
+      authorizePayment: sa(function (c) { if (c.status !== 'offer' || c.customer_response !== 'accepted') throw new Error('Customer has not accepted an offer'); c.status = 'paid'; c.paid_amount = c.offer_amount; c.paid_method = c.payout; push(c, 'Payment authorized via ' + c.payout, c.payout === 'PayPal' ? 'PayPal 1–3 business days.' : 'Check 3–5 business days.'); }),
+      confirmReturn: sa(function (c) { if (c.status !== 'offer' || c.customer_response !== 'declined') throw new Error('No declined offer to return'); c.status = 'returned'; push(c, 'Games returned to seller', "We'll email tracking."); }),
+      assignClaim: sa(function (c) { var p = requireStaff(); c.assignee_id = p.id; c.assignee_name = p.full_name; push(c, (p.full_name || 'A teammate') + ' is handling this claim'); }),
+      releaseClaim: sa(function (c) { push(c, (c.assignee_name || 'A teammate') + ' released this claim'); c.assignee_id = null; c.assignee_name = null; }),
+      setClaimFlag: function (ref, on) { return wrap(function () { requireStaff(); var c = findClaim(ref); c.flagged = on; }); },
+      addClaimNote: function (ref, body) { return wrap(function () { var p = requireStaff(); if (!(body || '').trim()) throw new Error('Empty note'); var c = findClaim(ref); c.claim_notes.push({ body: body, author_name: p.full_name, created_at: new Date().toISOString() }); }); },
+      setAccountFlag: function (id, on) { return wrap(function () { requireStaff(); var p = findProfileById(id); if (p) p.flagged = on; }); },
+      addAccountNote: function (id, body) { return wrap(function () { var me = requireStaff(); if (!(body || '').trim()) throw new Error('Empty note'); var p = findProfileById(id); p.account_notes.push({ body: body, author_name: me.full_name, created_at: new Date().toISOString() }); }); }
+    };
+    function nameFromEmail(e) { var s = (e || '').split('@')[0].replace(/[._]+/g, ' '); return s.replace(/\b\w/g, function (m) { return m.toUpperCase(); }) || 'User'; }
+    function wrap(fn) { return new Promise(function (res, rej) { try { res(fn()); } catch (e) { rej(e); } }); }
+    function sa(fn) { return function (ref, x) { return wrap(function () { requireStaff(); var c = findClaim(ref); if (!c) throw new Error('Claim not found'); fn(c, x); }); }; }
+    function st(c, from, to, label, note) { var ok = Array.isArray(from) ? from.indexOf(c.status) !== -1 : c.status === from; if (!ok) throw new Error('Invalid status transition'); c.status = to; push(c, label, note || null); }
+    return demoApi;
+  })();
+
+  // =================================================================
+  var API = sb ? supa : demo;
+  API.configured = true;     // demo fallback means the app always runs
+  API.client = function () { return sb; };
+  API.fmtDate = fmtDate;
+  API.computeOffer = computeOffer;
+  API.marginFor = marginFor;
+  API.DEFAULT_PRICING = DEFAULT_PRICING;
   window.RestashAPI = API;
 })();

@@ -366,7 +366,7 @@
   let state = {
     view: 'login', loggedIn: false, admin: { name: '', id: null },
     tab: 'claims', filter: 'all', search: '', activeRef: null, activeEmail: null, offerOpen: false, flash: null,
-    team: [], accounts: [], claims: [], conditions: []
+    team: [], accounts: [], claims: [], conditions: [], pricing: {}
   };
 
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -377,6 +377,8 @@
   const initials = (name) => name.split(/\s+/).map(p => p[0]).slice(0, 2).join('').toUpperCase();
   const itemsSummary = (items) => { const n = items.reduce((s, i) => s + i.qty, 0); const plats = items.map(i => i.platformName).filter((x, i, a) => a.indexOf(x) === i); return n + ' game' + (n > 1 ? 's' : '') + ' · ' + plats.join(', '); };
   const estMid = (c) => Math.round((c.estLow + c.estHigh) / 2);
+  const marketTotal = (c) => c.items.reduce((s, i) => s + i.lineMid, 0);
+  const suggestedOffer = (c) => RestashAPI.computeOffer(c.items.map(i => ({ unit_market: i.unitMarket, qty: i.qty })), state.pricing);
   const destOf = (c) => c.payout === 'PayPal' ? c.email : (c.address || (findAccount(c.email) ? findAccount(c.email).address : '—'));
   const methodPill = (m) => '<span class="method-pill ' + (m === 'PayPal' ? 'm-pp' : 'm-ck') + '">' + m + '</span>';
   function pushHistory(c, label, note) { c.history.push(note ? { label, date: todayStr(), note } : { label, date: todayStr() }); }
@@ -401,16 +403,15 @@
   }
   // Inspection panel: confirm/adjust each item's grade. Used while a claim is "received".
   function itemsGradePanel(c) {
-    const assessed = c.items.reduce((s, i) => s + i.lineMid, 0);
     const opts = (sel) => state.conditions.map(cn => '<option value="' + cn.id + '"' + (cn.id === sel ? ' selected' : '') + '>' + esc(cn.name) + '</option>').join('');
-    return '<div class="card items"><div class="card-h row-h">Confirm grade (' + c.items.reduce((s, i) => s + i.qty, 0) + ') <span class="assessed">Assessed $' + assessed + '</span></div>'
+    return '<div class="card items"><div class="card-h row-h">Confirm grade (' + c.items.reduce((s, i) => s + i.qty, 0) + ') <span class="assessed">Market $' + marketTotal(c) + ' · Offer ~$' + suggestedOffer(c) + '</span></div>'
       + c.items.map(it =>
         '<div class="grade-row"><span class="item-ic">' + I.gamepad + '</span>'
         + '<span class="item-b"><span class="item-t">' + esc(it.titleName) + '</span><span class="item-m">' + esc(it.platformName + ' · ' + it.editionName) + (it.qty > 1 ? ' · ×' + it.qty : '') + '</span>'
         + '<span class="claimed">Customer said: ' + esc(it.condName) + '</span></span>'
         + '<span class="grade-r"><select class="grade-sel" data-item="' + it.id + '" aria-label="Condition for ' + esc(it.titleName) + '">' + opts(it.conditionId) + '</select><span class="grade-amt">$' + it.lineMid + '</span></span></div>'
       ).join('')
-      + '<div class="regrade-hint">' + I.info + 'Set each game to the condition you confirmed on inspection. Any change is shown to the customer, and the offer band follows the assessed value above.</div></div>';
+      + '<div class="regrade-hint">' + I.info + 'Set each game to the condition you confirmed. The customer sees any change, and the suggested offer (algorithm) updates with the market value.</div></div>';
   }
   function timeline(history) {
     return '<div class="timeline">' + history.map((h, i) => {
@@ -443,9 +444,9 @@
     let header, body, live = false;
     if (state.offerOpen && c.status === 'received') {
       header = 'Make an offer'; live = true;
-      const assessed = c.items.reduce((s, i) => s + i.lineMid, 0);
-      const mid = assessed, lo = Math.max(1, Math.round(mid * 0.7)), hi = Math.round(mid * 1.1);
-      body = '<div class="offer-box"><label for="offer-amount">Offer amount</label><div class="offer-input"><span>$</span><input id="offer-amount" type="number" min="' + lo + '" max="' + hi + '" value="' + mid + '"></div><div class="offer-hint">Customer estimate $' + c.estLow + '–$' + c.estHigh + ' · <strong>Assessed value $' + assessed + '</strong> (after your grading). Offer must be between $' + lo + ' and $' + hi + ' to keep payouts fair.</div><label for="offer-reason" style="margin-top:14px;">Why this offer <span style="font-weight:500;color:var(--muted);">— the customer sees this</span></label><textarea id="offer-reason" rows="2" placeholder="e.g. Graded Complete, light disc wear; priced to current market." style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-family:var(--body);font-size:14px;resize:vertical;"></textarea>' + flashMsg('offer') + '<div class="offer-buttons"><button class="btn btn-primary" data-action="send-offer" data-ref="' + c.ref + '">Send offer</button><button class="btn btn-secondary" data-action="cancel-offer">Cancel</button></div></div>';
+      const market = marketTotal(c), sugg = suggestedOffer(c);
+      const lo = Math.max(1, Math.floor(sugg * 0.85)), hi = Math.max(lo, Math.ceil(sugg * 1.15)), mid = sugg;
+      body = '<div class="offer-box"><label for="offer-amount">Offer amount</label><div class="offer-input"><span>$</span><input id="offer-amount" type="number" min="' + lo + '" max="' + hi + '" value="' + mid + '"></div><div class="offer-hint">Market value $' + market + ' · <strong>Algorithm suggests $' + sugg + '</strong> (margin − shipping − fees, after your grading). Offer must be between $' + lo + ' and $' + hi + '.</div><label for="offer-reason" style="margin-top:14px;">Why this offer <span style="font-weight:500;color:var(--muted);">— the customer sees this</span></label><textarea id="offer-reason" rows="2" placeholder="e.g. Graded Complete, light disc wear; priced to current market." style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-family:var(--body);font-size:14px;resize:vertical;"></textarea>' + flashMsg('offer') + '<div class="offer-buttons"><button class="btn btn-primary" data-action="send-offer" data-ref="' + c.ref + '">Send offer</button><button class="btn btn-secondary" data-action="cancel-offer">Cancel</button></div></div>';
     } else if (c.status === 'offer') {
       live = true;
       if (!c.customerResponse) {
@@ -725,6 +726,7 @@
     state.claims = await RestashAPI.allClaims();
     state.accounts = await RestashAPI.accounts();
     try { state.conditions = await RestashAPI.conditions(); } catch (e) { state.conditions = []; }
+    try { state.pricing = await RestashAPI.pricing(); } catch (e) { state.pricing = RestashAPI.DEFAULT_PRICING; }
   }
   async function ensureTeam() { if (!state.team.length) { try { state.team = await RestashAPI.team(); } catch (e) {} } }
   async function mergeClaimDetail(ref) { const d = await RestashAPI.staffClaimByRef(ref); const i = state.claims.findIndex(function (c) { return c.ref === ref; }); if (i >= 0) state.claims[i] = d; else state.claims.unshift(d); }
