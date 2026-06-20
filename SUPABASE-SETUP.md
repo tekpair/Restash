@@ -13,8 +13,15 @@ steps once to take it live.
    database password, and a region near your customers.
 2. Wait for it to finish provisioning.
 
+> **Just want to look around first?** You don't need any of this to click
+> through the site. With `config.js` left at its placeholders, the app runs in a
+> built-in **demo mode** (in-memory data, the same offer algorithm) — no "not
+> configured" banner. Sign in with any email; use **admin@getrestash.gg** (any
+> password) to enter the staff console. Do the steps below when you're ready to
+> persist real data.
+
 ## 2. Create the database schema
-Run the four migration files in **`supabase/migrations/`**, in order.
+Run the migration files in **`supabase/migrations/`**, in order.
 
 **Option A — SQL Editor (no tooling):** open the Supabase dashboard →
 **SQL Editor** → paste the contents of each file and run them in order:
@@ -22,6 +29,13 @@ Run the four migration files in **`supabase/migrations/`**, in order.
 2. `0002_security.sql`
 3. `0003_rpcs.sql`
 4. `0004_seed.sql`
+5. `0005_claim_reasons.sql`
+6. `0006_regrade.sql`
+7. `0007_offer_algorithm.sql` — the offer algorithm, pricing config, min rule
+8. `0008_pricecharting.sql` — hooks for a live pricing feed
+
+See **[`PRICING.md`](PRICING.md)** for how offers are calculated and how to wire
+PriceCharting for live market values.
 
 **Option B — Supabase CLI:**
 ```bash

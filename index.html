@@ -3,22 +3,22 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Restash — Turn your video games into cash</title>
-<meta name="description" content="Sell your PlayStation, Xbox, and Nintendo Switch games for cash. Get an instant estimate, ship free, and get paid by PayPal or check." />
+<title>Restash — Instant cash for your games. Zero hassle.</title>
+<meta name="description" content="Instant cash for your PlayStation, Xbox, and Nintendo Switch games. Zero hassle, skip the marketplace — get an instant offer, ship free, and get paid by PayPal or check." />
 <link rel="canonical" href="https://tekpair.github.io/Restash/" />
 <meta name="color-scheme" content="light dark" />
 
 <!-- Open Graph / social share -->
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="Restash" />
-<meta property="og:title" content="Restash — Turn your video games into cash" />
+<meta property="og:title" content="Restash — Instant cash. Zero hassle. Skip the marketplace." />
 <meta property="og:description" content="Get an instant estimate, ship your games free, and get paid by PayPal or check." />
 <meta property="og:url" content="https://tekpair.github.io/Restash/" />
 <meta property="og:image" content="https://tekpair.github.io/Restash/og-image.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="Restash — Turn your video games into cash" />
+<meta name="twitter:title" content="Restash — Instant cash. Zero hassle. Skip the marketplace." />
 <meta name="twitter:description" content="Get an instant estimate, ship your games free, and get paid by PayPal or check." />
 <meta name="twitter:image" content="https://tekpair.github.io/Restash/og-image.png" />
 
@@ -422,6 +422,7 @@
     { id: 'broken',   name: 'Not Working / Counterfeit', mult: 0, desc: 'Won\u2019t play, cracked, or a reproduction', ineligible: true }
   ];
   let COND_ICON = { sealed: 'box', complete: 'gamecase', loose: 'disc', broken: 'xcircle' };
+  let PRICING = RestashAPI.DEFAULT_PRICING;
   function editionIconName(name) { if (/game of the year/i.test(name)) return 'star'; if (/hits|reprint/i.test(name)) return 'refresh'; return 'tag'; }
 
   const STEP_OF = { platform: 1, title: 2, edition: 3, condition: 4 };
@@ -451,8 +452,12 @@
 
   function lineMidOf(it) { return Math.round(it.editionBase * it.condMult) * it.qty; }
   function cartTotals() {
-    const mid = state.cart.reduce((s, it) => s + lineMidOf(it), 0);
-    return { mid, low: Math.round(mid * 0.9), high: Math.round(mid * 1.1) };
+    const items = state.cart.map(it => ({ unit_market: it.editionBase * it.condMult, qty: it.qty }));
+    const offer = RestashAPI.computeOffer(items, PRICING);
+    const market = state.cart.reduce((s, it) => s + lineMidOf(it), 0);
+    const games = state.cart.reduce((s, it) => s + it.qty, 0);
+    const meetsMin = offer >= PRICING.min_quote || games >= PRICING.min_games;
+    return { offer, market, games, meetsMin, low: Math.round(offer * 0.85), high: offer };
   }
   const cartQty = () => state.cart.reduce((s, it) => s + it.qty, 0);
   function makeRef() { let r; do { r = 'RS-' + Math.random().toString(36).slice(2, 8).toUpperCase(); } while (state.claims.some(c => c.ref === r)); return r; }
@@ -528,14 +533,14 @@
 
   const views = {
     welcome() {
-      return '<div class="screen welcome" data-action="enter-app"><div class="wc-inner"><span class="wc-glow"></span><span class="wc-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 13.5a6.5 6.5 0 0 1 10.4-5.2"/><path d="M16 5.7v3.2h-3.2"/><path d="M18.5 10.5a6.5 6.5 0 0 1-10.4 5.2"/><path d="M8 18.3v-3.2h3.2"/></svg></span><h1 class="wc-title">Welcome to Restash</h1><p class="wc-sub">Turn your games into cash.</p><span class="wc-prog"><span class="wc-bar"></span></span></div></div>';
+      return '<div class="screen welcome" data-action="enter-app"><div class="wc-inner"><span class="wc-glow"></span><span class="wc-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 13.5a6.5 6.5 0 0 1 10.4-5.2"/><path d="M16 5.7v3.2h-3.2"/><path d="M18.5 10.5a6.5 6.5 0 0 1-10.4 5.2"/><path d="M8 18.3v-3.2h3.2"/></svg></span><h1 class="wc-title">Welcome to Restash</h1><p class="wc-sub">Instant cash. Zero hassle. Skip the marketplace.</p><span class="wc-prog"><span class="wc-bar"></span></span></div></div>';
     },
     platform() {
       const cards = PLATFORMS.map(p =>
         '<button class="card" data-action="pick-platform" data-value="' + p.id + '" aria-label="Sell ' + esc(p.name) + ' games"><span class="tile">' + I[p.icon] + '</span><span class="card-body"><span class="card-name">' + esc(p.name) + '</span></span><span class="chev">' + I.chevron + '</span></button>'
       ).join('');
       const cartLine = state.cart.length ? '<br><span class="reg-note">' + I.check + cartQty() + ' game' + (cartQty() > 1 ? 's' : '') + ' in your claim — <a data-action="goto-cart" style="font-weight:600;cursor:pointer;">review</a></span>' : (state.loggedIn ? '' : '<br><span class="reg-note">' + I.lock + 'A free account is required to submit a claim.</span>');
-      return '<div class="screen"><h1 class="h1">Sell your<br>physical games</h1><p class="sub">Pick your platform to get an instant, no-obligation estimate. Add as many games as you like to one claim.</p><span class="paynote">' + I.dollar + 'Free shipping label · paid in 1–5 business days</span>' + cartLine + '<div class="list">' + cards + '</div></div>';
+      return '<div class="screen"><h1 class="h1">Sell your<br>physical games</h1><p class="sub"><strong>Instant cash. Zero hassle. Skip the marketplace.</strong> Pick your platform for an instant, no-obligation offer — add as many games as you like to one claim.</p><span class="paynote">' + I.dollar + 'Free shipping label · paid in 1–5 business days</span>' + cartLine + '<div class="list">' + cards + '</div></div>';
     },
     title() {
       const p = plat();
@@ -566,11 +571,13 @@
       const lines = state.cart.map((it, i) =>
         '<div class="cart-line"><div class="cl-top"><span class="cl-icon">' + I.gamepad + '</span><span class="cl-body"><span class="cl-title">' + esc(it.titleName) + '</span><span class="cl-meta">' + esc(it.platformName + ' · ' + it.editionName + ' · ' + it.condName) + '</span></span><button class="cl-remove" data-action="cart-remove" data-idx="' + i + '" aria-label="Remove ' + esc(it.titleName) + '">' + I.x + '</button></div><div class="cl-bottom"><div class="qty"><button class="qbtn" data-action="qty-dec" data-idx="' + i + '" aria-label="Decrease quantity">' + I.minus + '</button><span class="qn">' + it.qty + '</span><button class="qbtn" data-action="qty-inc" data-idx="' + i + '" aria-label="Increase quantity">' + I.plus + '</button></div><span class="cl-amt">$' + lineMidOf(it) + '</span></div></div>'
       ).join('');
+      const minNote = t.meetsMin ? '' : '<div class="notice" style="margin-top:14px;"><span class="nico">' + I.info + '</span><p><strong>A little more to submit.</strong> We take claims with an estimated offer of at least $' + PRICING.min_quote + ', or ' + PRICING.min_games + '+ games — shipping makes a single low-value game a wash. Add another to continue.</p></div>';
       return '<div class="screen"><h1 class="h1">Your games</h1><p class="sub">Adjust quantities, add more games, or continue to your claim.</p>'
-        + goldCard('Estimated payout', '$' + t.low + ' – $' + t.high)
+        + goldCard('Estimated cash offer', '$' + t.low + ' – $' + t.high)
         + '<div class="cart-list">' + lines + '</div>'
-        + '<p class="disclaimer">Preliminary estimate for everything in your claim. Final offers are confirmed after we inspect each game.</p>'
-        + '<div class="btn-stack"><button class="btn btn-secondary" data-action="add-another">' + I.plus + 'Add another game</button><button class="btn btn-primary" data-action="to-claim">Continue to claim ' + I.chevron + '</button></div>'
+        + '<p class="disclaimer">Instant offer based on current market value — confirmed after we inspect each game. No listings, no buyers.</p>'
+        + minNote
+        + '<div class="btn-stack"><button class="btn btn-secondary" data-action="add-another">' + I.plus + 'Add another game</button>' + (t.meetsMin ? '<button class="btn btn-primary" data-action="to-claim">Continue to claim ' + I.chevron + '</button>' : '<button class="btn btn-primary" disabled style="opacity:.55;cursor:not-allowed;">Continue to claim ' + I.chevron + '</button>') + '</div>'
         + (state.loggedIn ? '' : '<br><span class="reg-note" style="display:flex;justify-content:center;">' + I.lock + 'You\u2019ll need a free account to submit.</span>')
         + '</div>';
     },
@@ -583,7 +590,7 @@
       const sel = m => state.payout === m ? ' sel' : '';
       return '<div class="screen">' + backBtn('cart') + '<h1 class="h1">Submit your claim</h1>'
         + itemsPanel(cartDisplay())
-        + '<div class="summary">' + sumRow(I.dollar, 'Estimated total', '$' + t.low + ' – $' + t.high) + '</div>'
+        + '<div class="summary">' + sumRow(I.dollar, 'Estimated cash offer', '$' + t.low + ' – $' + t.high) + '</div>'
         + '<div class="field"><label for="cf-name">Full name</label><input id="cf-name" type="text" placeholder="Jordan Rivera" value="' + val('name') + '"></div>'
         + '<div class="field"><label for="cf-email">Email</label><input id="cf-email" type="email" placeholder="you@email.com" value="' + val('email') + '"></div>'
         + '<div class="field"><label for="cf-phone">Phone</label><input id="cf-phone" type="tel" placeholder="(518) 555-0123" value="' + val('phone') + '"></div>'
@@ -609,7 +616,7 @@
       const list = steps.map((s, i) => '<div class="step' + (s.done ? ' is-done' : '') + '"><span class="step-mark ' + (s.done ? 'done' : 'todo') + '">' + (s.done ? I.check : (i + 1)) + '</span><span class="step-text">' + s.t + '</span></div>').join('');
       return '<div class="screen center"><span class="status-icon brand">' + I.check + '</span><h1 class="h1">Claim submitted</h1>'
         + '<p class="sub">Thanks' + (first ? ', ' + esc(first) : '') + '. Your reference is <strong style="color:var(--ink)">' + cl.ref + '</strong>.</p>'
-        + goldCard('Estimated payout', '$' + cl.estLow + ' – $' + cl.estHigh)
+        + goldCard('Estimated cash offer', '$' + cl.estLow + ' – $' + cl.estHigh)
         + '<div class="steps"><p class="steps-title">What happens next</p>' + list + '</div>'
         + '<p class="testnote">We accept a limited number of games right now, so we\u2019ll email you whether or not we\u2019re inspecting yours.</p>'
         + '<div class="btn-stack" style="max-width:300px;margin-left:auto;margin-right:auto;"><button class="btn btn-primary" data-action="goto" data-value="claimDetail" data-ref="' + cl.ref + '">Track this claim</button><button class="btn btn-secondary" data-action="restart">Sell more games</button></div></div>';
@@ -687,7 +694,7 @@
       } else if (c.status === 'returned' && c.offerAmount) {
         moneyCard = goldCard('Offer declined', '$' + c.offerAmount);
       } else {
-        moneyCard = goldCard('Estimated payout', '$' + c.estLow + ' – $' + c.estHigh);
+        moneyCard = goldCard('Estimated cash offer', '$' + c.estLow + ' – $' + c.estHigh);
       }
       if (c.status === 'offer' && whyHtml) moneyCard += whyHtml;
       const tl = c.history.map((h, i) => {
@@ -771,7 +778,7 @@
     else if (a === 'qty-inc') { if (idx != null && state.cart[idx]) { state.cart[idx].qty += 1; render(); } }
     else if (a === 'qty-dec') { if (idx != null && state.cart[idx]) { state.cart[idx].qty = Math.max(1, state.cart[idx].qty - 1); render(); } }
     else if (a === 'cart-remove') { if (idx != null && state.cart[idx]) { state.cart.splice(idx, 1); if (!state.cart.length) { resetItem(); go('platform'); } else { render(); } } }
-    else if (a === 'to-claim') { if (!state.cart.length) return go('platform'); if (state.loggedIn) { go('claim'); } else { state.pendingClaim = true; goto('authRequired'); } }
+    else if (a === 'to-claim') { if (!state.cart.length) return go('platform'); if (!cartTotals().meetsMin) return; if (state.loggedIn) { go('claim'); } else { state.pendingClaim = true; goto('authRequired'); } }
     else if (a === 'pick-payout') { state.payout = v; document.querySelectorAll('.pay-opt').forEach(o => o.classList.toggle('sel', o.dataset.value === v)); const af = document.getElementById('cf-addr-field'); if (af) af.hidden = (v !== 'Check'); const er = document.getElementById('cf-error'); if (er) er.hidden = true; }
     else if (a === 'submit-claim') {
       if (!state.loggedIn) { state.pendingClaim = true; return goto('authRequired'); }
@@ -885,7 +892,7 @@
     if (!RestashAPI.configured) { configBanner(); return; }
     try {
       const cat = await RestashAPI.getCatalog();
-      PLATFORMS = cat.platforms; CONDITIONS = cat.conditions;
+      PLATFORMS = cat.platforms; CONDITIONS = cat.conditions; PRICING = cat.pricing;
       COND_ICON = {}; CONDITIONS.forEach(c => { COND_ICON[c.id] = c.icon; });
       await loadSession();
       await loadClaims();
