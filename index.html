@@ -366,6 +366,7 @@
         </div>
         <nav class="foot-links">
           <a href="how-it-works.html">How It Works</a>
+          <a href="grading.html">Grading</a>
           <a data-action="account-icon">My Claims</a>
           <a data-action="goto" data-value="terms">Terms</a>
           <a data-action="goto" data-value="privacy">Privacy</a>
@@ -554,7 +555,7 @@
       const rows = CONDITIONS.map(cd =>
         '<button class="card" data-action="pick-condition" data-value="' + cd.id + '"><span class="tile">' + I[COND_ICON[cd.id]] + '</span><span class="card-body"><span class="card-name">' + cd.name + '</span><span class="card-desc">' + cd.desc + '</span></span><span class="chev">' + I.chevron + '</span></button>'
       ).join('');
-      return '<div class="screen">' + backBtn('edition') + '<h1 class="h1">What condition is it in?</h1><p class="sub">Be honest — your estimate depends on it, and we confirm condition when the game arrives.</p><div class="list">' + rows + '</div></div>';
+      return '<div class="screen">' + backBtn('edition') + '<h1 class="h1">What condition is it in?</h1><p class="sub">Be honest — your estimate depends on it, and we confirm condition when the game arrives. <a href="grading.html">See our grading guide</a>.</p><div class="list">' + rows + '</div></div>';
     },
     ineligible() {
       return '<div class="screen center"><span class="status-icon amber">' + I.alert + '</span><h1 class="h1">We can\u2019t accept this</h1><p class="sub">Restash buys authentic, working games. Non-working, cracked, or reproduction copies aren\u2019t eligible. If it still plays, head back and pick a different condition.</p><div class="btn-stack" style="max-width:300px;margin-left:auto;margin-right:auto;"><button class="btn btn-secondary" data-action="back" data-value="condition">Choose a different condition</button>' + (state.cart.length ? '<button class="btn btn-primary" data-action="goto-cart">Back to your claim (' + cartQty() + ')</button>' : '') + '</div></div>';
@@ -670,6 +671,8 @@
       const c = findClaim(state.activeClaimRef);
       const back = state.loggedIn ? '<button class="backbtn" data-action="goto" data-value="account">' + I.back + 'My Claims</button>' : '<button class="backbtn" data-action="home">' + I.back + 'Home</button>';
       if (!c) return '<div class="screen">' + back + '<h1 class="h1">Claim not found</h1></div>';
+      const offerNote = (c.history.filter(function (h) { return h.label.indexOf('Offer made') === 0; }).pop() || {}).note;
+      const whyHtml = offerNote ? '<p class="offer-help"><strong>Why this offer:</strong> ' + esc(offerNote) + '</p>' : '';
       let moneyCard;
       if (c.status === 'offer' && c.offerAmount) {
         if (!c.customerResponse) {
@@ -686,6 +689,7 @@
       } else {
         moneyCard = goldCard('Estimated payout', '$' + c.estLow + ' – $' + c.estHigh);
       }
+      if (c.status === 'offer' && whyHtml) moneyCard += whyHtml;
       const tl = c.history.map((h, i) => {
         const last = i === c.history.length - 1;
         const line = i < c.history.length - 1 ? '<span class="tl-line"></span>' : '';

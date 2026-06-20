@@ -399,7 +399,7 @@
     if (state.offerOpen && c.status === 'received') {
       header = 'Make an offer'; live = true;
       const mid = estMid(c), lo = Math.max(1, Math.round(mid * 0.7)), hi = Math.round(mid * 1.1);
-      body = '<div class="offer-box"><label for="offer-amount">Offer amount</label><div class="offer-input"><span>$</span><input id="offer-amount" type="number" min="' + lo + '" max="' + hi + '" value="' + mid + '"></div>' + flashMsg('offer') + '<div class="offer-hint">Customer estimate was $' + c.estLow + '–$' + c.estHigh + '. Offer must be between $' + lo + ' and $' + hi + ' to keep payouts fair.</div><div class="offer-buttons"><button class="btn btn-primary" data-action="send-offer" data-ref="' + c.ref + '">Send offer</button><button class="btn btn-secondary" data-action="cancel-offer">Cancel</button></div></div>';
+      body = '<div class="offer-box"><label for="offer-amount">Offer amount</label><div class="offer-input"><span>$</span><input id="offer-amount" type="number" min="' + lo + '" max="' + hi + '" value="' + mid + '"></div><div class="offer-hint">Customer estimate was $' + c.estLow + '–$' + c.estHigh + '. Offer must be between $' + lo + ' and $' + hi + ' to keep payouts fair.</div><label for="offer-reason" style="margin-top:14px;">Why this offer <span style="font-weight:500;color:var(--muted);">— the customer sees this</span></label><textarea id="offer-reason" rows="2" placeholder="e.g. Graded Complete, light disc wear; priced to current market." style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-family:var(--body);font-size:14px;resize:vertical;"></textarea>' + flashMsg('offer') + '<div class="offer-buttons"><button class="btn btn-primary" data-action="send-offer" data-ref="' + c.ref + '">Send offer</button><button class="btn btn-secondary" data-action="cancel-offer">Cancel</button></div></div>';
     } else if (c.status === 'offer') {
       live = true;
       if (!c.customerResponse) {
@@ -605,16 +605,18 @@
 
     else if (a === 'st-review')    { await act(function () { return RestashAPI.reviewClaim(ref); }, ref); }
     else if (a === 'st-accept')    { await act(function () { return RestashAPI.acceptClaim(ref); }, ref); }
-    else if (a === 'st-decline')   { await act(function () { return RestashAPI.declineClaim(ref); }, ref); }
+    else if (a === 'st-decline')   { const r = window.prompt('Reason for declining (shown to the customer) — optional:', ''); if (r === null) return; await act(function () { return RestashAPI.declineClaim(ref, r); }, ref); }
     else if (a === 'st-received')  { await act(function () { return RestashAPI.markReceived(ref); }, ref); }
     else if (a === 'st-offer')     { state.flash = null; state.offerOpen = true; render(); }
     else if (a === 'cancel-offer') { state.flash = null; state.offerOpen = false; render(); }
     else if (a === 'send-offer') {
       const amt = parseInt(document.getElementById('offer-amount').value, 10);
-      try { await RestashAPI.makeOffer(ref, amt); state.offerOpen = false; state.flash = null; await refreshAll(ref); }
+      const reasonEl = document.getElementById('offer-reason');
+      const reason = reasonEl ? reasonEl.value.trim() : '';
+      try { await RestashAPI.makeOffer(ref, amt, reason); state.offerOpen = false; state.flash = null; await refreshAll(ref); }
       catch (e2) { state.flash = { slot: 'offer', kind: 'err', text: e2.message }; render(); }
     }
-    else if (a === 'st-reject')      { await act(function () { return RestashAPI.rejectReturn(ref); }, ref); }
+    else if (a === 'st-reject')      { const r = window.prompt('Reason for rejecting on inspection (shown to the customer) — optional:', ''); if (r === null) return; await act(function () { return RestashAPI.rejectReturn(ref, r); }, ref); }
     else if (a === 'authorize-pay')  { await act(function () { return RestashAPI.authorizePayment(ref); }, ref); }
     else if (a === 'confirm-return') { await act(function () { return RestashAPI.confirmReturn(ref); }, ref); }
 

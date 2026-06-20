@@ -234,10 +234,10 @@
     // staff actions (all enforce is_staff() + lifecycle server-side)
     reviewClaim:      function (ref) { return rpc('review_claim', { p_ref: ref }); },
     acceptClaim:      function (ref) { return rpc('accept_claim', { p_ref: ref }); },
-    declineClaim:     function (ref) { return rpc('decline_claim', { p_ref: ref }); },
+    declineClaim:     function (ref, reason) { return rpc('decline_claim', { p_ref: ref, p_reason: reason || '' }); },
     markReceived:     function (ref) { return rpc('mark_received', { p_ref: ref }); },
-    makeOffer:        function (ref, amount) { return rpc('make_offer', { p_ref: ref, p_amount: amount }); },
-    rejectReturn:     function (ref) { return rpc('reject_return', { p_ref: ref }); },
+    makeOffer:        function (ref, amount, reason) { return rpc('make_offer', { p_ref: ref, p_amount: amount, p_reason: reason || '' }); },
+    rejectReturn:     function (ref, reason) { return rpc('reject_return', { p_ref: ref, p_reason: reason || '' }); },
     authorizePayment: function (ref) { return rpc('authorize_payment', { p_ref: ref }); },
     confirmReturn:    function (ref) { return rpc('confirm_return', { p_ref: ref }); },
     assignClaim:      function (ref) { return rpc('assign_claim', { p_ref: ref }); },
