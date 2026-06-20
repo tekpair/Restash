@@ -31,9 +31,9 @@
   function mapItems(rows) {
     return (rows || []).slice().sort(bySortKey('position')).map(function (it) {
       return {
-        titleName: it.title_name, platformName: it.platform_name,
-        editionName: it.edition_name, condName: it.cond_name,
-        qty: it.qty, lineMid: it.line_mid
+        id: it.id, titleName: it.title_name, platformName: it.platform_name,
+        editionName: it.edition_name, condName: it.cond_name, conditionId: it.condition_id,
+        editionId: it.edition_id, qty: it.qty, lineMid: it.line_mid
       };
     });
   }
@@ -222,6 +222,13 @@
       var row = unwrap(await sb.from('profiles').select('*, account_notes(*)').eq('email', email).single());
       return mapAccount(row);
     },
+    async conditions() {
+      need();
+      var rows = unwrap(await sb.from('conditions').select('*').order('position'));
+      return rows.map(function (c) {
+        return { id: c.id, name: c.name, mult: Number(c.mult), ineligible: !!c.ineligible };
+      });
+    },
     async team() {
       need();
       var rows = unwrap(await sb.from('team_members').select('*').order('position'));
@@ -236,6 +243,7 @@
     acceptClaim:      function (ref) { return rpc('accept_claim', { p_ref: ref }); },
     declineClaim:     function (ref, reason) { return rpc('decline_claim', { p_ref: ref, p_reason: reason || '' }); },
     markReceived:     function (ref) { return rpc('mark_received', { p_ref: ref }); },
+    regradeItem:      function (itemId, conditionId) { return rpc('regrade_item', { p_item_id: itemId, p_condition_id: conditionId }); },
     makeOffer:        function (ref, amount, reason) { return rpc('make_offer', { p_ref: ref, p_amount: amount, p_reason: reason || '' }); },
     rejectReturn:     function (ref, reason) { return rpc('reject_return', { p_ref: ref, p_reason: reason || '' }); },
     authorizePayment: function (ref) { return rpc('authorize_payment', { p_ref: ref }); },
