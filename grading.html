@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Condition grading guide — Restash</title>
+<meta name="description" content="How Restash grades game condition: Sealed, Complete, and Loose criteria, authenticity checks, a pre-ship checklist, and the inspection checksheet our team uses." />
+<link rel="canonical" href="https://tekpair.github.io/Restash/grading.html" />
+<meta name="color-scheme" content="light dark" />
+
+<!-- Open Graph / social share -->
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Restash" />
+<meta property="og:title" content="Condition grading guide — Restash" />
+<meta property="og:description" content="How we grade game condition, what we check for authenticity, and how to prep your games before you ship." />
+<meta property="og:url" content="https://tekpair.github.io/Restash/grading.html" />
+<meta property="og:image" content="https://tekpair.github.io/Restash/og-image.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Condition grading guide — Restash" />
+<meta name="twitter:image" content="https://tekpair.github.io/Restash/og-image.png" />
+
+<!-- Favicon -->
+<link rel="icon" type="image/svg+xml" href="favicon.svg" />
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png" />
+<link rel="apple-touch-icon" href="apple-touch-icon.png" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+
+<style>
+  :root {
+    --ink: #1b1d3a; --muted: #6a6d8c;
+    --purple: #5b3fd6; --purple-deep: #46309f; --purple-tint: #ece8fb; --purple-tint-2: #f4f1fd;
+    --navy-1: #2b2e66; --navy-2: #15173a;
+    --green: #1f7a4d; --green-soft: #e7f4ec; --green-border: #bfe3cd;
+    --amber: #9a6a06; --amber-soft: #fbf1dd; --amber-border: #efe0b8;
+    --red: #b3261e; --red-soft: #fbeae8; --red-border: #f0c7c3;
+    --bg: #f4f4fb; --surface: #ffffff; --border: #e6e5f1;
+    --display: "Bricolage Grotesque", "Plus Jakarta Sans", system-ui, sans-serif;
+    --body: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--body); background: var(--bg); color: var(--ink); -webkit-font-smoothing: antialiased; display: flex; justify-content: center; }
+  svg { display: block; }
+  a { color: var(--purple); text-decoration: none; }
+
+  .shell { width: 100%; max-width: 660px; min-height: 100vh; display: flex; flex-direction: column; padding: 0 24px; }
+  header { display: flex; align-items: center; justify-content: flex-start; padding: 22px 0 0; }
+  .brand { display: flex; align-items: center; gap: 9px; }
+  .brand .mark { width: 30px; height: 30px; border-radius: 9px; background: var(--purple-tint); color: var(--purple); display: flex; align-items: center; justify-content: center; }
+  .brand .mark svg { width: 18px; height: 18px; }
+  .brand .word { font-family: var(--display); font-weight: 700; font-size: 19px; letter-spacing: -0.02em; color: var(--ink); }
+  main { flex: 1; }
+
+  .btn { font-family: var(--body); font-size: 15px; font-weight: 600; padding: 13px 20px; border-radius: 12px; border: 1.5px solid transparent; cursor: pointer; transition: background .15s ease, border-color .15s ease; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+  .btn-primary { background: var(--purple); color: #fff; }
+  .btn-primary:hover { background: var(--purple-deep); }
+
+  .hero { padding: 28px 0 8px; }
+  .eyebrow { display: inline-block; font-size: 12px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--purple); background: var(--purple-tint); padding: 6px 12px; border-radius: 999px; }
+  h1 { font-family: var(--display); font-weight: 700; font-size: 32px; line-height: 1.08; letter-spacing: -0.025em; margin-top: 18px; }
+  .hero p { font-size: 16px; color: var(--muted); line-height: 1.55; margin-top: 14px; max-width: 52ch; }
+
+  .section-title { font-family: var(--display); font-weight: 700; font-size: 22px; letter-spacing: -0.02em; margin: 34px 0 6px; }
+  .section-sub { color: var(--muted); font-size: 15px; line-height: 1.55; margin-bottom: 18px; max-width: 56ch; }
+
+  .grade { background: var(--surface); border: 1.5px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 14px; }
+  .grade-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .grade-ic { flex: none; width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+  .grade-ic svg { width: 20px; height: 20px; }
+  .grade h3 { font-family: var(--display); font-weight: 700; font-size: 18px; letter-spacing: -0.01em; }
+  .pill { font-size: 11.5px; font-weight: 700; letter-spacing: 0.03em; padding: 4px 10px; border-radius: 999px; margin-left: auto; }
+  .g-sealed .grade-ic { background: var(--green-soft); color: var(--green); }
+  .g-sealed .pill { background: var(--green-soft); color: var(--green); border: 1px solid var(--green-border); }
+  .g-complete .grade-ic { background: var(--purple-tint); color: var(--purple); }
+  .g-complete .pill { background: var(--purple-tint); color: var(--purple-deep); border: 1px solid #d8cffb; }
+  .g-loose .grade-ic { background: var(--amber-soft); color: var(--amber); }
+  .g-loose .pill { background: var(--amber-soft); color: var(--amber); border: 1px solid var(--amber-border); }
+  .g-no .grade-ic { background: var(--red-soft); color: var(--red); }
+  .g-no .pill { background: var(--red-soft); color: var(--red); border: 1px solid var(--red-border); }
+
+  .grade .lead { font-size: 14.5px; color: var(--muted); line-height: 1.55; margin-top: 12px; }
+  .checks { list-style: none; margin-top: 14px; display: grid; gap: 9px; }
+  .checks li { display: flex; gap: 10px; font-size: 14.5px; line-height: 1.5; }
+  .checks li .ti { flex: none; width: 19px; height: 19px; margin-top: 1px; }
+  .yes .ti { color: var(--green); }
+  .no .ti { color: var(--red); }
+  .grade .meta { margin-top: 14px; font-size: 13px; color: var(--muted); border-top: 1px dashed var(--border); padding-top: 12px; }
+
+  .note { display: flex; gap: 12px; background: var(--purple-tint-2); border: 1px solid #ddd5f8; border-radius: 14px; padding: 15px 16px; margin: 8px 0 4px; }
+  .note svg { flex: none; width: 20px; height: 20px; color: var(--purple); margin-top: 1px; }
+  .note p { font-size: 14px; color: var(--ink); line-height: 1.55; }
+
+  .checklist { background: var(--surface); border: 1.5px solid var(--border); border-radius: 16px; padding: 8px 20px; }
+  .checklist li { list-style: none; display: flex; gap: 12px; align-items: flex-start; padding: 13px 0; border-bottom: 1px solid var(--border); font-size: 14.5px; line-height: 1.5; }
+  .checklist li:last-child { border-bottom: none; }
+  .box { flex: none; width: 20px; height: 20px; border: 2px solid var(--border); border-radius: 6px; margin-top: 1px; }
+  .checklist strong { font-weight: 600; }
+
+  .staff { background: linear-gradient(160deg, var(--navy-1), var(--navy-2)); border: 1px solid #353873; border-radius: 18px; padding: 24px 22px; margin-top: 14px; }
+  .staff h3 { font-family: var(--display); font-weight: 700; font-size: 18px; color: #fff; }
+  .staff .tag { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #c9c8ef; background: rgba(255,255,255,0.08); border: 1px solid #44477f; padding: 4px 10px; border-radius: 999px; margin-bottom: 12px; }
+  .staff ol { margin: 6px 0 0 0; padding: 0; counter-reset: step; list-style: none; }
+  .staff li { position: relative; padding: 11px 0 11px 38px; color: #d7d8ef; font-size: 14px; line-height: 1.5; border-bottom: 1px solid rgba(255,255,255,0.07); }
+  .staff li:last-child { border-bottom: none; }
+  .staff li::before { counter-increment: step; content: counter(step); position: absolute; left: 0; top: 10px; width: 24px; height: 24px; border-radius: 7px; background: rgba(255,255,255,0.1); color: #fff; font-family: var(--display); font-weight: 700; font-size: 13px; display: flex; align-items: center; justify-content: center; }
+  .staff li strong { color: #fff; font-weight: 600; }
+
+  .band { margin: 34px 0 8px; border-radius: 18px; padding: 30px 26px; text-align: center; background: var(--purple-tint-2); border: 1px solid #ddd5f8; }
+  .band h2 { font-family: var(--display); font-weight: 700; font-size: 22px; letter-spacing: -0.02em; }
+  .band p { color: var(--muted); font-size: 15px; margin-top: 10px; }
+  .band .btn { margin-top: 18px; }
+
+  footer { margin-top: 40px; padding: 22px 0 26px; border-top: 1px solid var(--border); }
+  .foot-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .foot-brand { display: flex; align-items: center; gap: 8px; font-family: var(--display); font-weight: 600; font-size: 15px; color: var(--ink); }
+  .foot-brand .mark-sm { width: 24px; height: 24px; border-radius: 7px; background: var(--purple-tint); color: var(--purple); display: flex; align-items: center; justify-content: center; }
+  .foot-brand .mark-sm svg { width: 15px; height: 15px; }
+  .foot-links { display: flex; gap: 18px; flex-wrap: wrap; }
+  .foot-links a { font-size: 13px; font-weight: 500; color: var(--muted); }
+  .foot-links a:hover { color: var(--purple); }
+  .foot-bottom { margin-top: 16px; font-size: 12px; line-height: 1.5; color: #9a9ab4; }
+  .foot-fine { margin-top: 5px; }
+
+  @media (max-width: 560px) { h1 { font-size: 28px; } .pill { margin-left: 0; } }
+</style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <a class="brand" href="index.html" aria-label="Restash home">
+        <span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 13.5a6.5 6.5 0 0 1 10.4-5.2"/><path d="M16 5.7v3.2h-3.2"/><path d="M18.5 10.5a6.5 6.5 0 0 1-10.4 5.2"/><path d="M8 18.3v-3.2h3.2"/></svg></span>
+        <span class="word">Restash</span>
+      </a>
+    </header>
+
+    <main>
+      <section class="hero">
+        <span class="eyebrow">Condition guide</span>
+        <h1>How we grade your games.</h1>
+        <p>The same standard our inspection team uses — published so you can grade your own games before you ship, and know exactly how we'll judge them. Your estimate is preliminary; we confirm the grade on inspection and explain any change on your claim.</p>
+      </section>
+
+      <h2 class="section-title">The four condition grades</h2>
+      <p class="section-sub">Pick the grade that honestly matches your copy. Sealed and Complete earn the most; loose discs still sell, and we don't buy non-working or counterfeit copies.</p>
+
+      <!-- Sealed -->
+      <div class="grade g-sealed">
+        <div class="grade-head">
+          <span class="grade-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8 12 3.5 21 8v8l-9 4.5L3 16Z"/><path d="M3 8l9 4.5 9-4.5M12 12.5V21"/></svg></span>
+          <h3>Brand New (Sealed)</h3>
+          <span class="pill">Top value · ~40% over Complete</span>
+        </div>
+        <p class="lead">Factory sealed and never opened, in the original manufacturer shrink wrap.</p>
+        <ul class="checks">
+          <li class="yes"><svg class="ti" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg><span>Original, unbroken factory seal — tight, with no cuts, reseals, or replacement wrap</span></li>
+          <li class="yes"><svg class="ti" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg><span>Correct seal style and any factory stickers for that title and region</span></li>
+          <li class="no"><svg class="ti" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6 6 18"/></svg><span>Not for "resealed," store security wrap, or opened-then-rewrapped copies — grade those as Complete</span></li>
+        </ul>
+        <div class="meta">We inspect the seal closely. If a sealed copy turns out to be resealed, we re-grade it as Complete and explain why on your claim.</div>
+      </div>
+
+      <!-- Complete -->
+      <div class="grade g-complete">
+        <div class="grade-head">
+          <span class="grade-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8.5 3v18"/></svg></span>
+          <h3>Complete (CIB)</h3>
+          <span class="pill">Baseline · full value</span>
+        </div>
+        <p class="lead">Complete in box: the original case, cover art, any inserts, and a clean, working disc or cartridge.</p>
+        <ul class="checks">
+          <li class="yes"><svg class="ti" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg><span>Original case in good shape — intact hinges and clasps, no major cracks</span></li>
+          <li class="yes"><svg class="ti" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg><span>Original cover art for the correct title, edition, and region</span></li>
+          <li class="yes"><svg class="ti" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg><span>Disc with only light surface marks, or a cartridge with clean contacts — boots and plays fully</span></li>
+          <li class="yes"><svg class="ti" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg><span>Manuals and inserts that originally shipped, where applicable</span></li>
+        </ul>
+        <div class="meta">Minor wear is normal and fine. Deep scratches that affect play, heavy case damage, or missing art may move a copy toward Loose — we'll note exactly what we found.</div>
+      </div>
+
+      <!-- Loose -->
+      <div class="grade g-loose">
+        <div class="grade-head">
+          <span class="grade-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="2.4"/></svg></span>
+          <h3>Game Only (Loose)</h3>
+          <span class="pill">~60% of Complete</span>
+        </div>
+        <p class="lead">The disc or cartridge only — no original case or artwork — but clean and fully working.</p>
+        <ul class="checks">
+          <li class="yes"><svg class="ti" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg><span>Genuine disc or cartridge that boots and plays start to finish</span></li>
+          <li class="yes"><svg class="ti" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg><span>Readable label; clean contacts or only light, non-blocking disc scratches</span></li>
+          <li class="no"><svg class="ti" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6 6 18"/></svg><span>Case and inserts not required — include them and it likely grades Complete instead</span></li>
+        </ul>
+        <div class="meta">Pack loose discs and carts so they can't rattle or scratch in transit (paper sleeve or a spare case is perfect).</div>
+      </div>
+
+      <!-- Not accepted -->
+      <div class="grade g-no">
+        <div class="grade-head">
+          <span class="grade-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M14.5 9.5l-5 5M9.5 9.5l5 5"/></svg></span>
+          <h3>Not Working / Counterfeit</h3>
+          <span class="pill">Not accepted</span>
+        </div>
+        <p class="lead">We buy authentic, working games only. These aren't eligible and are returned to you.</p>
+        <ul class="checks">
+          <li class="no"><svg class="ti" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6 6 18"/></svg><span>Won't boot, freezes, or won't play through — cracked discs or damaged cartridges</span></li>
+          <li class="no"><svg class="ti" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6 6 18"/></svg><span>Counterfeit, reproduction, or pirated copies, or burned/copied discs</span></li>
+          <li class="no"><svg class="ti" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6 6 18"/></svg><span>Region or title that doesn't match the case or the claim</span></li>
+        </ul>
+        <div class="meta">If you're unsure whether a copy is genuine, submit it anyway — we verify authenticity on inspection and simply return anything we can't accept, free.</div>
+      </div>
+
+      <h2 class="section-title">Authenticity check</h2>
+      <p class="section-sub">Every game is verified as genuine before we make an offer. Honest sellers can confirm a real copy the same way:</p>
+      <div class="checklist">
+        <li><span class="box"></span><span><strong>Official markings.</strong> Genuine discs and cartridges carry the platform maker's logos, part numbers, and region codes, printed crisply and consistently.</span></li>
+        <li><span class="box"></span><span><strong>Label quality.</strong> Real labels are sharp and correctly aligned — fakes often show fuzzy print, off colors, wrong fonts, or a glued-on paper label.</span></li>
+        <li><span class="box"></span><span><strong>Cartridge build.</strong> Authentic carts use the correct shell, screws, and board; reproductions often differ in weight, color, or screw type.</span></li>
+        <li><span class="box"></span><span><strong>Source.</strong> Copies bought new from major retailers are almost always genuine. Deep-discount "sealed" copies from unknown sellers are the most common fakes.</span></li>
+      </div>
+      <div class="note" style="margin-top:14px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><circle cx="12" cy="7.8" r="0.5" fill="currentColor" stroke="none"/></svg>
+        <p>By submitting a claim you certify the games are authentic and yours to sell. We don't accept counterfeit or stolen property; see our <a href="terms.html">Terms</a> for details.</p>
+      </div>
+
+      <h2 class="section-title">Before you ship — your checklist</h2>
+      <p class="section-sub">A couple of minutes here keeps your final offer matching your estimate.</p>
+      <ul class="checklist">
+        <li><span class="box"></span><span><strong>Match the grade.</strong> Confirm each game against the grades above and pick the one that honestly fits.</span></li>
+        <li><span class="box"></span><span><strong>Include what counts.</strong> Claiming Complete? Pack the case, cover art, and inserts together.</span></li>
+        <li><span class="box"></span><span><strong>Clean it up.</strong> Wipe discs with a soft cloth from center outward; gently clean cartridge contacts. Don't use harsh solvents.</span></li>
+        <li><span class="box"></span><span><strong>Test it.</strong> Make sure each game boots and plays — condition and working order are confirmed on arrival.</span></li>
+        <li><span class="box"></span><span><strong>Pack to protect.</strong> Wrap each game so nothing shifts or scratches. Use the prepaid label we email after we accept your claim.</span></li>
+        <li><span class="box"></span><span><strong>Keep your tracking.</strong> You're responsible for the package until it reaches us, so hold onto the drop-off receipt.</span></li>
+      </ul>
+
+      <h2 class="section-title">Our inspection checksheet</h2>
+      <p class="section-sub">The exact steps our team runs on every game, in order. We publish it so there are no surprises — the same checklist grades your games.</p>
+      <div class="staff">
+        <span class="tag">For the inspection team</span>
+        <h3>Per-game inspection</h3>
+        <ol>
+          <li><strong>Match the claim.</strong> Confirm title, platform, edition, and region match the submitted claim and quantity.</li>
+          <li><strong>Verify authenticity.</strong> Check official markings, label print, and build against a known-genuine reference. Counterfeit, reproduction, or pirated → reject and return.</li>
+          <li><strong>Test function.</strong> Boot the game and confirm it loads and plays. Won't boot or play → grade Not Working.</li>
+          <li><strong>Inspect the media.</strong> Disc scratches, cartridge contacts/label, and overall wear.</li>
+          <li><strong>Inspect completeness.</strong> Sealed (original seal intact), Complete (case + art + inserts), or Loose (game only) — apply the grades above.</li>
+          <li><strong>Assign the grade.</strong> Record the final grade for each game; note any mismatch from what the customer claimed.</li>
+          <li><strong>Photograph.</strong> Capture the media, label, and any defects for the claim record.</li>
+          <li><strong>Write the customer reason.</strong> One plain-language line on why the grade/offer is what it is — this shows on the customer's claim.</li>
+          <li><strong>Flag edge cases.</strong> Suspected counterfeit, stolen, or a material mismatch → flag the claim for a second review before any offer.</li>
+        </ol>
+      </div>
+
+      <section class="band">
+        <h2>Ready to grade and ship?</h2>
+        <p>Build a claim, pick your condition, and get an instant estimate.</p>
+        <a class="btn btn-primary" href="index.html">Start a claim</a>
+      </section>
+    </main>
+
+    <footer>
+      <div class="foot-top">
+        <div class="foot-brand">
+          <span class="mark-sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 13.5a6.5 6.5 0 0 1 10.4-5.2"/><path d="M16 5.7v3.2h-3.2"/><path d="M18.5 10.5a6.5 6.5 0 0 1-10.4 5.2"/><path d="M8 18.3v-3.2h3.2"/></svg></span>
+          Restash
+        </div>
+        <nav class="foot-links">
+          <a href="how-it-works.html">How It Works</a>
+          <a href="grading.html">Grading</a>
+          <a href="index.html">My Claims</a>
+          <a href="terms.html">Terms</a>
+          <a href="privacy.html">Privacy</a>
+          <a href="mailto:hello@getrestash.gg">Contact</a>
+        </nav>
+      </div>
+      <div class="foot-bottom"><div>© 2026 Restash · Cohoes, NY</div><div class="foot-fine">Grades are confirmed on inspection; estimates are preliminary, not guaranteed payouts. PlayStation, Xbox, Nintendo, and all game titles are trademarks of their respective owners; Restash is not affiliated with or endorsed by them.</div></div>
+    </footer>
+  </div>
+</body>
+</html>
