@@ -33,6 +33,7 @@ Run the migration files in **`supabase/migrations/`**, in order.
 6. `0006_regrade.sql`
 7. `0007_offer_algorithm.sql` — the offer algorithm, pricing config, min rule
 8. `0008_pricecharting.sql` — hooks for a live pricing feed
+9. `0009_market_prices.sql` — real per-condition market values (PriceCharting)
 
 See **[`PRICING.md`](PRICING.md)** for how offers are calculated and how to wire
 PriceCharting for live market values.

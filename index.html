@@ -450,9 +450,9 @@
   const edition = () => { const t = title(); return t ? t.editions.find(e => e.id === state.editionId) : null; };
   const cond = () => CONDITIONS.find(c => c.id === state.condId);
 
-  function lineMidOf(it) { return Math.round(it.editionBase * it.condMult) * it.qty; }
+  function lineMidOf(it) { return Math.round(it.unitMarket * it.qty); }
   function cartTotals() {
-    const items = state.cart.map(it => ({ unit_market: it.editionBase * it.condMult, qty: it.qty }));
+    const items = state.cart.map(it => ({ unit_market: it.unitMarket, qty: it.qty }));
     const offer = RestashAPI.computeOffer(items, PRICING);
     const market = state.cart.reduce((s, it) => s + lineMidOf(it), 0);
     const games = state.cart.reduce((s, it) => s + it.qty, 0);
@@ -759,7 +759,7 @@
     if (!p || !t || !e || !cd) return;
     const existing = state.cart.find(it => it.editionId === e.id && it.conditionId === cd.id);
     if (existing) { existing.qty += 1; }
-    else { state.cart.push({ platformName: p.name, titleName: t.name, editionName: e.name, editionId: e.id, editionBase: e.base, condName: cd.name, conditionId: cd.id, condMult: cd.mult, qty: 1 }); }
+    else { state.cart.push({ platformName: p.name, titleName: t.name, editionName: e.name, editionId: e.id, editionBase: e.base, condName: cd.name, conditionId: cd.id, condMult: cd.mult, unitMarket: RestashAPI.marketValue(e, cd), qty: 1 }); }
   }
 
   document.body.addEventListener('click', async (e) => {

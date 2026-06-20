@@ -32,6 +32,16 @@
     return offer < 0 ? 0 : Math.round(offer);
   }
 
+  // Market value of one game at a condition: real per-condition price when we
+  // have it (PriceCharting loose/cib/new), else base × the condition multiplier.
+  function marketValue(edition, condition) {
+    var base = edition.base, mult = (condition && condition.mult) || 0, id = condition && condition.id;
+    if (id === 'loose') return edition.looseMarket != null ? edition.looseMarket : base * mult;
+    if (id === 'complete') return base;
+    if (id === 'sealed') return edition.newMarket != null ? edition.newMarket : base * mult;
+    return base * mult;
+  }
+
   // ---- DB row -> view-model mappers --------------------------------
   function mapItems(rows) {
     return (rows || []).slice().sort(bySortKey('position')).map(function (it) {
@@ -106,7 +116,7 @@
     setAccountFlag: function (i, o) { return rpc('set_account_flag', { p_profile: i, p_flag: o }); }, addAccountNote: function (i, b) { return rpc('add_account_note', { p_profile: i, p_body: b }); }
   };
   function buildNested(platforms, titles, editions) {
-    return platforms.map(function (p) { return { id: p.id, name: p.name, icon: p.icon, titles: titles.filter(function (t) { return t.platform_id === p.id; }).map(function (t) { return { id: t.id, name: t.name, editions: editions.filter(function (e) { return e.title_id === t.id; }).map(function (e) { return { id: e.id, key: e.edition_key, name: e.name, base: e.base, desc: e.description || undefined }; }) }; }) }; });
+    return platforms.map(function (p) { return { id: p.id, name: p.name, icon: p.icon, titles: titles.filter(function (t) { return t.platform_id === p.id; }).map(function (t) { return { id: t.id, name: t.name, editions: editions.filter(function (e) { return e.title_id === t.id; }).map(function (e) { return { id: e.id, key: e.edition_key, name: e.name, base: e.base, desc: e.description || undefined, looseMarket: e.loose_market != null ? Number(e.loose_market) : undefined, newMarket: e.new_market != null ? Number(e.new_market) : undefined }; }) }; }) }; });
   }
   function mapConds(rows) { return rows.map(function (c) { return { id: c.id, name: c.name, mult: Number(c.mult), desc: c.description, ineligible: !!c.ineligible, icon: c.icon }; }); }
   function mapTeam(m) { return { group: m.group_name, name: m.name, role: m.role, email: m.email, location: m.location, focus: m.focus || [], desc: m.description }; }
@@ -249,6 +259,7 @@
   API.client = function () { return sb; };
   API.fmtDate = fmtDate;
   API.computeOffer = computeOffer;
+  API.marketValue = marketValue;
   API.marginFor = marginFor;
   API.DEFAULT_PRICING = DEFAULT_PRICING;
   window.RestashAPI = API;
