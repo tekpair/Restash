@@ -6,10 +6,17 @@ Resend key stays server-side — it is never exposed to the browser.
 
 Preview the design any time by opening `emails/restash-email-preview.html`.
 
-> **Status:** you launched without a custom domain, so email is in **test
-> mode** — Resend will only send from its test sender (`onboarding@resend.dev`)
-> and only to your own Resend account email. Wire it up now; real customer
-> sends start the moment you verify a domain (step 2).
+> **Good news on the domain:** the site has no custom domain, but email
+> verification is **independent of where the site is hosted** — it only needs
+> control of the domain's DNS. You own **getrestash.gg** (you already run mail
+> on it), so you can verify it in Resend and send **real customer email** from
+> `noreply@getrestash.gg` while the site stays on `github.io`.
+
+### Addresses
+- **hello@getrestash.gg** — general inquiries. Used as the site's Contact link.
+- **noreply@getrestash.gg** — automated transactional sends (the `From`).
+- **support@getrestash.gg** — deeper support. Set as the `Reply-To`, so when a
+  customer replies to an automated email it lands in a monitored inbox.
 
 ## 1. Host the email logo
 Emails load the logo from `${APP_URL}/email-logo.png`. `email-logo.png` is
@@ -17,21 +24,21 @@ in the repo root, so with the default `APP_URL`
 (`https://tekpair.github.io/Restash`) it just works. If you move the site,
 set `APP_URL` (step 3) to match.
 
-## 2. Verify your sending domain in Resend (required for real sends)
-1. Create a Resend account. Until you add a domain you can only send from
-   `onboarding@resend.dev` to your own account email.
-2. **Add a domain** you control and add the DNS records Resend gives you
-   (SPF / DKIM) at your registrar. (You can verify a domain for email even
-   if the website itself stays on `github.io`.)
-3. Wait for Resend to show the domain **Verified**, then set `EMAIL_FROM`
-   to an address on it (step 3), e.g. `Restash <noreply@yourdomain.com>`.
+## 2. Verify getrestash.gg in Resend (required for real sends)
+1. Create a Resend account → **Add domain** → `getrestash.gg`.
+2. Add the DNS records Resend gives you (SPF / DKIM, and DMARC if offered) at
+   your registrar — alongside your existing mail records; they don't conflict.
+3. Wait for Resend to show the domain **Verified**. Now `noreply@getrestash.gg`
+   can send to anyone. (Before it's verified, override `EMAIL_FROM` with
+   `onboarding@resend.dev`, which only delivers to your own account email.)
 
 ## 3. Set the secrets in Supabase
 ```bash
 supabase secrets set \
   RESEND_API_KEY=re_your_key_here \
   EMAIL_FN_SECRET=pick-a-long-random-string \
-  EMAIL_FROM="Restash <noreply@yourdomain.com>" \
+  EMAIL_FROM="Restash <noreply@getrestash.gg>" \
+  EMAIL_REPLY_TO=support@getrestash.gg \
   APP_URL=https://tekpair.github.io/Restash
 ```
 - `RESEND_API_KEY` — from the Resend dashboard.
