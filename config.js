@@ -10,5 +10,10 @@
 // service-role/secret key here.
 window.RESTASH_CONFIG = {
   SUPABASE_URL: 'https://YOUR-PROJECT-REF.supabase.co',
-  SUPABASE_ANON_KEY: 'YOUR-ANON-PUBLISHABLE-KEY'
+  SUPABASE_ANON_KEY: 'YOUR-ANON-PUBLISHABLE-KEY',
+
+  // Optional: a Google Maps API key (with the Places API enabled) turns the
+  // mailing-address fields at checkout and in the profile into Google address
+  // autocomplete. Leave blank to keep them as plain text inputs.
+  GOOGLE_MAPS_API_KEY: ''
 };

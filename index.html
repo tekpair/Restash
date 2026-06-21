@@ -340,6 +340,10 @@
     .wc-glow { animation: none !important; opacity: .85 !important; }
     .wc-prog { display: none; }
   }
+  /* Google Places autocomplete dropdown */
+  .pac-container { z-index: 10000; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 12px 28px rgba(27,29,58,0.16); font-family: var(--body); margin-top: 4px; }
+  .pac-item { padding: 8px 12px; font-size: 14px; cursor: pointer; }
+  .pac-item:hover { background: var(--purple-tint-2); }
 </style>
 </head>
 <body>
@@ -742,7 +746,31 @@
     syncAcct();
     document.body.classList.toggle('welcome-mode', state.view === 'welcome');
     if (state.view === 'welcome') { clearTimeout(welcomeTimer); welcomeTimer = setTimeout(enterApp, 3000); }
+    attachAddressAutocomplete();
     window.scrollTo({ top: 0, behavior: 'auto' });
+  }
+
+  // ---- Google Places address autocomplete (optional; needs a Maps key) ----
+  let placesReady = false;
+  function loadPlaces() {
+    const key = (window.RESTASH_CONFIG || {}).GOOGLE_MAPS_API_KEY;
+    if (!key || /YOUR-|REPLACE/i.test(key)) return;
+    window.__restashPlacesReady = function () { placesReady = true; attachAddressAutocomplete(); };
+    const s = document.createElement('script');
+    s.src = 'https://maps.googleapis.com/maps/api/js?key=' + encodeURIComponent(key) + '&libraries=places&loading=async&callback=__restashPlacesReady';
+    s.async = true; s.defer = true; document.head.appendChild(s);
+  }
+  function attachAddressAutocomplete() {
+    if (!placesReady || !(window.google && google.maps && google.maps.places)) return;
+    ['cf-addr', 'ac-addr'].forEach(function (id) {
+      const el = document.getElementById(id);
+      if (!el || el.dataset.acAttached) return;
+      el.dataset.acAttached = '1';
+      try {
+        const ac = new google.maps.places.Autocomplete(el, { types: ['address'], componentRestrictions: { country: ['us'] }, fields: ['formatted_address'] });
+        ac.addListener('place_changed', function () { const p = ac.getPlace(); if (p && p.formatted_address) { el.value = p.formatted_address; el.dispatchEvent(new Event('input', { bubbles: true })); } });
+      } catch (e) { /* Places unavailable — leave as a plain input */ }
+    });
   }
   function go(view) { if (state.view === 'claim') captureDraft(); if (state.view === 'register') captureReg(); state.view = view; state.flash = null; render(); }
   function goto(view, ref) { if (!PAGES.includes(state.view)) state.returnTo = state.view; if (ref) state.activeClaimRef = ref; go(view); }
@@ -889,6 +917,7 @@
   }
 
   async function boot() {
+    loadPlaces();
     if (!RestashAPI.configured) { configBanner(); return; }
     try {
       const cat = await RestashAPI.getCatalog();
