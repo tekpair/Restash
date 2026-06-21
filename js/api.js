@@ -62,13 +62,13 @@
     var items = mapItems(row.claim_items), labels = deriveLabels(items);
     return { ref: row.ref, itemName: labels.itemName, platform: labels.platform, items: items, estLow: row.est_low, estHigh: row.est_high,
       payout: row.payout, address: row.address || '', offerAmount: row.offer_amount, customerResponse: row.customer_response,
-      createdAt: fmtDate(row.created_at), status: row.status, history: mapHistory(row.claim_history) };
+      createdAt: fmtDate(row.created_at), status: row.status, history: mapHistory(row.claim_history), customerNote: row.customer_notes || '' };
   }
   function mapClaimStaff(row) {
     return { ref: row.ref, cust: row.cust_name, email: row.cust_email, phone: row.cust_phone, payout: row.payout, address: row.address || '',
       status: row.status, createdAt: fmtDate(row.created_at), estLow: row.est_low, estHigh: row.est_high, items: mapItems(row.claim_items),
       history: mapHistory(row.claim_history), assignee: row.assignee_name || null, assigneeId: row.assignee_id || null,
-      offerAmount: row.offer_amount, customerResponse: row.customer_response, flagged: !!row.flagged, notes: mapNotes(row.claim_notes) };
+      offerAmount: row.offer_amount, customerResponse: row.customer_response, flagged: !!row.flagged, notes: mapNotes(row.claim_notes), customerNote: row.customer_notes || '' };
   }
   function mapAccount(row) { return { id: row.id, name: row.full_name, email: row.email, phone: row.phone, address: row.address, joined: fmtDate(row.created_at), flagged: !!row.flagged, notes: mapNotes(row.account_notes) }; }
   function mapPricing(row) { var o = {}; Object.keys(DEFAULT_PRICING).forEach(function (k) { o[k] = row && row[k] != null ? Number(row[k]) : DEFAULT_PRICING[k]; }); return o; }
@@ -93,6 +93,8 @@
     },
     async getProfile() { var u = await supa.currentUser(); if (!u) return null; return unwrap(await sb.from('profiles').select('*').eq('id', u.id).single()); },
     async updateProfile(p) { var u = await supa.currentUser(); if (!u) throw new Error('Not signed in'); var patch = {}; if (p.full_name != null) patch.full_name = p.full_name; if (p.phone != null) patch.phone = p.phone; if (p.address != null) patch.address = p.address; return unwrap(await sb.from('profiles').update(patch).eq('id', u.id).select().single()); },
+    async requestDataExport() { return rpc('request_data_export'); },
+    async deleteAccount() { await rpc('delete_my_account'); try { await sb.auth.signOut(); } catch (e) {} },
     async getCatalog() {
       var r = await Promise.all([sb.from('platforms').select('*').order('position'), sb.from('titles').select('*').order('position'), sb.from('editions').select('*').order('position'), sb.from('conditions').select('*').order('position'), sb.from('pricing_config').select('*').eq('id', 1).single()]);
       var platforms = unwrap(r[0]), titles = unwrap(r[1]), editions = unwrap(r[2]), conditions = unwrap(r[3]);
@@ -188,13 +190,13 @@
     function newClaim(ref, prof, items, status, extra) {
       var c = Object.assign({ id: 'dc-' + (seq++), ref: ref, customer_id: prof.id, cust_name: prof.full_name, cust_email: prof.email, cust_phone: prof.phone,
         payout: 'PayPal', address: '', est_low: 0, est_high: 0, status: status, offer_amount: null, customer_response: null, assignee_id: null, assignee_name: null,
-        flagged: false, paid_amount: null, paid_method: null, created_at: days(6), claim_items: items, claim_history: [], claim_notes: [] }, extra || {});
+        flagged: false, paid_amount: null, paid_method: null, created_at: days(6), claim_items: items, claim_history: [], claim_notes: [], customer_notes: '' }, extra || {});
       var offer = computeOffer(items, pricing); c.est_high = offer; c.est_low = Math.round(offer * 0.85);
       return c;
     }
     var claims = [
       newClaim('RS-8M4X2A', profiles[1], [item('ed-totk', 'complete', 1, 1)], 'submitted', { created_at: days(1), claim_history: [h('Claim submitted', null, days(1))] }),
-      newClaim('RS-3K9P1B', profiles[2], [item('ed-gow', 'complete', 1, 1), item('ed-rdr2', 'loose', 2, 2)], 'received', { payout: 'Check', address: '88 Vliet Blvd, Cohoes, NY 12047', assignee_id: 'staff-connor', assignee_name: 'Connor Waugaman', created_at: days(3), claim_history: [h('Claim submitted', null, days(3)), h('Accepted — shipping label emailed', null, days(2)), h('Games received at facility', null, days(1))] }),
+      newClaim('RS-3K9P1B', profiles[2], [item('ed-gow', 'complete', 1, 1), item('ed-rdr2', 'loose', 2, 2)], 'received', { payout: 'Check', address: '88 Vliet Blvd, Cohoes, NY 12047', assignee_id: 'staff-connor', assignee_name: 'Connor Waugaman', customer_notes: 'The God of War case has a small crack on the back but the disc is mint. Both RDR2 copies are cart-only, no boxes.', created_at: days(3), claim_history: [h('Claim submitted', null, days(3)), h('Accepted — shipping label emailed', null, days(2)), h('Games received at facility', null, days(1))] }),
       newClaim('RS-2W8E4F', profiles[1], [item('ed-smash', 'sealed', 1, 1)], 'offer', { offer_amount: 28, created_at: days(5), claim_history: [h('Claim submitted', null, days(5)), h('Accepted — shipping label emailed', null, days(4)), h('Games received at facility', null, days(3)), h('Offer made: $28', 'Confirmed sealed; priced to current market.', days(2))] }),
       newClaim('RS-6N1R5G', profiles[2], [item('ed-forza', 'complete', 1, 1), item('ed-halo', 'complete', 1, 2)], 'paid', { offer_amount: 14, paid_amount: 14, paid_method: 'PayPal', created_at: days(12), claim_history: [h('Claim submitted', null, days(12)), h('Games received at facility', null, days(10)), h('Offer made: $14', null, days(9)), h('You accepted the offer', null, days(9)), h('Payment authorized via PayPal', 'PayPal 1–3 business days.', days(9))] }),
       newClaim('RS-1F2G3H', profiles[3], [item('ed-cuphead', 'complete', 1, 1)], 'received', { assignee_id: 'staff-connor', assignee_name: 'Connor Waugaman', created_at: days(2), claim_history: [h('Claim submitted', null, days(2)), h('Games received at facility', null, days(1))] }) ];
@@ -228,6 +230,8 @@
       onPasswordRecovery: function (cb) { if (/(^|[#&?])recovery|type=recovery/.test(window.location.hash)) setTimeout(cb, 0); return function () {}; },
       async getProfile() { var p = sessionProfile(); return p ? JSON.parse(JSON.stringify(p)) : null; },
       async updateProfile(patch) { var p = sessionProfile(); if (!p) throw new Error('Not signed in'); if (patch.full_name != null) p.full_name = patch.full_name; if (patch.phone != null) p.phone = patch.phone; if (patch.address != null) p.address = patch.address; return JSON.parse(JSON.stringify(p)); },
+      async requestDataExport() { var p = sessionProfile(); if (!p) throw new Error('Not signed in'); p.account_notes.push({ body: 'Customer requested a copy of their information.', author_name: 'System', created_at: new Date().toISOString() }); return { ok: true }; },
+      async deleteAccount() { var p = sessionProfile(); if (!p) throw new Error('Not signed in'); for (var i = claims.length - 1; i >= 0; i--) { if (claims[i].customer_id === p.id) claims.splice(i, 1); } var idx = profiles.indexOf(p); if (idx >= 0) profiles.splice(idx, 1); demoApi._session = null; return { ok: true }; },
       async getCatalog() { return { platforms: JSON.parse(JSON.stringify(platforms)), conditions: JSON.parse(JSON.stringify(conds)), pricing: JSON.parse(JSON.stringify(pricing)) }; },
       async conditions() { return JSON.parse(JSON.stringify(conds)); },
       async pricing() { return JSON.parse(JSON.stringify(pricing)); },
@@ -238,7 +242,7 @@
         var offer = computeOffer(items, pricing);
         if (offer < pricing.min_quote && games < pricing.min_games) throw new Error('MIN_RULE: A claim needs an estimated offer of at least $' + pricing.min_quote + ' or at least ' + pricing.min_games + ' games.');
         var ref = 'RS-' + Math.random().toString(36).slice(2, 8).toUpperCase();
-        var c = newClaim(ref, p, items, 'submitted', { payout: o.payout, address: o.address || '', cust_phone: o.phone || p.phone, created_at: new Date().toISOString(), claim_history: [h('Claim submitted', null, new Date().toISOString())] });
+        var c = newClaim(ref, p, items, 'submitted', { payout: o.payout, address: o.address || '', cust_phone: o.phone || p.phone, customer_notes: (o.notes || '').trim(), created_at: new Date().toISOString(), claim_history: [h('Claim submitted', null, new Date().toISOString())] });
         if (o.phone) p.phone = o.phone; if (o.payout === 'Check' && o.address) p.address = o.address;
         claims.unshift(c); return ref;
       },
