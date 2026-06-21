@@ -663,6 +663,13 @@
         + '<p class="switch-line">Remembered it? <a data-action="goto" data-value="login">Log in</a></p>'
         + '</div>';
     },
+    resetPassword() {
+      return '<div class="screen"><span class="status-icon brand">' + I.lock + '</span><h1 class="h1">Set a new password</h1><p class="sub">You followed a password-reset link. Choose a new password for your Restash account.</p>'
+        + '<div class="field"><label for="rp-pass">New password</label><input id="rp-pass" type="password" placeholder="At least 8 characters"></div>'
+        + '<div class="field"><label for="rp-pass2">Confirm new password</label><input id="rp-pass2" type="password" placeholder="Re-enter password"></div>'
+        + '<p class="form-error" id="auth-error" hidden></p>'
+        + '<button class="btn btn-primary full" data-action="do-set-password">Update password</button></div>';
+    },
     account() {
       const u = state.user;
       const mine = state.claims.slice();
@@ -875,6 +882,21 @@
       state.flash = { slot: 'forgot', kind: 'ok', text: 'If that email has an account, a reset link is on its way.' };
       render();
     }
+    else if (a === 'do-set-password') {
+      const pw = document.getElementById('rp-pass').value;
+      const pw2 = document.getElementById('rp-pass2').value;
+      if (pw.length < 8) return showErr('auth-error', 'Password must be at least 8 characters.');
+      if (pw !== pw2) return showErr('auth-error', 'Those passwords don’t match.');
+      el.disabled = true;
+      try {
+        await RestashAPI.updatePassword(pw);
+        state.recovery = false;
+        if (window.history && window.history.replaceState) window.history.replaceState(null, '', window.location.pathname + window.location.search);
+        await loadSession(); await loadClaims();
+        state.flash = { slot: 'profile', kind: 'ok', text: 'Password updated — you’re signed in.' };
+        go(state.loggedIn ? 'account' : 'login');
+      } catch (err) { el.disabled = false; showErr('auth-error', err.message || 'Could not update your password. The reset link may have expired — request a new one.'); }
+    }
     else if (a === 'save-profile') {
       el.disabled = true;
       try {
@@ -922,6 +944,11 @@
   async function boot() {
     loadPlaces();
     if (!RestashAPI.configured) { configBanner(); return; }
+    // Password-reset link: detect the recovery flow up front (the URL hash may be
+    // consumed during auth init) and via the live auth event as a backup.
+    const recovering = /(^|[#&?])recovery|type=recovery/.test(window.location.hash);
+    if (recovering) state.recovery = true;
+    RestashAPI.onPasswordRecovery(function () { state.recovery = true; if (state.booted) { state.view = 'resetPassword'; render(); } });
     try {
       const cat = await RestashAPI.getCatalog();
       PLATFORMS = cat.platforms; CONDITIONS = cat.conditions; PRICING = cat.pricing;
@@ -934,7 +961,8 @@
         '<div class="screen center"><span class="status-icon amber">' + I.alert + '</span><h1 class="h1">Something went wrong</h1><p class="sub">' + esc(err.message || 'Could not reach the server.') + '</p></div>';
       return;
     }
-    state.view = state.loggedIn ? 'platform' : 'welcome';
+    state.booted = true;
+    state.view = state.recovery ? 'resetPassword' : (state.loggedIn ? 'platform' : 'welcome');
     render();
   }
   boot();

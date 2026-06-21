@@ -87,6 +87,10 @@
     async signOut() { await sb.auth.signOut(); },
     async updatePassword(p) { return unwrap(await sb.auth.updateUser({ password: p })); },
     async resetPassword(email) { return unwrap(await sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + window.location.pathname })); },
+    onPasswordRecovery: function (cb) {
+      var s = sb.auth.onAuthStateChange(function (event) { if (event === 'PASSWORD_RECOVERY') cb(); });
+      return function () { if (s && s.data && s.data.subscription) s.data.subscription.unsubscribe(); };
+    },
     async getProfile() { var u = await supa.currentUser(); if (!u) return null; return unwrap(await sb.from('profiles').select('*').eq('id', u.id).single()); },
     async updateProfile(p) { var u = await supa.currentUser(); if (!u) throw new Error('Not signed in'); var patch = {}; if (p.full_name != null) patch.full_name = p.full_name; if (p.phone != null) patch.phone = p.phone; if (p.address != null) patch.address = p.address; return unwrap(await sb.from('profiles').update(patch).eq('id', u.id).select().single()); },
     async getCatalog() {
@@ -221,6 +225,7 @@
       async signOut() { demoApi._session = null; },
       async updatePassword() { return {}; },
       async resetPassword() { return {}; },
+      onPasswordRecovery: function (cb) { if (/(^|[#&?])recovery|type=recovery/.test(window.location.hash)) setTimeout(cb, 0); return function () {}; },
       async getProfile() { var p = sessionProfile(); return p ? JSON.parse(JSON.stringify(p)) : null; },
       async updateProfile(patch) { var p = sessionProfile(); if (!p) throw new Error('Not signed in'); if (patch.full_name != null) p.full_name = patch.full_name; if (patch.phone != null) p.phone = patch.phone; if (patch.address != null) p.address = patch.address; return JSON.parse(JSON.stringify(p)); },
       async getCatalog() { return { platforms: JSON.parse(JSON.stringify(platforms)), conditions: JSON.parse(JSON.stringify(conds)), pricing: JSON.parse(JSON.stringify(pricing)) }; },
