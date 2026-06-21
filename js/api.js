@@ -46,8 +46,8 @@
   function mapItems(rows) {
     return (rows || []).slice().sort(bySortKey('position')).map(function (it) {
       return { id: it.id, titleName: it.title_name, platformName: it.platform_name, editionName: it.edition_name,
-        condName: it.cond_name, conditionId: it.condition_id, editionId: it.edition_id, qty: it.qty,
-        lineMid: it.line_mid, unitMarket: Number(it.unit_market || 0) };
+        condName: it.cond_name, claimedCondName: it.claimed_cond_name || it.cond_name, conditionId: it.condition_id,
+        editionId: it.edition_id, qty: it.qty, lineMid: it.line_mid, unitMarket: Number(it.unit_market || 0) };
     });
   }
   function mapHistory(rows) { return (rows || []).slice().sort(byCreatedAsc).map(function (h) { return { label: h.label, date: fmtDate(h.created_at), note: h.note || undefined }; }); }
@@ -128,23 +128,37 @@
     var nowISO = new Date().toISOString();
     function days(n) { return new Date(Date.now() - n * 864e5).toISOString(); }
     var ed = {}; // edition lookup by id
-    function E(id, key, name, base, desc) { var o = { id: id, key: key, name: name, base: base, desc: desc }; ed[id] = o; return o; }
+    // E(id, key, name, cibMarket, looseMarket, newMarket, desc)
+    function E(id, key, name, base, loose, newm, desc) { var o = { id: id, key: key, name: name, base: base, looseMarket: loose, newMarket: newm, desc: desc }; ed[id] = o; return o; }
     var platforms = [
       { id: 'switch', name: 'Nintendo Switch', icon: 'handheld', titles: [
-        { id: 'mk8d', name: 'Mario Kart 8 Deluxe', editions: [E('ed-mk8d', 'std', 'Standard', 45)] },
-        { id: 'smash', name: 'Super Smash Bros. Ultimate', editions: [E('ed-smash', 'std', 'Standard', 52)] },
-        { id: 'totk', name: 'The Legend of Zelda: Tears of the Kingdom', editions: [E('ed-totk', 'std', 'Standard', 55)] },
-        { id: 'odyssey', name: 'Super Mario Odyssey', editions: [E('ed-ody', 'std', 'Standard', 42)] } ] },
+        { id: 'totk', name: 'The Legend of Zelda: Tears of the Kingdom', editions: [E('ed-totk', 'std', 'Standard', 48, 40, 55)] },
+        { id: 'botw', name: 'The Legend of Zelda: Breath of the Wild', editions: [E('ed-botw', 'std', 'Standard', 40, 32, 50)] },
+        { id: 'odyssey', name: 'Super Mario Odyssey', editions: [E('ed-ody', 'std', 'Standard', 40, 33, 48)] },
+        { id: 'mk8d', name: 'Mario Kart 8 Deluxe', editions: [E('ed-mk8d', 'std', 'Standard', 44, 38, 50)] },
+        { id: 'smash', name: 'Super Smash Bros. Ultimate', editions: [E('ed-smash', 'std', 'Standard', 48, 42, 55)] },
+        { id: 'acnh', name: 'Animal Crossing: New Horizons', editions: [E('ed-acnh', 'std', 'Standard', 42, 34, 48)] },
+        { id: 'metroidd', name: 'Metroid Dread', editions: [E('ed-metroidd', 'std', 'Standard', 36, 28, 44)] },
+        { id: 'luigi3', name: "Luigi's Mansion 3", editions: [E('ed-luigi3', 'std', 'Standard', 40, 32, 47)] },
+        { id: 'xeno2', name: 'Xenoblade Chronicles 2', editions: [E('ed-xeno2', 'std', 'Standard', 45, 35, 55)] } ] },
       { id: 'ps4', name: 'PlayStation 4', icon: 'gamepad', titles: [
-        { id: 'gow', name: 'God of War', editions: [E('ed-gow', 'std', 'Standard', 18), E('ed-gow-h', 'hits', 'PS Hits (reprint)', 12, 'Budget re-release — lower value')] },
-        { id: 'witcher', name: 'The Witcher 3: Wild Hunt', editions: [E('ed-w3', 'std', 'Standard', 14), E('ed-w3-g', 'goty', 'Game of the Year Edition', 28, 'Includes all expansions')] },
-        { id: 'rdr2', name: 'Red Dead Redemption 2', editions: [E('ed-rdr2', 'std', 'Standard', 22)] },
-        { id: 'spider', name: "Marvel's Spider-Man", editions: [E('ed-spider', 'std', 'Standard', 20)] } ] },
+        { id: 'gow', name: 'God of War', editions: [E('ed-gow', 'std', 'Standard', 15, 11, 22)] },
+        { id: 'spiderman', name: "Marvel's Spider-Man", editions: [E('ed-spiderman', 'std', 'Standard', 16, 12, 24)] },
+        { id: 'tlou2', name: 'The Last of Us Part II', editions: [E('ed-tlou2', 'std', 'Standard', 17, 13, 24)] },
+        { id: 'bloodborne', name: 'Bloodborne', editions: [E('ed-bloodborne', 'std', 'Standard', 17, 13, 26)] },
+        { id: 'rdr2', name: 'Red Dead Redemption 2', editions: [E('ed-rdr2', 'std', 'Standard', 19, 15, 27)] },
+        { id: 'ghost', name: 'Ghost of Tsushima', editions: [E('ed-ghost', 'std', 'Standard', 19, 15, 27)] },
+        { id: 'persona5r', name: 'Persona 5 Royal', editions: [E('ed-persona5r', 'std', 'Standard', 28, 22, 38)] },
+        { id: 'witcher3', name: 'The Witcher 3: Wild Hunt', editions: [E('ed-witcher3', 'std', 'Standard', 14, 11, 20), E('ed-witcher3-goty', 'goty', 'Game of the Year Edition', 23, 17, 33, 'Includes all expansions')] } ] },
       { id: 'xbox', name: 'Xbox One', icon: 'gamepad', titles: [
-        { id: 'halomcc', name: 'Halo: The Master Chief Collection', editions: [E('ed-halo', 'std', 'Standard', 16)] },
-        { id: 'forza4', name: 'Forza Horizon 4', editions: [E('ed-forza', 'std', 'Standard', 19)] },
-        { id: 'rdr2x', name: 'Red Dead Redemption 2', editions: [E('ed-rdr2x', 'std', 'Standard', 20)] },
-        { id: 'gtav', name: 'Grand Theft Auto V', editions: [E('ed-gtav', 'std', 'Standard', 14)] } ] } ];
+        { id: 'halomcc', name: 'Halo: The Master Chief Collection', editions: [E('ed-halo', 'std', 'Standard', 16, 12, 24)] },
+        { id: 'forza4', name: 'Forza Horizon 4', editions: [E('ed-forza', 'std', 'Standard', 17, 13, 25)] },
+        { id: 'rdr2x', name: 'Red Dead Redemption 2', editions: [E('ed-rdr2x', 'std', 'Standard', 18, 14, 26)] },
+        { id: 'gears5', name: 'Gears 5', editions: [E('ed-gears5', 'std', 'Standard', 12, 9, 19)] },
+        { id: 'seaofthieves', name: 'Sea of Thieves', editions: [E('ed-seaofthieves', 'std', 'Standard', 15, 11, 23)] },
+        { id: 'oriwotw', name: 'Ori and the Will of the Wisps', editions: [E('ed-oriwotw', 'std', 'Standard', 23, 17, 31)] },
+        { id: 'cuphead', name: 'Cuphead', editions: [E('ed-cuphead', 'std', 'Standard', 23, 17, 30)] },
+        { id: 'sunset', name: 'Sunset Overdrive', editions: [E('ed-sunset', 'std', 'Standard', 13, 9, 21)] } ] } ];
     var conds = [ { id: 'sealed', name: 'Brand New (Sealed)', mult: 1.40, desc: 'Factory sealed, never opened', ineligible: false, icon: 'box' },
       { id: 'complete', name: 'Complete', mult: 1.00, desc: 'Case, cover art, inserts, and a clean disc or cart', ineligible: false, icon: 'gamecase' },
       { id: 'loose', name: 'Game Only (Loose)', mult: 0.60, desc: 'Disc or cart only — no case or artwork', ineligible: false, icon: 'disc' },
@@ -152,7 +166,7 @@
     var condById = {}; conds.forEach(function (c) { condById[c.id] = c; });
     var pricing = JSON.parse(JSON.stringify(DEFAULT_PRICING));
 
-    function item(edId, condId, qty, pos) { var e = ed[edId], c = condById[condId]; var unit = e.base * c.mult; return { id: 'di-' + (seq++), title_name: titleOf(edId), platform_name: platOf(edId), edition_name: e.name, cond_name: c.name, condition_id: condId, edition_id: edId, qty: qty, unit_market: unit, line_mid: Math.round(unit * qty), position: pos }; }
+    function item(edId, condId, qty, pos) { var e = ed[edId], c = condById[condId]; var unit = marketValue(e, c); return { id: 'di-' + (seq++), title_name: titleOf(edId), platform_name: platOf(edId), edition_name: e.name, cond_name: c.name, claimed_cond_name: c.name, condition_id: condId, edition_id: edId, qty: qty, unit_market: unit, line_mid: Math.round(unit * qty), position: pos }; }
     function titleOf(edId) { var r = ''; platforms.forEach(function (p) { p.titles.forEach(function (t) { t.editions.forEach(function (e) { if (e.id === edId) r = t.name; }); }); }); return r; }
     function platOf(edId) { var r = ''; platforms.forEach(function (p) { p.titles.forEach(function (t) { t.editions.forEach(function (e) { if (e.id === edId) r = p.name; }); }); }); return r; }
     var seq = 1;
@@ -234,7 +248,7 @@
       acceptClaim: sa(function (c) { st(c, ['submitted', 'reviewing'], 'accepted', 'Accepted — shipping label emailed'); }),
       declineClaim: sa(function (c, x) { st(c, ['submitted', 'reviewing'], 'declined', 'Declined — not accepted', x || "We weren't able to accept this claim this cycle."); }),
       markReceived: sa(function (c) { st(c, 'accepted', 'received', 'Games received at facility'); }),
-      regradeItem: function (itemId, condId) { return wrap(function () { requireStaff(); var c = claims.filter(function (cl) { return cl.claim_items.some(function (i) { return i.id === itemId; }); })[0]; if (!c) throw new Error('Item not found'); if (c.status !== 'received') throw new Error('Items can only be re-graded during inspection'); var it = c.claim_items.filter(function (i) { return i.id === itemId; })[0]; var e = ed[it.edition_id], cn = condById[condId]; if (!cn) throw new Error('Unknown condition'); var old = it.cond_name; it.condition_id = condId; it.cond_name = cn.name; it.unit_market = e.base * cn.mult; it.line_mid = Math.round(it.unit_market * it.qty); if (old !== cn.name) push(c, 'Re-graded ' + it.title_name + ': ' + old + ' → ' + cn.name, 'Condition confirmed on inspection.'); }); },
+      regradeItem: function (itemId, condId) { return wrap(function () { requireStaff(); var c = claims.filter(function (cl) { return cl.claim_items.some(function (i) { return i.id === itemId; }); })[0]; if (!c) throw new Error('Item not found'); if (c.status !== 'received') throw new Error('Items can only be re-graded during inspection'); var it = c.claim_items.filter(function (i) { return i.id === itemId; })[0]; var e = ed[it.edition_id], cn = condById[condId]; if (!cn) throw new Error('Unknown condition'); var old = it.cond_name; it.condition_id = condId; it.cond_name = cn.name; it.unit_market = marketValue(e, cn); it.line_mid = Math.round(it.unit_market * it.qty); if (old !== cn.name) push(c, 'Re-graded ' + it.title_name + ': ' + old + ' → ' + cn.name, 'Condition confirmed on inspection.'); }); },
       makeOffer: function (ref, amt, x) { return wrap(function () { requireStaff(); var c = findClaim(ref); if (!c) throw new Error('Claim not found'); if (c.status !== 'received') throw new Error('Can only offer on a received claim'); var s = suggested(c), lo = Math.max(1, Math.floor(s * 0.85)), hi = Math.max(lo, Math.ceil(s * 1.15)); if (!amt || amt < lo || amt > hi) throw new Error('Offer must be between $' + lo + ' and $' + hi + ' for this claim (algorithm suggests $' + s + ')'); c.status = 'offer'; c.offer_amount = amt; c.customer_response = null; push(c, 'Offer made: $' + amt, (x || '').trim() || null); }); },
       rejectReturn: sa(function (c, x) { if (c.status !== 'received') throw new Error('Claim is not in inspection'); c.status = 'returned'; push(c, 'Rejected on inspection — returning to seller', (x || '').trim() || "We'll email tracking."); }),
       authorizePayment: sa(function (c) { if (c.status !== 'offer' || c.customer_response !== 'accepted') throw new Error('Customer has not accepted an offer'); c.status = 'paid'; c.paid_amount = c.offer_amount; c.paid_method = c.payout; push(c, 'Payment authorized via ' + c.payout, c.payout === 'PayPal' ? 'PayPal 1–3 business days.' : 'Check 3–5 business days.'); }),
