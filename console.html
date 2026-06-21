@@ -17,6 +17,7 @@
     --navy-1: #2b2e66; --navy-2: #15173a;
     --gold-soft: #fbf4e3; --gold-label: #8a6a12;
     --amber-tint: #fbf1dd; --amber: #9a6a06;
+    --green: #1f7a4d; --green-soft: #e7f4ec;
     --red: #b3261e; --red-soft: #fbeae8; --red-border: #f0c7c3;
     --blue: #1c5e8a; --blue-soft: #e6f0f6;
     --bg: #f2f2f8; --surface: #ffffff; --border: #e6e5f1;
@@ -223,8 +224,11 @@
   .res-grades { display: grid; gap: 12px; }
   .rg { display: flex; align-items: flex-start; gap: 13px; border: 1px solid var(--border); border-radius: 12px; padding: 13px 15px; }
   .rg-ic { flex: none; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 10px; background: var(--purple-tint); color: var(--purple); }
-  .rg-ic svg { width: 19px; height: 19px; }
-  .rg.is-reject .rg-ic { background: #fbe9e9; color: #c0392b; }
+  .rg-ic svg { width: 20px; height: 20px; }
+  .rg.g-sealed .rg-ic { background: var(--green-soft); color: var(--green); }
+  .rg.g-complete .rg-ic { background: var(--purple-tint); color: var(--purple); }
+  .rg.g-loose .rg-ic { background: var(--amber-tint); color: var(--amber); }
+  .rg.g-no .rg-ic { background: var(--red-soft); color: var(--red); }
   .rg-body { flex: 1; min-width: 0; }
   .rg-name { font-weight: 600; font-size: 14.5px; }
   .rg-desc { font-size: 13px; color: var(--muted); line-height: 1.5; margin-top: 3px; }
@@ -342,7 +346,10 @@
     user: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5c0-3.6 3.1-5.5 7-5.5s7 1.9 7 5.5"/></svg>',
     flag: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4"/><path d="M5 4h12l-2 3.5L17 11H5"/></svg>',
     wallet: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2.5"/><path d="M3 10h18"/><circle cx="17" cy="14.3" r="1.1" fill="currentColor" stroke="none"/></svg>',
-    spark: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.7 6.6L20 12l-6.3 1.6L12 22l-1.7-8.4L4 12l6.3-1.6z"/></svg>'
+    spark: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.7 6.6L20 12l-6.3 1.6L12 22l-1.7-8.4L4 12l6.3-1.6z"/></svg>',
+    case: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8.5 3v18"/></svg>',
+    disc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="2.4"/></svg>',
+    noplay: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M14.5 9.5l-5 5M9.5 9.5l5 5"/></svg>'
   };
 
   const BADGES = {
@@ -581,10 +588,10 @@
         ['Flag edge cases', 'Suspected counterfeit, stolen, or a material mismatch → flag the claim for a second review before any offer.']
       ];
       const grades = [
-        ['Brand New (Sealed)', 'Factory sealed, original unbroken shrink wrap. Not for resealed copies.', I.spark],
-        ['Complete (CIB)', 'Original case, cover art, inserts, and a clean working disc or cartridge.', I.box],
-        ['Game Only (Loose)', 'Genuine disc or cartridge only — no case or art — clean and fully working.', I.gamepad],
-        ['Not Working / Counterfeit', 'Won’t play, cracked, reproduction, or pirated. Not accepted — return to seller.', I.flag, true]
+        ['Brand New (Sealed)', 'Factory sealed, original unbroken shrink wrap. Not for resealed copies.', I.box, 'g-sealed'],
+        ['Complete (CIB)', 'Original case, cover art, inserts, and a clean working disc or cartridge.', I.case, 'g-complete'],
+        ['Game Only (Loose)', 'Genuine disc or cartridge only — no case or art — clean and fully working.', I.disc, 'g-loose'],
+        ['Not Working / Counterfeit', 'Won’t play, cracked, reproduction, or pirated. Not accepted — return to seller.', I.noplay, 'g-no']
       ];
       return '<div class="screen wrap">' + tabs()
         + '<div class="res-head"><h2 class="res-title">Inspection checksheet</h2></div>'
@@ -592,7 +599,7 @@
         + steps.map(s => '<li><span class="rs-t">' + s[0] + '</span><span class="rs-d">' + s[1] + '</span></li>').join('')
         + '</ol></div>'
         + '<div class="card"><div class="card-h">Grade reference</div><div class="res-grades">'
-        + grades.map(g => '<div class="rg' + (g[3] ? ' is-reject' : '') + '"><span class="rg-ic">' + g[2] + '</span><div class="rg-body"><div class="rg-name">' + esc(g[0]) + '</div><div class="rg-desc">' + g[1] + '</div></div></div>').join('')
+        + grades.map(g => '<div class="rg ' + g[3] + '"><span class="rg-ic">' + g[2] + '</span><div class="rg-body"><div class="rg-name">' + esc(g[0]) + '</div><div class="rg-desc">' + g[1] + '</div></div></div>').join('')
         + '</div></div></div>';
     },
     claimDetail() {
