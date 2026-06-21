@@ -45,7 +45,8 @@
   .screen { animation: fade .22s ease; }
   @keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 
-  .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 20px; overflow-x: auto; }
+  .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 14px; overflow-x: auto; }
+  .view-intro { font-size: 13px; color: var(--muted); line-height: 1.5; margin: 0 0 20px; max-width: 64ch; }
   .tab { flex: none; background: none; border: none; border-bottom: 2px solid transparent; font-family: var(--body); font-size: 14.5px; font-weight: 600; color: var(--muted); padding: 10px 4px; margin-right: 22px; cursor: pointer; margin-bottom: -1px; white-space: nowrap; }
   .tab.on { color: var(--purple); border-bottom-color: var(--purple); }
   .tab:hover { color: var(--ink); }
@@ -263,6 +264,7 @@
   .login-mark { width: 50px; height: 50px; border-radius: 14px; background: var(--purple-tint); color: var(--purple); display: flex; align-items: center; justify-content: center; margin-bottom: 18px; }
   .login-mark svg { width: 28px; height: 28px; }
   .login-title { font-family: var(--display); font-weight: 700; font-size: 23px; letter-spacing: -0.02em; }
+  .login-sub { font-size: 13.5px; color: var(--muted); line-height: 1.5; margin-top: 8px; margin-bottom: 4px; }
   .field { margin-top: 16px; }
   .field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
   .field input { width: 100%; font-family: var(--body); font-size: 15px; color: var(--ink); background: var(--surface); border: 1.5px solid var(--border); border-radius: 11px; padding: 12px 13px; }
@@ -506,13 +508,22 @@
   const tbRight = () => state.loggedIn ? '<span class="tb-user">' + esc(state.admin.name) + '</span><button class="tb-logout" data-action="logout">' + I.logout + 'Sign out</button>' : '';
   function tabs() {
     const T = [['claims', 'Claims'], ['accounts', 'Accounts'], ['payouts', 'Payouts'], ['team', 'Team'], ['resources', 'Resources']];
-    return '<div class="tabs">' + T.map(t => '<button class="tab' + (state.tab === t[0] ? ' on' : '') + '" data-action="tab" data-value="' + t[0] + '">' + t[1] + '</button>').join('') + '</div>';
+    const intro = ({
+      claims: 'The full claim queue — filter by status, then open one to review, grade, and make an offer.',
+      accounts: 'Customer accounts — search to see someone’s claims, payouts, and internal notes.',
+      payouts: 'Accepted claims and your running totals. Send the PayPal or check, then it shows here.',
+      team: 'Your team, by department.',
+      resources: 'Internal guides for the inspection team.'
+    })[state.tab] || '';
+    return '<div class="tabs">' + T.map(t => '<button class="tab' + (state.tab === t[0] ? ' on' : '') + '" data-action="tab" data-value="' + t[0] + '">' + t[1] + '</button>').join('') + '</div>'
+      + (intro ? '<div class="view-intro">' + intro + '</div>' : '');
   }
 
   const views = {
     login() {
       return '<div class="login-wrap"><div class="login-card"><div class="login-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 13.5a6.5 6.5 0 0 1 10.4-5.2"/><path d="M16 5.7v3.2h-3.2"/><path d="M18.5 10.5a6.5 6.5 0 0 1-10.4 5.2"/><path d="M8 18.3v-3.2h3.2"/></svg></div>'
         + '<h1 class="login-title">Restash Console</h1>'
+        + '<p class="login-sub">Staff sign-in — review claims, make offers, and process payouts.</p>'
         + '<div class="field"><label for="lg-email">Email</label><input id="lg-email" type="email" placeholder="you@getrestash.gg"></div>'
         + '<div class="field"><label for="lg-pass">Password</label><input id="lg-pass" type="password" placeholder="••••••••"></div>'
         + '<p class="form-error" id="lg-error" hidden></p>'
