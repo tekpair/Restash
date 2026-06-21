@@ -93,12 +93,14 @@
   .screen.center .h1 { margin-top: 20px; }
   .sub { margin-top: 11px; font-size: 15px; line-height: 1.5; color: var(--muted); max-width: 48ch; }
   .screen.center .sub { margin-left: auto; margin-right: auto; }
-  .tagline { margin-top: 14px; font-family: var(--display); font-weight: 700; font-size: 16px; line-height: 1.35; letter-spacing: -0.01em; color: var(--purple); max-width: 26ch; }
+  .tagline { margin-top: 14px; font-family: var(--display); font-weight: 700; font-size: 14px; line-height: 1.35; letter-spacing: -0.02em; color: var(--purple); white-space: nowrap; }
+  @media (max-width: 410px) { .tagline { white-space: normal; } }
   .land-meta { margin-top: 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
   .paynote { display: inline-flex; align-items: center; gap: 6px; margin-top: 16px; font-size: 12.5px; font-weight: 500; color: var(--gold-label); }
   .land-meta .paynote { margin-top: 0; }
-  .why-link { font-size: 12.5px; font-weight: 600; color: var(--purple); white-space: nowrap; }
-  .why-link:hover { text-decoration: underline; }
+  .why-foot { display: flex; align-items: center; justify-content: center; gap: 4px; margin-top: 22px; font-size: 13.5px; font-weight: 600; color: var(--purple); }
+  .why-foot svg { width: 15px; height: 15px; }
+  .why-foot:hover { text-decoration: underline; }
   .paynote svg { width: 14px; height: 14px; }
   .reg-note { margin-top: 12px; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
   .reg-note svg { width: 13px; height: 13px; }
@@ -247,6 +249,10 @@
   .status-icon svg { width: 30px; height: 30px; }
   .status-icon.brand { background: var(--purple-tint); color: var(--purple); }
   .status-icon.amber { background: var(--amber-tint); color: var(--amber); }
+  .success-check { animation: popIn .5s cubic-bezier(.18,.7,.3,1.35) both; }
+  .success-check svg path { stroke-dasharray: 26; stroke-dashoffset: 26; animation: drawCheck .45s ease .26s forwards; }
+  @keyframes popIn { 0% { transform: scale(.2); opacity: 0; } 55% { transform: scale(1.12); opacity: 1; } 100% { transform: scale(1); } }
+  @keyframes drawCheck { to { stroke-dashoffset: 0; } }
   .testnote { margin-top: 20px; font-size: 12px; line-height: 1.5; color: #9a9ab4; max-width: 42ch; margin-left: auto; margin-right: auto; }
 
   .steps { margin: 24px auto 0; max-width: 420px; text-align: left; background: var(--surface); border: 1.5px solid var(--border); border-radius: 16px; padding: 18px 20px; }
@@ -349,6 +355,7 @@
     .wc-mark, .wc-mark svg, .wc-title, .wc-sub { animation: none !important; opacity: 1 !important; transform: none !important; }
     .wc-glow { animation: none !important; opacity: .85 !important; }
     .wc-prog { display: none; }
+    .success-check, .success-check svg path { animation: none !important; opacity: 1 !important; transform: none !important; stroke-dashoffset: 0 !important; }
   }
   /* Google Places autocomplete dropdown */
   .pac-container { z-index: 10000; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 12px 28px rgba(27,29,58,0.16); font-family: var(--body); margin-top: 4px; }
@@ -554,13 +561,15 @@
       const cards = PLATFORMS.map(p =>
         '<button class="card" data-action="pick-platform" data-value="' + p.id + '" aria-label="Sell ' + esc(p.name) + ' games"><span class="tile">' + I[p.icon] + '</span><span class="card-body"><span class="card-name">' + esc(p.name) + '</span></span><span class="chev">' + I.chevron + '</span></button>'
       ).join('');
-      const cartLine = state.cart.length ? '<span class="reg-note">' + I.check + cartQty() + ' game' + (cartQty() > 1 ? 's' : '') + ' in your claim — <a data-action="goto-cart" style="font-weight:600;cursor:pointer;">review</a></span>' : (state.loggedIn ? '' : '<span class="reg-note">' + I.lock + 'A free account is required to submit a claim.</span>');
-      return '<div class="screen"><h1 class="h1">Sell your<br>physical games</h1>'
+      const cartLine = state.cart.length ? '<span class="reg-note">' + I.check + cartQty() + ' game' + (cartQty() > 1 ? 's' : '') + ' in your claim — <a data-action="goto-cart" style="font-weight:600;cursor:pointer;">review</a></span>' : '';
+      return '<div class="screen"><h1 class="h1">Sell your games</h1>'
         + '<p class="tagline">Instant cash. Zero hassle. Skip the marketplace.</p>'
-        + '<p class="sub">Pick a platform for an instant, no-obligation offer — add as many games as you like to one claim.</p>'
-        + '<div class="land-meta"><span class="paynote">' + I.dollar + 'Free shipping label · paid in 1–5 business days</span><a href="why-restash.html" class="why-link">Why Restash?</a></div>'
+        + '<p class="sub">Pick a platform for an instant, no-obligation offer.</p>'
+        + '<div class="land-meta"><span class="paynote">' + I.dollar + 'Free shipping label · paid in 1–5 business days</span></div>'
         + cartLine
-        + '<div class="list">' + cards + '</div></div>';
+        + '<div class="list">' + cards + '</div>'
+        + '<a href="why-restash.html" class="why-foot">Why sell with Restash? ' + I.chevron + '</a>'
+        + '</div>';
     },
     title() {
       const p = plat();
@@ -574,7 +583,7 @@
       const cards = t.editions.map(e =>
         '<button class="card" data-action="pick-edition" data-value="' + e.id + '"><span class="tile">' + I[editionIconName(e.name)] + '</span><span class="card-body"><span class="card-name">' + esc(e.name) + '</span>' + (e.desc ? '<span class="card-desc">' + esc(e.desc) + '</span>' : '') + '</span><span class="chev">' + I.chevron + '</span></button>'
       ).join('');
-      return '<div class="screen">' + backBtn('title') + '<h1 class="h1">Which edition?</h1><p class="sub">' + esc(t.name) + ' — pick the edition you have. Editions can be worth different amounts.</p><div class="list">' + cards + '</div></div>';
+      return '<div class="screen">' + backBtn('title') + '<h1 class="h1">Which edition?</h1><p class="sub">Pick the edition you have. Editions can be worth different amounts.</p><div class="list">' + cards + '</div></div>';
     },
     condition() {
       const rows = CONDITIONS.map(cd =>
@@ -604,7 +613,7 @@
         + '</div>';
     },
     authRequired() {
-      return '<div class="screen center"><span class="status-icon brand">' + I.lock + '</span><h1 class="h1">Create an account to continue</h1><p class="sub">Restash requires a free account to submit a claim and get paid. The name on your account must match the name on your PayPal or check.</p><div class="btn-stack" style="max-width:300px;margin:18px auto 0;"><button class="btn btn-primary" data-action="goto" data-value="register">Create account</button><button class="btn btn-secondary" data-action="goto" data-value="login">I already have an account</button></div></div>';
+      return '<div class="screen center"><span class="status-icon brand">' + I.lock + '</span><h1 class="h1">Create an account to continue</h1><p class="sub">Restash requires a free account to submit a claim and get paid.</p><div class="btn-stack" style="max-width:300px;margin:18px auto 0;"><button class="btn btn-primary" data-action="goto" data-value="register">Create account</button><button class="btn btn-secondary" data-action="goto" data-value="login">I already have an account</button></div></div>';
     },
     claim() {
       const t = cartTotals(), u = state.user, d = state.draft || {};
@@ -631,12 +640,12 @@
         { t: 'Submit your claim', done: true },
         { t: 'We review your claim within 2–3 business days', done: false },
         { t: 'If accepted, we email a free shipping label', done: false },
-        { t: 'Ship your games — we confirm arrival, outcome in 2–3 days', done: false },
+        { t: 'Ship your games — outcome in 2–3 days', done: false },
         { t: 'We send an offer to My Claims — accept or decline', done: false },
         { t: 'Accept and get paid by PayPal or Check', done: false }
       ];
       const list = steps.map((s, i) => '<div class="step' + (s.done ? ' is-done' : '') + '"><span class="step-mark ' + (s.done ? 'done' : 'todo') + '">' + (s.done ? I.check : (i + 1)) + '</span><span class="step-text">' + s.t + '</span></div>').join('');
-      return '<div class="screen center"><span class="status-icon brand">' + I.check + '</span><h1 class="h1">Claim submitted</h1>'
+      return '<div class="screen center"><span class="status-icon brand success-check">' + I.check + '</span><h1 class="h1">Claim submitted</h1>'
         + '<p class="sub">Thanks' + (first ? ', ' + esc(first) : '') + '. Your reference is <strong style="color:var(--ink)">' + cl.ref + '</strong>.</p>'
         + goldCard('Estimated cash offer', '$' + cl.estLow + ' – $' + cl.estHigh)
         + '<div class="steps"><p class="steps-title">What happens next</p>' + list + '</div>'
@@ -658,7 +667,7 @@
     },
     register() {
       const rd = state.regDraft || {};
-      return '<div class="screen"><button class="backbtn" data-action="back-page">' + I.back + 'Back</button><h1 class="h1">Create your account</h1><p class="sub">A free account is required to sell. The name here must match your PayPal or check name to get paid.</p>'
+      return '<div class="screen"><button class="backbtn" data-action="back-page">' + I.back + 'Back</button><h1 class="h1">Create your account</h1><p class="sub">A free account is required to sell on the Restash platform.</p>'
         + '<div class="field"><label for="rg-name">Full name</label><input id="rg-name" type="text" placeholder="Jordan Rivera" value="' + esc(rd.name || '') + '"></div>'
         + '<div class="field"><label for="rg-email">Email</label><input id="rg-email" type="email" placeholder="you@email.com" value="' + esc(rd.email || '') + '"></div>'
         + '<div class="field"><label for="rg-phone">Phone</label><input id="rg-phone" type="tel" placeholder="(518) 555-0123" value="' + esc(rd.phone || '') + '"></div>'

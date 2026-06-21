@@ -203,31 +203,36 @@
   </div>
 
   <script>
-    // FAQ accordion — animates grid-template-rows 0fr<->1fr; opening one closes the others.
+    // FAQ accordion — animate grid-template-rows 0fr<->1fr. A per-item timer
+    // (cleared on every re-click) drives the state change, so rapid toggles
+    // never strand a half-open answer and we never rely on transitionend firing.
+    var DUR = 300; // keep in sync with the CSS transition (.3s)
     var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    function expand(d) {
+    function setOpen(d, open) {
       var a = d.querySelector('.ans');
-      d.open = true;
-      if (reduce) return;
-      a.style.gridTemplateRows = '0fr';
-      requestAnimationFrame(function () { requestAnimationFrame(function () { a.style.gridTemplateRows = '1fr'; }); });
-      a.addEventListener('transitionend', function done(e) { if (e.propertyName !== 'grid-template-rows') return; a.style.gridTemplateRows = ''; a.removeEventListener('transitionend', done); });
-    }
-    function collapse(d) {
-      var a = d.querySelector('.ans');
-      if (reduce) { d.open = false; return; }
-      a.style.gridTemplateRows = '1fr';
-      requestAnimationFrame(function () { requestAnimationFrame(function () { a.style.gridTemplateRows = '0fr'; }); });
-      a.addEventListener('transitionend', function done(e) { if (e.propertyName !== 'grid-template-rows') return; d.open = false; a.style.gridTemplateRows = ''; a.removeEventListener('transitionend', done); });
+      if (d._timer) { clearTimeout(d._timer); d._timer = null; }
+      if (reduce) { d.open = open; a.style.gridTemplateRows = ''; return; }
+      if (open) {
+        d.open = true;
+        a.style.gridTemplateRows = '0fr';
+        void a.offsetHeight;                 // commit the collapsed start state
+        a.style.gridTemplateRows = '1fr';
+        d._timer = setTimeout(function () { a.style.gridTemplateRows = ''; d._timer = null; }, DUR + 60);
+      } else {
+        a.style.gridTemplateRows = '1fr';
+        void a.offsetHeight;                 // commit the open start state
+        a.style.gridTemplateRows = '0fr';
+        d._timer = setTimeout(function () { d.open = false; a.style.gridTemplateRows = ''; d._timer = null; }, DUR + 60);
+      }
     }
     document.querySelectorAll('.faq details').forEach(function (d) {
       d.querySelector('summary').addEventListener('click', function (e) {
         e.preventDefault();
-        if (d.open) { collapse(d); }
-        else {
-          document.querySelectorAll('.faq details[open]').forEach(function (o) { if (o !== d) collapse(o); });
-          expand(d);
+        var willOpen = !d.open;
+        if (willOpen) {
+          document.querySelectorAll('.faq details[open]').forEach(function (o) { if (o !== d) setOpen(o, false); });
         }
+        setOpen(d, willOpen);
       });
     });
   </script>
