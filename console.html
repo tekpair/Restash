@@ -149,12 +149,13 @@
   .tl-item { display: flex; gap: 13px; }
   .tl-rail { display: flex; flex-direction: column; align-items: center; flex: none; }
   .tl-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--purple-tint); border: 2px solid var(--purple); margin-top: 3px; }
-  .tl-line { width: 2px; flex: 1; background: var(--border); min-height: 12px; }
+  .tl-line { width: 2px; flex: 1; background: var(--border); min-height: 14px; }
   .tl-current .tl-dot { background: var(--purple); box-shadow: 0 0 0 4px var(--purple-tint); }
-  .tl-body { padding-bottom: 16px; }
-  .tl-label { display: block; font-size: 13.5px; font-weight: 600; }
+  .tl-body { padding-bottom: 20px; }
+  .tl-item:last-child .tl-body { padding-bottom: 0; }
+  .tl-label { display: block; font-size: 13.5px; font-weight: 600; line-height: 1.4; }
   .tl-current .tl-label { color: var(--purple); }
-  .tl-date { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; line-height: 1.45; }
+  .tl-date { display: block; font-size: 12px; color: var(--muted); margin-top: 3px; line-height: 1.5; }
 
   .action-card { margin-top: 20px; background: var(--surface); border: 1.5px solid var(--border); border-radius: 16px; padding: 18px; }
   .action-card.live { border-color: var(--purple); box-shadow: 0 0 0 3px rgba(91,63,214,0.08); }
@@ -206,6 +207,9 @@
   .offer-sub { font-size: 12.5px; color: var(--muted); line-height: 1.45; margin-bottom: 6px; }
   .offer-grades { border: 1px solid var(--border); border-radius: 12px; padding: 2px 14px; margin-bottom: 12px; }
   .offer-grades .grade-row:last-child { border-bottom: none; }
+  .offer-novalue { display: flex; gap: 9px; align-items: flex-start; background: var(--amber-tint); color: var(--amber); font-size: 13px; line-height: 1.5; padding: 12px 13px; border-radius: 11px; margin-bottom: 12px; }
+  .offer-novalue svg { flex: none; width: 16px; height: 16px; margin-top: 1px; }
+  .grid2 + .card { margin-top: 16px; }
 
   /* resources / checksheet */
   .res-head { margin-bottom: 18px; }
@@ -449,12 +453,17 @@
       const lo = Math.max(1, Math.floor(sugg * 0.85)), hi = Math.max(lo, Math.ceil(sugg * 1.15)), mid = sugg;
       body = '<div class="offer-box">'
         + '<div class="offer-sub">Confirm each game’s condition — the customer sees any change, and the suggested offer updates.</div>'
-        + '<div class="offer-grades">' + gradeRows(c) + '</div>'
-        + '<div class="offer-hint">Market value $' + market + ' · <strong>Algorithm suggests $' + sugg + '</strong> (margin − shipping − fees). Offer must be between $' + lo + ' and $' + hi + '.</div>'
-        + '<label for="offer-amount" style="margin-top:14px;">Offer amount</label><div class="offer-input"><span>$</span><input id="offer-amount" type="number" min="' + lo + '" max="' + hi + '" value="' + mid + '"></div>'
-        + '<label for="offer-reason" style="margin-top:14px;">Why this offer <span style="font-weight:500;color:var(--muted);">— the customer sees this</span></label><textarea id="offer-reason" rows="2" placeholder="e.g. Graded Complete, light disc wear; priced to current market." style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-family:var(--body);font-size:14px;resize:vertical;"></textarea>'
-        + flashMsg('offer')
-        + '<div class="offer-buttons"><button class="btn btn-primary" data-action="send-offer" data-ref="' + c.ref + '">Send offer</button><button class="btn btn-secondary" data-action="cancel-offer">Cancel</button></div></div>';
+        + '<div class="offer-grades">' + gradeRows(c) + '</div>';
+      if (sugg <= 0) {
+        body += '<div class="offer-novalue">' + I.info + '<span>These games have no eligible buyback value (graded Not Working / Counterfeit). You can’t make an offer — use <strong>Reject &amp; return</strong>, or re-grade above if this was a mistake.</span></div>'
+          + '<div class="offer-buttons"><button class="btn btn-danger" data-action="st-reject" data-ref="' + c.ref + '">Reject &amp; return</button><button class="btn btn-secondary" data-action="cancel-offer">Cancel</button></div></div>';
+      } else {
+        body += '<div class="offer-hint">Market value $' + market + ' · <strong>Algorithm suggests $' + sugg + '</strong> (margin − shipping − fees). Offer must be between $' + lo + ' and $' + hi + '.</div>'
+          + '<label for="offer-amount" style="margin-top:14px;">Offer amount</label><div class="offer-input"><span>$</span><input id="offer-amount" type="number" min="' + lo + '" max="' + hi + '" value="' + mid + '"></div>'
+          + '<label for="offer-reason" style="margin-top:14px;">Why this offer <span style="font-weight:500;color:var(--muted);">— the customer sees this</span></label><textarea id="offer-reason" rows="2" placeholder="e.g. Graded Complete, light disc wear; priced to current market." style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-family:var(--body);font-size:14px;resize:vertical;"></textarea>'
+          + flashMsg('offer')
+          + '<div class="offer-buttons"><button class="btn btn-primary" data-action="send-offer" data-ref="' + c.ref + '">Send offer</button><button class="btn btn-secondary" data-action="cancel-offer">Cancel</button></div></div>';
+      }
     } else if (c.status === 'offer') {
       live = true;
       if (!c.customerResponse) {
