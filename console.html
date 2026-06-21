@@ -46,7 +46,6 @@
   @keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 
   .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 14px; overflow-x: auto; }
-  .view-intro { font-size: 13px; color: var(--muted); line-height: 1.5; margin: 0 0 20px; max-width: 64ch; }
   .tab { flex: none; background: none; border: none; border-bottom: 2px solid transparent; font-family: var(--body); font-size: 14.5px; font-weight: 600; color: var(--muted); padding: 10px 4px; margin-right: 22px; cursor: pointer; margin-bottom: -1px; white-space: nowrap; }
   .tab.on { color: var(--purple); border-bottom-color: var(--purple); }
   .tab:hover { color: var(--ink); }
@@ -215,7 +214,6 @@
   /* resources / checksheet */
   .res-head { margin-bottom: 18px; }
   .res-title { font-family: var(--display); font-weight: 700; font-size: 22px; letter-spacing: -0.02em; }
-  .res-sub { color: var(--muted); font-size: 13.5px; margin-top: 6px; line-height: 1.5; }
   .res-steps { list-style: none; counter-reset: rstep; margin: 0; padding: 0; }
   .res-steps li { position: relative; padding: 12px 0 12px 40px; border-bottom: 1px solid var(--border); }
   .res-steps li:last-child { border-bottom: none; }
@@ -223,7 +221,11 @@
   .res-steps .rs-t { display: block; font-weight: 600; font-size: 14.5px; }
   .res-steps .rs-d { display: block; font-size: 13px; color: var(--muted); line-height: 1.5; margin-top: 3px; }
   .res-grades { display: grid; gap: 12px; }
-  .rg { border: 1px solid var(--border); border-radius: 12px; padding: 13px 15px; }
+  .rg { display: flex; align-items: flex-start; gap: 13px; border: 1px solid var(--border); border-radius: 12px; padding: 13px 15px; }
+  .rg-ic { flex: none; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 10px; background: var(--purple-tint); color: var(--purple); }
+  .rg-ic svg { width: 19px; height: 19px; }
+  .rg.is-reject .rg-ic { background: #fbe9e9; color: #c0392b; }
+  .rg-body { flex: 1; min-width: 0; }
   .rg-name { font-weight: 600; font-size: 14.5px; }
   .rg-desc { font-size: 13px; color: var(--muted); line-height: 1.5; margin-top: 3px; }
 
@@ -508,22 +510,14 @@
   const tbRight = () => state.loggedIn ? '<span class="tb-user">' + esc(state.admin.name) + '</span><button class="tb-logout" data-action="logout">' + I.logout + 'Sign out</button>' : '';
   function tabs() {
     const T = [['claims', 'Claims'], ['accounts', 'Accounts'], ['payouts', 'Payouts'], ['team', 'Team'], ['resources', 'Resources']];
-    const intro = ({
-      claims: 'The full claim queue — filter by status, then open one to review, grade, and make an offer.',
-      accounts: 'Customer accounts — search to see someone’s claims, payouts, and internal notes.',
-      payouts: 'Accepted claims and your running totals. Send the PayPal or check, then it shows here.',
-      team: 'Your team, by department.',
-      resources: 'Internal guides for the inspection team.'
-    })[state.tab] || '';
-    return '<div class="tabs">' + T.map(t => '<button class="tab' + (state.tab === t[0] ? ' on' : '') + '" data-action="tab" data-value="' + t[0] + '">' + t[1] + '</button>').join('') + '</div>'
-      + (intro ? '<div class="view-intro">' + intro + '</div>' : '');
+    return '<div class="tabs">' + T.map(t => '<button class="tab' + (state.tab === t[0] ? ' on' : '') + '" data-action="tab" data-value="' + t[0] + '">' + t[1] + '</button>').join('') + '</div>';
   }
 
   const views = {
     login() {
       return '<div class="login-wrap"><div class="login-card"><div class="login-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 13.5a6.5 6.5 0 0 1 10.4-5.2"/><path d="M16 5.7v3.2h-3.2"/><path d="M18.5 10.5a6.5 6.5 0 0 1-10.4 5.2"/><path d="M8 18.3v-3.2h3.2"/></svg></div>'
         + '<h1 class="login-title">Restash Console</h1>'
-        + '<p class="login-sub">Staff sign-in — review claims, make offers, and process payouts.</p>'
+        + '<p class="login-sub">Review claims, make offers, and process payouts.</p>'
         + '<div class="field"><label for="lg-email">Email</label><input id="lg-email" type="email" placeholder="you@getrestash.gg"></div>'
         + '<div class="field"><label for="lg-pass">Password</label><input id="lg-pass" type="password" placeholder="••••••••"></div>'
         + '<p class="form-error" id="lg-error" hidden></p>'
@@ -587,18 +581,18 @@
         ['Flag edge cases', 'Suspected counterfeit, stolen, or a material mismatch → flag the claim for a second review before any offer.']
       ];
       const grades = [
-        ['Brand New (Sealed)', 'Factory sealed, original unbroken shrink wrap. Not for resealed copies.'],
-        ['Complete (CIB)', 'Original case, cover art, inserts, and a clean working disc or cartridge.'],
-        ['Game Only (Loose)', 'Genuine disc or cartridge only — no case or art — clean and fully working.'],
-        ['Not Working / Counterfeit', 'Won’t play, cracked, reproduction, or pirated. Not accepted — return to seller.']
+        ['Brand New (Sealed)', 'Factory sealed, original unbroken shrink wrap. Not for resealed copies.', I.spark],
+        ['Complete (CIB)', 'Original case, cover art, inserts, and a clean working disc or cartridge.', I.box],
+        ['Game Only (Loose)', 'Genuine disc or cartridge only — no case or art — clean and fully working.', I.gamepad],
+        ['Not Working / Counterfeit', 'Won’t play, cracked, reproduction, or pirated. Not accepted — return to seller.', I.flag, true]
       ];
       return '<div class="screen wrap">' + tabs()
-        + '<div class="res-head"><h2 class="res-title">Inspection checksheet</h2><p class="res-sub">Internal — run these steps on every game. The public grading guide for customers lives at <a href="grading.html" target="_blank" rel="noopener">/grading.html</a>.</p></div>'
+        + '<div class="res-head"><h2 class="res-title">Inspection checksheet</h2></div>'
         + '<div class="card"><div class="card-h">Per-game inspection</div><ol class="res-steps">'
         + steps.map(s => '<li><span class="rs-t">' + s[0] + '</span><span class="rs-d">' + s[1] + '</span></li>').join('')
         + '</ol></div>'
         + '<div class="card"><div class="card-h">Grade reference</div><div class="res-grades">'
-        + grades.map(g => '<div class="rg"><div class="rg-name">' + esc(g[0]) + '</div><div class="rg-desc">' + g[1] + '</div></div>').join('')
+        + grades.map(g => '<div class="rg' + (g[3] ? ' is-reject' : '') + '"><span class="rg-ic">' + g[2] + '</span><div class="rg-body"><div class="rg-name">' + esc(g[0]) + '</div><div class="rg-desc">' + g[1] + '</div></div></div>').join('')
         + '</div></div></div>';
     },
     claimDetail() {
