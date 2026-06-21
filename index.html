@@ -94,6 +94,8 @@
   .sub { margin-top: 11px; font-size: 15px; line-height: 1.5; color: var(--muted); max-width: 48ch; }
   .screen.center .sub { margin-left: auto; margin-right: auto; }
   .paynote { display: inline-flex; align-items: center; gap: 6px; margin-top: 16px; font-size: 12.5px; font-weight: 500; color: var(--gold-label); }
+  .why-link { margin-left: 8px; font-size: 12.5px; font-weight: 600; color: var(--purple); white-space: nowrap; }
+  .why-link:hover { text-decoration: underline; }
   .paynote svg { width: 14px; height: 14px; }
   .reg-note { margin-top: 12px; display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
   .reg-note svg { width: 13px; height: 13px; }
@@ -369,6 +371,7 @@
           Restash
         </div>
         <nav class="foot-links">
+          <a href="why-restash.html">Why Restash</a>
           <a href="how-it-works.html">How It Works</a>
           <a href="grading.html">Grading</a>
           <a data-action="account-icon">My Claims</a>
@@ -510,10 +513,10 @@
     { h: '12. Suspected stolen property', body: '<p>If we reasonably suspect a game was stolen, we may hold the item and withhold payment. <strong>Law enforcement will be notified, your account will be immediately and permanently closed, and you may face legal action from us.</strong></p>' },
     { h: '13. Suspension &amp; termination', body: '<p>We may suspend or close accounts that violate these Terms, including for fraud or abuse. You may close your account by contacting us.</p>' },
     { h: '14. Third-party services &amp; trademarks', body: '<p>Payments and delivery rely on third parties, including PayPal and mail carriers. PayPal and the PayPal logo are trademarks of PayPal, Inc. Nintendo, Sony, Microsoft, their consoles, and all game titles are trademarks of their respective owners, used here only to identify the games we buy. Restash is independent and is not affiliated with, sponsored by, or endorsed by any of them.</p>' },
-    { h: '15. Disclaimers &amp; limitation of liability', body: '<p>The service is provided "as is." To the maximum extent permitted by law, Restash is not liable for indirect or consequential damages. <em>[Jurisdiction-specific limitations to be finalized with counsel.]</em></p>' },
-    { h: '16. Company &amp; governing law', body: '<p>Restash is located in Cohoes, Albany County, New York. These Terms are governed by the laws of the State of New York, without regard to its conflict-of-laws rules. <em>[Venue and dispute-resolution details to be finalized with counsel.]</em></p>' },
+    { h: '15. Disclaimers &amp; limitation of liability', body: '<p>The service is provided "as is." To the maximum extent permitted by law, Restash is not liable for indirect or consequential damages. Some states do not allow the exclusion of certain warranties or the limitation of incidental or consequential damages, so some of the above may not apply to you.</p>' },
+    { h: '16. Company &amp; governing law', body: '<p>Restash is located in Cohoes, Albany County, New York. These Terms are governed by the laws of the State of New York, without regard to its conflict-of-laws rules. You agree that any dispute arising out of these Terms or your use of Restash will be brought exclusively in the state or federal courts located in Albany County, New York, and you consent to the personal jurisdiction of those courts.</p>' },
     { h: '17. Changes to these Terms', body: '<p>We may update these Terms and will post the updated version with a new effective date. Continued use after changes means you accept them.</p>' },
-    { h: '18. Contact', body: '<p>Questions about these Terms? Email <a href="mailto:hello@getrestash.gg">hello@getrestash.gg</a>. Restash, Cohoes, New York.</p>' }
+    { h: '18. Contact', body: '<p>Questions about these Terms? Email <a href="mailto:hello@getrestash.gg">hello@getrestash.gg</a>.<br>Restash · Cohoes, New York</p>' }
   ];
   const PRIVACY_INTRO = 'This Privacy Policy explains what information Restash collects, how we use it, and your choices. By using Restash you agree to this policy.';
   const PRIVACY = [
@@ -523,15 +526,15 @@
     { h: '4. Identity &amp; payout matching', body: '<p>To reduce fraud, we pay out only when the name on your PayPal account or check matches the name on your Restash account. Verifying this may involve reviewing the information you provide.</p>' },
     { h: '5. Communications', body: '<p>We email you about your account and claims — confirmations, review decisions, shipping labels, arrival notices, offers, payment authorizations, and tracking. These are service communications related to your transactions.</p>' },
     { h: '6. Fraud prevention &amp; law enforcement', body: '<p>If we suspect unlawful activity, such as the sale of stolen or counterfeit games, we may retain relevant information and share it with law enforcement, and take action on your account as described in our <a data-action="goto" data-value="terms">Terms of Service</a>.</p>' },
-    { h: '7. Sharing with service providers', body: '<p>We share limited information with providers that help us operate, such as payment and shipping partners. <em>[Specific processors to be listed and finalized with counsel.]</em></p>' },
-    { h: '8. Retention &amp; your choices', body: '<p>We retain information as needed to provide the service, comply with law, and prevent fraud. <em>[Retention periods and access/deletion options to be finalized with counsel.]</em></p>' },
-    { h: '9. Contact', body: '<p>Questions about privacy? Email <a href="mailto:hello@getrestash.gg">hello@getrestash.gg</a>. Restash, Cohoes, New York.</p>' }
+    { h: '7. Sharing with service providers', body: '<p>We share limited information with providers that help us operate, such as payment and shipping partners. These include PayPal (payments), the U.S. Postal Service and other shipping carriers, Resend (transactional email), Supabase (secure database and authentication hosting), and Google Maps (address autocomplete). Each receives only the information needed to do its job.</p>' },
+    { h: '8. Retention &amp; your choices', body: '<p>We retain information as needed to provide the service, comply with law, and prevent fraud. You can request a copy of your information, or ask us to correct or delete it, by emailing hello@getrestash.gg. We honor these requests except where we must keep records to meet tax, accounting, or other legal obligations or to prevent fraud.</p>' },
+    { h: '9. Contact', body: '<p>Questions about privacy? Email <a href="mailto:hello@getrestash.gg">hello@getrestash.gg</a>.<br>Restash · Cohoes, New York</p>' }
   ];
   function legalPage(title, intro, sections) {
     return '<div class="screen legal"><button class="backbtn" data-action="back-page">' + I.back + 'Back</button>'
       + '<h1 class="h1">' + title + '</h1><p class="updated">Effective June 16, 2026 · Restash</p>'
       + '<p class="intro">' + intro + '</p>'
-      + '<p class="counsel">This is a working template prepared for Restash and is not legal advice. Have it reviewed by a licensed attorney before you launch.</p>'
+      + ''
       + sections.map(s => '<h3 class="lh">' + s.h + '</h3>' + s.body).join('') + '</div>';
   }
 
@@ -544,7 +547,7 @@
         '<button class="card" data-action="pick-platform" data-value="' + p.id + '" aria-label="Sell ' + esc(p.name) + ' games"><span class="tile">' + I[p.icon] + '</span><span class="card-body"><span class="card-name">' + esc(p.name) + '</span></span><span class="chev">' + I.chevron + '</span></button>'
       ).join('');
       const cartLine = state.cart.length ? '<br><span class="reg-note">' + I.check + cartQty() + ' game' + (cartQty() > 1 ? 's' : '') + ' in your claim — <a data-action="goto-cart" style="font-weight:600;cursor:pointer;">review</a></span>' : (state.loggedIn ? '' : '<br><span class="reg-note">' + I.lock + 'A free account is required to submit a claim.</span>');
-      return '<div class="screen"><h1 class="h1">Sell your<br>physical games</h1><p class="sub"><strong>Instant cash. Zero hassle. Skip the marketplace.</strong> Pick your platform for an instant, no-obligation offer — add as many games as you like to one claim.</p><span class="paynote">' + I.dollar + 'Free shipping label · paid in 1–5 business days</span>' + cartLine + '<div class="list">' + cards + '</div></div>';
+      return '<div class="screen"><h1 class="h1">Sell your<br>physical games</h1><p class="sub"><strong>Instant cash. Zero hassle. Skip the marketplace.</strong> Pick your platform for an instant, no-obligation offer — add as many games as you like to one claim.</p><span class="paynote">' + I.dollar + 'Free shipping label · paid in 1–5 business days</span> <a href="why-restash.html" class="why-link">Why Restash?</a>' + cartLine + '<div class="list">' + cards + '</div></div>';
     },
     title() {
       const p = plat();
@@ -659,6 +662,13 @@
         + '<button class="btn btn-primary full" data-action="do-forgot">Send reset link</button>'
         + '<p class="switch-line">Remembered it? <a data-action="goto" data-value="login">Log in</a></p>'
         + '</div>';
+    },
+    resetPassword() {
+      return '<div class="screen"><span class="status-icon brand">' + I.lock + '</span><h1 class="h1">Set a new password</h1><p class="sub">You followed a password-reset link. Choose a new password for your Restash account.</p>'
+        + '<div class="field"><label for="rp-pass">New password</label><input id="rp-pass" type="password" placeholder="At least 8 characters"></div>'
+        + '<div class="field"><label for="rp-pass2">Confirm new password</label><input id="rp-pass2" type="password" placeholder="Re-enter password"></div>'
+        + '<p class="form-error" id="auth-error" hidden></p>'
+        + '<button class="btn btn-primary full" data-action="do-set-password">Update password</button></div>';
     },
     account() {
       const u = state.user;
@@ -872,6 +882,21 @@
       state.flash = { slot: 'forgot', kind: 'ok', text: 'If that email has an account, a reset link is on its way.' };
       render();
     }
+    else if (a === 'do-set-password') {
+      const pw = document.getElementById('rp-pass').value;
+      const pw2 = document.getElementById('rp-pass2').value;
+      if (pw.length < 8) return showErr('auth-error', 'Password must be at least 8 characters.');
+      if (pw !== pw2) return showErr('auth-error', 'Those passwords don’t match.');
+      el.disabled = true;
+      try {
+        await RestashAPI.updatePassword(pw);
+        state.recovery = false;
+        if (window.history && window.history.replaceState) window.history.replaceState(null, '', window.location.pathname + window.location.search);
+        await loadSession(); await loadClaims();
+        state.flash = { slot: 'profile', kind: 'ok', text: 'Password updated — you’re signed in.' };
+        go(state.loggedIn ? 'account' : 'login');
+      } catch (err) { el.disabled = false; showErr('auth-error', err.message || 'Could not update your password. The reset link may have expired — request a new one.'); }
+    }
     else if (a === 'save-profile') {
       el.disabled = true;
       try {
@@ -919,6 +944,11 @@
   async function boot() {
     loadPlaces();
     if (!RestashAPI.configured) { configBanner(); return; }
+    // Password-reset link: detect the recovery flow up front (the URL hash may be
+    // consumed during auth init) and via the live auth event as a backup.
+    const recovering = /(^|[#&?])recovery|type=recovery/.test(window.location.hash);
+    if (recovering) state.recovery = true;
+    RestashAPI.onPasswordRecovery(function () { state.recovery = true; if (state.booted) { state.view = 'resetPassword'; render(); } });
     try {
       const cat = await RestashAPI.getCatalog();
       PLATFORMS = cat.platforms; CONDITIONS = cat.conditions; PRICING = cat.pricing;
@@ -931,7 +961,8 @@
         '<div class="screen center"><span class="status-icon amber">' + I.alert + '</span><h1 class="h1">Something went wrong</h1><p class="sub">' + esc(err.message || 'Could not reach the server.') + '</p></div>';
       return;
     }
-    state.view = state.loggedIn ? 'platform' : 'welcome';
+    state.booted = true;
+    state.view = state.recovery ? 'resetPassword' : (state.loggedIn ? 'platform' : 'welcome');
     render();
   }
   boot();
