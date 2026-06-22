@@ -44,7 +44,19 @@
     --body: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: var(--body); background: radial-gradient(1000px 560px at 50% -8%, #f4f2fc 0%, #eae7f5 46%, #e7e4f3 100%) no-repeat; background-color: #e7e4f3; color: var(--ink); -webkit-font-smoothing: antialiased; display: flex; justify-content: center; }
+  body { font-family: var(--body); background: linear-gradient(165deg, #efebfb 0%, #e6e2f5 60%, #e9e5f7 100%); background-color: #e7e3f6; color: var(--ink); -webkit-font-smoothing: antialiased; display: flex; justify-content: center; }
+  /* Textured, gently drifting light-purple backdrop (sits behind everything). */
+  body::before { content: ""; position: fixed; inset: -28px; z-index: -1; pointer-events: none;
+    background-image:
+      radial-gradient(42% 34% at 14% 8%, rgba(123,97,231,0.16), transparent 70%),
+      radial-gradient(40% 32% at 88% 12%, rgba(160,130,255,0.12), transparent 70%),
+      radial-gradient(48% 40% at 80% 94%, rgba(123,97,231,0.12), transparent 72%),
+      radial-gradient(rgba(91,63,214,0.06) 1px, transparent 1.7px);
+    background-size: auto, auto, auto, 22px 22px;
+    background-repeat: no-repeat, no-repeat, no-repeat, repeat;
+    animation: bgDrift 28s ease-in-out infinite alternate; }
+  @keyframes bgDrift { from { transform: translate3d(-12px, -6px, 0); } to { transform: translate3d(12px, 10px, 0); } }
+  @media (prefers-reduced-motion: reduce) { body::before { animation: none; transform: none; } }
   svg { display: block; }
   a { color: var(--purple); text-decoration: none; }
 
