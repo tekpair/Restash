@@ -59,7 +59,19 @@
     --body: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: var(--body); background: radial-gradient(1000px 560px at 50% -8%, #f4f2fc 0%, #eae7f5 46%, #e7e4f3 100%) no-repeat; background-color: #e7e4f3; color: var(--ink); -webkit-font-smoothing: antialiased; display: flex; justify-content: center; }
+  body { font-family: var(--body); background: linear-gradient(165deg, #efebfb 0%, #e6e2f5 60%, #e9e5f7 100%); background-color: #e7e3f6; color: var(--ink); -webkit-font-smoothing: antialiased; display: flex; justify-content: center; }
+  /* Textured, gently drifting light-purple backdrop (sits behind everything). */
+  body::before { content: ""; position: fixed; inset: -28px; z-index: -1; pointer-events: none;
+    background-image:
+      radial-gradient(42% 34% at 14% 8%, rgba(123,97,231,0.16), transparent 70%),
+      radial-gradient(40% 32% at 88% 12%, rgba(160,130,255,0.12), transparent 70%),
+      radial-gradient(48% 40% at 80% 94%, rgba(123,97,231,0.12), transparent 72%),
+      radial-gradient(rgba(91,63,214,0.06) 1px, transparent 1.7px);
+    background-size: auto, auto, auto, 22px 22px;
+    background-repeat: no-repeat, no-repeat, no-repeat, repeat;
+    animation: bgDrift 28s ease-in-out infinite alternate; }
+  @keyframes bgDrift { from { transform: translate3d(-12px, -6px, 0); } to { transform: translate3d(12px, 10px, 0); } }
+  @media (prefers-reduced-motion: reduce) { body::before { animation: none; transform: none; } }
   .shell { width: 100%; max-width: 620px; min-height: 100vh; display: flex; flex-direction: column; padding: 0 24px; }
   svg { display: block; }
   a { color: var(--purple); }
@@ -674,7 +686,7 @@
 
   const views = {
     welcome() {
-      return '<div class="screen welcome" data-action="enter-app"><div class="wc-inner"><span class="wc-glow"></span><span class="wc-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 13.5a6.5 6.5 0 0 1 10.4-5.2"/><path d="M16 5.7v3.2h-3.2"/><path d="M18.5 10.5a6.5 6.5 0 0 1-10.4 5.2"/><path d="M8 18.3v-3.2h3.2"/></svg></span><h1 class="wc-title">Welcome to Restash</h1><p class="wc-sub">Instant cash. Zero hassle. Skip the marketplace.</p><span class="wc-prog"><span class="wc-bar"></span></span></div></div>';
+      return '<div class="screen welcome" data-action="enter-app"><div class="wc-inner"><span class="wc-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 13.5a6.5 6.5 0 0 1 10.4-5.2"/><path d="M16 5.7v3.2h-3.2"/><path d="M18.5 10.5a6.5 6.5 0 0 1-10.4 5.2"/><path d="M8 18.3v-3.2h3.2"/></svg></span><h1 class="wc-title">Welcome to Restash</h1><p class="wc-sub">Instant cash. Zero hassle. Skip the marketplace.</p><span class="wc-prog"><span class="wc-bar"></span></span></div></div>';
     },
     platform() {
       // Active Bulk Sellers can't use the standard one-by-one flow.
@@ -929,7 +941,7 @@
       + '<div class="acct-claims">' + claimsHtml + '</div>';
   }
   function acctControls() {
-    return '<div class="panel-head"><h2 class="panel-title">Controls</h2><p class="panel-sub">Permanently close your account or log out.</p></div>'
+    return '<div class="panel-head"><h2 class="panel-title">Controls</h2></div>'
       + '<div class="data-actions">'
       + (state.confirmDelete
           ? '<div class="danger-confirm"><p><span class="dc-ic">' + I.alert + '</span>This permanently closes and deletes your account, including all your claims. This cannot be undone.</p><div class="btn-row two"><button class="btn btn-danger" data-action="confirm-delete">Yes, delete</button><button class="btn btn-secondary" data-action="cancel-delete">Cancel</button></div></div>'
@@ -1160,7 +1172,11 @@
         const items = state.cart.map(it => ({ edition_id: it.editionId, condition_id: it.conditionId, qty: it.qty }));
         const r = await RestashAPI.submitClaim({ items, payout: state.payout, phone, address, notes });
         await loadClaims();
-        state.activeClaimRef = r; state.cart = []; state.draft = {}; resetItem(); go('success');
+        // Clear the in-progress claim and skip go()'s captureDraft (the form is
+        // still mounted), so the next claim starts blank — no carried-over
+        // notes, payout, or checked Terms box.
+        state.activeClaimRef = r; state.cart = []; state.draft = {}; state.payout = null; resetItem();
+        state.flash = null; state.view = 'success'; render();
       } catch (err) { el.disabled = false; showErr('cf-error', err.message || 'Could not submit your claim.'); }
     }
     else if (a === 'goto') { goto(v, ref); }
