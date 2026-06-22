@@ -128,11 +128,21 @@ shown identically on both surfaces:
   flow — they're routed to the bulk lane. (Closed/suspended sellers keep using
   Restash normally.)
 
-This first cut is **application + status + staff approval**. The actual bulk
-submission lane (the streamlined "skip the process" intake) is deferred. The
-program is wired end-to-end in **demo mode**; the production schema + RPCs are
-scaffolded in `supabase/migrations/0013_bulk_seller.sql` (eligibility checked
-server-side, decisions staff-only, customers can't self-set their status).
+**The bulk submission lane:** an active seller submits **one manifest** for the
+whole lot → the claim is **auto-accepted and a prepaid label is emailed** (no
+review gate) → it **skips traditional per-item inspection** and is inspected on
+arrival (priority intake) → staff send **one bulk offer for everything**, which
+the seller accepts/declines through the normal customer-gated step. Bulk Sellers
+also get a **24/7 direct line** (`RestashAPI.BULK_LINE`). Bulk claims reuse the
+shared claim state machine (`accepted → received → offer → paid | returned`)
+with a `bulk` flag, a free-form `manifest`, and `est_count` instead of items —
+so the offer fair-band (which prices items) doesn't apply to a bulk lot.
+
+The program is wired end-to-end in **demo mode** (sign in as `riley.park@email.com`
+to see an active seller submit a manifest; `admin@getrestash.gg` in the console
+to make the bulk offer). The production schema + RPCs are scaffolded in
+`supabase/migrations/0013_bulk_seller.sql` (eligibility checked server-side,
+decisions staff-only, customers can't self-set their status).
 
 ---
 

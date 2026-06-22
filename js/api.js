@@ -34,6 +34,8 @@
     reapply_months: 3    // wait after a closure before reapplying
   };
   var BULK_STATUSES = ['pending', 'approved', 'suspended', 'declined', 'closed'];
+  // 24/7 direct line Bulk Sellers get (placeholder contact for the demo).
+  var BULK_LINE = { phone: '(518) 555-0100', email: 'bulk@getrestash.gg' };
   // Compute a seller's eligibility from their paid-claim count and account age.
   function bulkEligibility(paidClaims, ageDays) {
     var paidOk = paidClaims >= BULK_RULES.min_paid;
@@ -77,15 +79,20 @@
     var plats = items.map(function (i) { return i.platformName; }).filter(function (x, i, a) { return a.indexOf(x) === i; });
     return { itemName: itemName, platform: plats.length === 1 ? plats[0] : plats.length + ' platforms' };
   }
+  function bulkLabel(row) { var n = row.est_count != null ? Number(row.est_count) : null; return 'Bulk lot' + (n ? ' · ~' + n + ' games' : ''); }
   function mapClaimCustomer(row) {
     var items = mapItems(row.claim_items), labels = deriveLabels(items);
-    return { ref: row.ref, itemName: labels.itemName, platform: labels.platform, items: items, estLow: row.est_low, estHigh: row.est_high,
+    var bulk = !!row.bulk;
+    return { ref: row.ref, itemName: bulk ? bulkLabel(row) : labels.itemName, platform: bulk ? 'Bulk' : labels.platform, items: items,
+      bulk: bulk, manifest: row.manifest || '', estCount: row.est_count != null ? Number(row.est_count) : null,
+      estLow: row.est_low, estHigh: row.est_high,
       payout: row.payout, address: row.address || '', offerAmount: row.offer_amount, customerResponse: row.customer_response,
       createdAt: fmtDate(row.created_at), status: row.status, history: mapHistory(row.claim_history), customerNote: row.customer_notes || '' };
   }
   function mapClaimStaff(row) {
     return { ref: row.ref, cust: row.cust_name, email: row.cust_email, phone: row.cust_phone, payout: row.payout, address: row.address || '',
       status: row.status, createdAt: fmtDate(row.created_at), estLow: row.est_low, estHigh: row.est_high, items: mapItems(row.claim_items),
+      bulk: !!row.bulk, manifest: row.manifest || '', estCount: row.est_count != null ? Number(row.est_count) : null,
       history: mapHistory(row.claim_history), assignee: row.assignee_name || null, assigneeId: row.assignee_id || null,
       offerAmount: row.offer_amount, customerResponse: row.customer_response, flagged: !!row.flagged, notes: mapNotes(row.claim_notes), customerNote: row.customer_notes || '' };
   }
@@ -123,6 +130,9 @@
     async bulkApply(o) { return rpc('apply_bulk_seller', { p_agreement: !!(o && o.agreement), p_id_provided: !!(o && o.idProvided) }); },
     async listBulkSellers() { var rows = unwrap(await sb.from('profiles').select('*, account_notes(*)').not('bulk_status', 'is', null).order('bulk_applied_at', { ascending: false })); return rows.map(mapAccount); },
     async decideBulkSeller(profileId, decision, reason) { return rpc('decide_bulk_seller', { p_profile: profileId, p_decision: decision, p_reason: reason || '' }); },
+    // Active Bulk Seller submits one manifest -> auto-accepted, prepaid label.
+    async submitBulkClaim(o) { return rpc('submit_bulk_claim', { p_manifest: o.manifest || '', p_est_count: (o.estCount != null ? o.estCount : null), p_payout: o.payout, p_phone: o.phone || '', p_address: o.address || '' }); },
+    makeBulkOffer: function (r, a, x) { return rpc('make_bulk_offer', { p_ref: r, p_amount: a, p_reason: x || '' }); },
     async getCatalog() {
       var r = await Promise.all([sb.from('platforms').select('*').order('position'), sb.from('titles').select('*').order('position'), sb.from('editions').select('*').order('position'), sb.from('conditions').select('*').order('position'), sb.from('pricing_config').select('*').eq('id', 1).single()]);
       var platforms = unwrap(r[0]), titles = unwrap(r[1]), editions = unwrap(r[2]), conditions = unwrap(r[3]);
@@ -229,7 +239,17 @@
       var offer = computeOffer(items, pricing); c.est_high = offer; c.est_low = Math.round(offer * 0.85);
       return c;
     }
+    function bulkClaim(ref, prof, status, manifest, count, extra) {
+      return Object.assign({ id: 'dc-' + (seq++), ref: ref, customer_id: prof.id, cust_name: prof.full_name, cust_email: prof.email, cust_phone: prof.phone,
+        payout: 'PayPal', address: '', est_low: 0, est_high: 0, status: status, offer_amount: null, customer_response: null, assignee_id: null, assignee_name: null,
+        flagged: false, paid_amount: null, paid_method: null, created_at: days(4), bulk: true, manifest: manifest, est_count: count,
+        claim_items: [], claim_history: [], claim_notes: [], customer_notes: '' }, extra || {});
+    }
     var claims = [
+      // Riley (active Bulk Seller) — a lot arrived and is awaiting one bulk offer.
+      bulkClaim('RS-BLK7Q2', profiles[5], 'received', '~30 PS2/PS3 games, mostly Complete, a few Loose sports titles. Two sealed. All tested working before packing.', 30, { assignee_id: 'staff-connor', assignee_name: 'Connor Waugaman', created_at: days(2), claim_history: [h('Bulk manifest submitted', '~30 games', days(2)), h('Accepted — prepaid label emailed', 'Priority intake; inspected on arrival.', days(2)), h('Games received at facility', 'Bulk lot — priority inspection.', days(1))] }),
+      // Riley — a second lot in transit (label emailed, not yet arrived).
+      bulkClaim('RS-BLK3X9', profiles[5], 'accepted', '~15 Nintendo Switch games, all Complete with cases and inserts.', 15, { created_at: days(1), claim_history: [h('Bulk manifest submitted', '~15 games', days(1)), h('Accepted — prepaid label emailed', 'Priority intake; inspected on arrival.', days(1))] }),
       newClaim('RS-8M4X2A', profiles[1], [item('ed-totk', 'complete', 1, 1)], 'submitted', { created_at: days(1), claim_history: [h('Claim submitted', null, days(1))] }),
       newClaim('RS-3K9P1B', profiles[2], [item('ed-gow', 'complete', 1, 1), item('ed-rdr2', 'loose', 2, 2)], 'received', { payout: 'Check', address: '88 Vliet Blvd, Cohoes, NY 12047', assignee_id: 'staff-connor', assignee_name: 'Connor Waugaman', customer_notes: 'The God of War case has a small crack on the back but the disc is mint. Both RDR2 copies are cart-only, no boxes.', created_at: days(3), claim_history: [h('Claim submitted', null, days(3)), h('Accepted — shipping label emailed', null, days(2)), h('Games received at facility', null, days(1))] }),
       newClaim('RS-2W8E4F', profiles[1], [item('ed-smash', 'sealed', 1, 1)], 'offer', { offer_amount: 28, created_at: days(5), claim_history: [h('Claim submitted', null, days(5)), h('Accepted — shipping label emailed', null, days(4)), h('Games received at facility', null, days(3)), h('Offer made: $28', 'Confirmed sealed; priced to current market.', days(2))] }),
@@ -309,6 +329,26 @@
         if (o.phone) p.phone = o.phone; if (o.payout === 'Check' && o.address) p.address = o.address;
         claims.unshift(c); return ref;
       },
+      // Active Bulk Seller: submit ONE manifest. Auto-accepted (prepaid label
+      // emailed), priority intake — no per-item flow, no review gate.
+      async submitBulkClaim(o) {
+        var p = sessionProfile(); if (!p) throw new Error('Not signed in');
+        if (p.bulk_status !== 'approved') throw new Error('Only active Bulk Sellers can submit a manifest.');
+        var manifest = (o.manifest || '').trim();
+        if (manifest.length < 10) throw new Error('Describe your lot in the manifest (at least a line).');
+        var count = parseInt(o.estCount, 10); if (isNaN(count) || count < 1) count = null;
+        if (count != null && count < BULK_RULES.min_per_shipment) throw new Error('Bulk shipments need at least ' + BULK_RULES.min_per_shipment + ' games.');
+        if (o.payout === 'Check' && !(o.address || '').trim()) throw new Error('Add the mailing address for your check.');
+        var ref = 'RS-' + Math.random().toString(36).slice(2, 8).toUpperCase();
+        var now = new Date().toISOString();
+        var c = { id: 'dc-' + (seq++), ref: ref, customer_id: p.id, cust_name: p.full_name, cust_email: p.email, cust_phone: o.phone || p.phone,
+          payout: o.payout || 'PayPal', address: o.address || '', est_low: 0, est_high: 0, status: 'accepted', offer_amount: null, customer_response: null,
+          assignee_id: null, assignee_name: null, flagged: false, paid_amount: null, paid_method: null, created_at: now,
+          bulk: true, manifest: manifest, est_count: count, claim_items: [], claim_notes: [], customer_notes: '',
+          claim_history: [ h('Bulk manifest submitted', count ? '~' + count + ' games' : null, now), h('Accepted — prepaid label emailed', 'Priority intake; inspected on arrival.', now) ] };
+        if (o.phone) p.phone = o.phone; if (o.payout === 'Check' && o.address) p.address = o.address;
+        claims.unshift(c); return ref;
+      },
       async myClaims() { var p = sessionProfile(); if (!p) return []; return claims.filter(function (c) { return c.customer_id === p.id; }).sort(function (a, b) { return Date.parse(b.created_at) - Date.parse(a.created_at); }).map(mapClaimCustomer); },
       async claimByRef(ref) { var c = findClaim(ref); if (!c) throw new Error('Claim not found'); return mapClaimCustomer(c); },
       async respondToOffer(ref, r) { var c = findClaim(ref); if (!c) throw new Error('Claim not found'); var p = sessionProfile(); if (!p || c.customer_id !== p.id) throw new Error('Not your claim'); if (c.status !== 'offer') throw new Error('No open offer'); if (c.customer_response) throw new Error('You already responded'); c.customer_response = r; push(c, r === 'accepted' ? 'You accepted the offer' : 'You declined the offer', r === 'declined' ? "We'll return your games and email tracking." : null); },
@@ -322,7 +362,9 @@
       declineClaim: sa(function (c, x) { st(c, ['submitted', 'reviewing'], 'declined', 'Declined — not accepted', x || "We weren't able to accept this claim this cycle."); }),
       markReceived: sa(function (c) { st(c, 'accepted', 'received', 'Games received at facility'); }),
       regradeItem: function (itemId, condId) { return wrap(function () { requireStaff(); var c = claims.filter(function (cl) { return cl.claim_items.some(function (i) { return i.id === itemId; }); })[0]; if (!c) throw new Error('Item not found'); if (c.status !== 'received') throw new Error('Items can only be re-graded during inspection'); var it = c.claim_items.filter(function (i) { return i.id === itemId; })[0]; var e = ed[it.edition_id], cn = condById[condId]; if (!cn) throw new Error('Unknown condition'); var old = it.cond_name; it.condition_id = condId; it.cond_name = cn.name; it.unit_market = marketValue(e, cn); it.line_mid = Math.round(it.unit_market * it.qty); if (old !== cn.name) push(c, 'Re-graded ' + it.title_name + ': ' + old + ' → ' + cn.name, 'Condition confirmed on inspection.'); }); },
-      makeOffer: function (ref, amt, x) { return wrap(function () { requireStaff(); var c = findClaim(ref); if (!c) throw new Error('Claim not found'); if (c.status !== 'received') throw new Error('Can only offer on a received claim'); var s = suggested(c); if (s <= 0) throw new Error('This claim has no eligible value — reject and return it instead.'); var lo = Math.max(1, Math.floor(s * 0.85)), hi = Math.max(lo, Math.ceil(s * 1.15)); if (!amt || amt < lo || amt > hi) throw new Error('Offer must be between $' + lo + ' and $' + hi + ' for this claim (algorithm suggests $' + s + ')'); c.status = 'offer'; c.offer_amount = amt; c.customer_response = null; push(c, 'Offer made: $' + amt, (x || '').trim() || null); }); },
+      makeOffer: function (ref, amt, x) { return wrap(function () { requireStaff(); var c = findClaim(ref); if (!c) throw new Error('Claim not found'); if (c.bulk) throw new Error('Use the bulk offer for a bulk claim'); if (c.status !== 'received') throw new Error('Can only offer on a received claim'); var s = suggested(c); if (s <= 0) throw new Error('This claim has no eligible value — reject and return it instead.'); var lo = Math.max(1, Math.floor(s * 0.85)), hi = Math.max(lo, Math.ceil(s * 1.15)); if (!amt || amt < lo || amt > hi) throw new Error('Offer must be between $' + lo + ' and $' + hi + ' for this claim (algorithm suggests $' + s + ')'); c.status = 'offer'; c.offer_amount = amt; c.customer_response = null; push(c, 'Offer made: $' + amt, (x || '').trim() || null); }); },
+      // One bulk offer for the whole lot — no per-item band (no items to price).
+      makeBulkOffer: function (ref, amt, x) { return wrap(function () { requireStaff(); var c = findClaim(ref); if (!c) throw new Error('Claim not found'); if (!c.bulk) throw new Error('Not a bulk claim'); if (c.status !== 'received') throw new Error('Can only offer on a received claim'); amt = parseInt(amt, 10); if (!amt || amt < 1) throw new Error('Enter a bulk offer amount.'); c.status = 'offer'; c.offer_amount = amt; c.customer_response = null; push(c, 'Bulk offer made: $' + amt, (x || '').trim() || null); }); },
       rejectReturn: sa(function (c, x) { if (c.status !== 'received') throw new Error('Claim is not in inspection'); c.status = 'returned'; push(c, 'Rejected on inspection — returning to seller', (x || '').trim() || "We'll email tracking."); }),
       authorizePayment: sa(function (c) { if (c.status !== 'offer' || c.customer_response !== 'accepted') throw new Error('Customer has not accepted an offer'); c.status = 'paid'; c.paid_amount = c.offer_amount; c.paid_method = c.payout; push(c, 'Payment authorized via ' + c.payout, c.payout === 'PayPal' ? 'PayPal 1–3 business days.' : 'Check 3–5 business days.'); }),
       confirmReturn: sa(function (c) { if (c.status !== 'offer' || c.customer_response !== 'declined') throw new Error('No declined offer to return'); c.status = 'returned'; push(c, 'Games returned to seller', "We'll email tracking."); }),
@@ -350,6 +392,7 @@
   API.marginFor = marginFor;
   API.DEFAULT_PRICING = DEFAULT_PRICING;
   API.BULK = BULK_RULES;
+  API.BULK_LINE = BULK_LINE;
   API.BULK_STATUSES = BULK_STATUSES;
   API.bulkEligibility = bulkEligibility;
   API.daysSince = daysSince;

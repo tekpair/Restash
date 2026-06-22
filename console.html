@@ -211,6 +211,9 @@
   .bulk-hint { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--muted); margin-top: 4px; }
   .bulk-hint svg { width: 16px; height: 16px; flex: none; }
   .bulk-admin .actions { margin-top: 12px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .bulk-detail-card .card-h svg { width: 15px; height: 15px; vertical-align: -3px; margin-right: 5px; }
+  .bulk-detail-card p { font-size: 13px; color: var(--muted); line-height: 1.55; text-transform: none; letter-spacing: 0; font-weight: 400; }
+  .bulk-detail-card p strong { color: var(--ink); font-weight: 600; }
 
   /* inspection grade panel */
   .assessed { margin-left: auto; font-size: 13px; font-weight: 700; color: var(--purple); background: var(--purple-tint); padding: 3px 10px; border-radius: 999px; }
@@ -428,6 +431,9 @@
   function todayStr() { return new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); }
   const initials = (name) => name.split(/\s+/).map(p => p[0]).slice(0, 2).join('').toUpperCase();
   const itemsSummary = (items) => { const n = items.reduce((s, i) => s + i.qty, 0); const plats = items.map(i => i.platformName).filter((x, i, a) => a.indexOf(x) === i); return n + ' game' + (n > 1 ? 's' : '') + ' · ' + plats.join(', '); };
+  const claimSummary = (c) => c.bulk ? ('Bulk lot' + (c.estCount ? ' · ~' + c.estCount + ' games' : '')) : itemsSummary(c.items);
+  const claimTitle = (c) => c.bulk ? ('Bulk lot' + (c.estCount ? ' (~' + c.estCount + ')' : '')) : (c.items[0] ? c.items[0].titleName + (c.items.length > 1 ? ' +' + (c.items.length - 1) : '') : '—');
+  const bulkPill = (c) => c.bulk ? '<span class="badge s-purple">Bulk</span>' : '';
   const estMid = (c) => Math.round((c.estLow + c.estHigh) / 2);
   const marketTotal = (c) => c.items.reduce((s, i) => s + i.lineMid, 0);
   const suggestedOffer = (c) => RestashAPI.computeOffer(c.items.map(i => ({ unit_market: i.unitMarket, qty: i.qty })), state.pricing);
@@ -510,6 +516,13 @@
     } else if (state.rejectOpen && c.status === 'received') {
       header = 'Reject on inspection'; live = true;
       body = reasonForm(c.ref, { sub: 'Reject these games on inspection and return them to the seller. Add an optional reason — they’ll see it on their claim.', label: 'Reason for rejecting', placeholder: 'e.g. Disc graded Not Working; failed to boot.', slot: 'reject', confirm: 'send-reject', confirmLabel: 'Reject & return', cancel: 'cancel-reject', btnClass: 'btn-danger' });
+    } else if (state.offerOpen && c.status === 'received' && c.bulk) {
+      header = 'One bulk offer'; live = true;
+      body = '<div class="offer-box"><div class="offer-sub">Bulk lots skip per-item grading — inspect the lot and send a single offer for everything. The seller accepts or declines it.</div>'
+        + '<label for="offer-amount" style="margin-top:6px;">Bulk offer amount</label><div class="offer-input"><span>$</span><input id="offer-amount" type="number" min="1" placeholder="0"></div>'
+        + '<label for="offer-reason" style="margin-top:14px;">Why this offer <span style="font-weight:500;color:var(--muted);">— the seller sees this</span></label><textarea id="offer-reason" rows="2" placeholder="e.g. ~30-game lot, mostly Complete; priced to current market." style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-family:var(--body);font-size:14px;resize:vertical;"></textarea>'
+        + flashMsg('offer')
+        + '<div class="offer-buttons"><button class="btn btn-primary" data-action="send-offer" data-ref="' + c.ref + '">Send bulk offer</button><button class="btn btn-secondary" data-action="cancel-offer">Cancel</button></div></div>';
     } else if (state.offerOpen && c.status === 'received') {
       header = 'Make an offer'; live = true;
       const market = marketTotal(c), sugg = suggestedOffer(c);
@@ -720,14 +733,17 @@
     claimDetail() {
       const c = findClaim(state.activeRef);
       if (!c) return '<div class="screen wrap"><button class="backbtn" data-action="to-claims">' + I.back + 'Claims</button><div class="detail-ref">Claim not found</div></div>';
-      const amount = (c.status === 'paid') ? goldCard('Amount paid', '$' + c.offerAmount, 'joined')
-        : (c.status === 'offer') ? goldCard('Offer sent', '$' + c.offerAmount, 'joined')
+      const amount = (c.status === 'paid') ? goldCard(c.bulk ? 'Bulk amount paid' : 'Amount paid', '$' + c.offerAmount, 'joined')
+        : (c.status === 'offer') ? goldCard(c.bulk ? 'Bulk offer sent' : 'Offer sent', '$' + c.offerAmount, 'joined')
         : (c.status === 'returned' && c.offerAmount) ? goldCard('Last offer', '$' + c.offerAmount, 'joined')
+        : c.bulk ? '<div class="card joined bulk-detail-card"><div class="card-h">' + I.box + 'Bulk lot</div><p>One offer for the whole lot after priority inspection.' + (c.estCount ? ' Seller estimates ~<strong>' + c.estCount + ' games</strong>.' : '') + '</p></div>'
         : goldCard('Customer estimate', '$' + c.estLow + ' – $' + c.estHigh, 'joined');
       const sendIcon = c.payout === 'PayPal' ? I.mail : I.pin;
-      const sendLabel = c.payout === 'PayPal' ? 'PayPal email' : 'Mailing address';
+      const lotCard = c.bulk
+        ? '<div class="card"><div class="card-h">Manifest' + bulkPill(c) + '</div><p class="cust-note">' + esc(c.manifest || '') + '</p></div>'
+        : itemsPanel(c.items);
       return '<div class="screen wrap"><button class="backbtn" data-action="to-claims">' + I.back + 'Claims</button>'
-        + '<div class="detail-head"><div><div class="detail-ref">' + c.ref + '</div><div class="detail-date">Submitted ' + esc(c.createdAt) + '</div></div><div class="head-tags">' + (c.flagged ? flagBadge() : '') + badge(c.status) + '</div></div>'
+        + '<div class="detail-head"><div><div class="detail-ref">' + c.ref + '</div><div class="detail-date">Submitted ' + esc(c.createdAt) + '</div></div><div class="head-tags">' + (c.flagged ? flagBadge() : '') + bulkPill(c) + badge(c.status) + '</div></div>'
         + assignBar(c)
         + actionCard(c)
         + '<div class="grid2"><div>' + amount
@@ -738,7 +754,7 @@
         +     '<div class="kv"><span class="k">' + I.card + 'Payout</span><span class="v">' + esc(c.payout) + '</span></div>'
         +     '<div class="kv"><span class="k">' + sendIcon + 'Send to</span><span class="v">' + esc(destOf(c)) + '</span></div>'
         +     '<div style="margin-top:14px;"><button class="btn btn-secondary full" data-action="view-account" data-value="' + esc(c.email) + '">' + I.user + 'View account</button></div></div></div>'
-        +   '<div>' + itemsPanel(c.items) + (c.customerNote ? '<div class="card"><div class="card-h">Note from the customer</div><p class="cust-note">' + esc(c.customerNote) + '</p></div>' : '') + '<div class="card"><div class="card-h">Status history</div>' + timeline(c.history) + '</div></div>'
+        +   '<div>' + lotCard + (c.customerNote ? '<div class="card"><div class="card-h">Note from the customer</div><p class="cust-note">' + esc(c.customerNote) + '</p></div>' : '') + '<div class="card"><div class="card-h">Status history</div>' + timeline(c.history) + '</div></div>'
         + '</div>' + notesFlagsCard({ notes: c.notes, flagged: c.flagged, flagAction: 'claim-flag', noteAction: 'claim-note', value: c.ref, noun: 'claim', inputId: 'claim-note-input' }) + '</div>';
     },
     accountDetail() {
@@ -747,7 +763,7 @@
       const cl = claimsForEmail(a.email);
       const paidTotal = cl.filter(c => c.status === 'paid').reduce((s, c) => s + (c.offerAmount || 0), 0);
       const rows = cl.length ? cl.map(c =>
-        '<button class="row" data-action="open-claim" data-ref="' + c.ref + '"><span class="row-avatar">' + I.gamepad + '</span><span class="row-main"><span class="row-line1"><span class="row-name">' + esc(c.items[0].titleName) + (c.items.length > 1 ? ' +' + (c.items.length - 1) : '') + '</span>' + badge(c.status) + '</span><span class="row-meta">' + c.ref + ' · ' + esc(c.createdAt) + '</span></span><span class="row-right"><span class="row-amt">$' + c.estLow + '–$' + c.estHigh + '</span></span><span class="chev">' + I.chevron + '</span></button>'
+        '<button class="row" data-action="open-claim" data-ref="' + c.ref + '"><span class="row-avatar">' + (c.bulk ? I.box : I.gamepad) + '</span><span class="row-main"><span class="row-line1"><span class="row-name">' + esc(claimTitle(c)) + '</span>' + badge(c.status) + bulkPill(c) + '</span><span class="row-meta">' + c.ref + ' · ' + esc(c.createdAt) + '</span></span><span class="row-right"><span class="row-amt">' + (c.bulk ? (c.offerAmount ? '$' + c.offerAmount : 'Bulk') : '$' + c.estLow + '–$' + c.estHigh) + '</span></span><span class="chev">' + I.chevron + '</span></button>'
       ).join('') : '<div class="empty">No claims for this account.</div>';
       return '<div class="screen wrap"><button class="backbtn" data-action="to-accounts">' + I.back + 'Accounts</button>'
         + '<div class="detail-head"><div class="detail-ref">' + esc(a.name) + '</div>' + (a.flagged ? '<div class="head-tags">' + flagBadge() + '</div>' : '') + '</div>'
@@ -769,7 +785,7 @@
     if (!list.length) return '<div class="empty">No claims match this filter.</div>';
     return '<div class="rows">' + list.map(c =>
       '<button class="row" data-action="open-claim" data-ref="' + c.ref + '"><span class="row-avatar">' + initials(c.cust) + '</span>'
-      + '<span class="row-main"><span class="row-line1"><span class="row-name">' + esc(c.cust) + '</span>' + badge(c.status) + (c.flagged ? flagBadge() : '') + (c.assignee ? '<span class="assign-pill">' + I.user + esc(c.assignee) + '</span>' : '') + '</span><span class="row-meta">' + c.ref + ' · ' + esc(itemsSummary(c.items)) + '</span></span>'
+      + '<span class="row-main"><span class="row-line1"><span class="row-name">' + esc(c.cust) + '</span>' + badge(c.status) + bulkPill(c) + (c.flagged ? flagBadge() : '') + (c.assignee ? '<span class="assign-pill">' + I.user + esc(c.assignee) + '</span>' : '') + '</span><span class="row-meta">' + c.ref + ' · ' + esc(claimSummary(c)) + '</span></span>'
       + '<span class="row-right"><span class="row-amt">' + ((c.status === 'paid' || c.status === 'offer') ? '$' + c.offerAmount : '$' + c.estLow + '–$' + c.estHigh) + '</span><span class="row-date">' + esc(c.createdAt) + '</span></span>'
       + '<span class="chev">' + I.chevron + '</span></button>'
     ).join('') + '</div>';
@@ -848,7 +864,8 @@
       const amt = parseInt(document.getElementById('offer-amount').value, 10);
       const reasonEl = document.getElementById('offer-reason');
       const reason = reasonEl ? reasonEl.value.trim() : '';
-      try { await RestashAPI.makeOffer(ref, amt, reason); state.offerOpen = false; state.flash = null; await refreshAll(ref); }
+      const claim = findClaim(ref);
+      try { await (claim && claim.bulk ? RestashAPI.makeBulkOffer(ref, amt, reason) : RestashAPI.makeOffer(ref, amt, reason)); state.offerOpen = false; state.flash = null; await refreshAll(ref); }
       catch (e2) { state.flash = { slot: 'offer', kind: 'err', text: e2.message }; render(); }
     }
     else if (a === 'st-reject')      { state.flash = null; state.rejectOpen = true; state.offerOpen = false; state.declineOpen = false; render(); }
