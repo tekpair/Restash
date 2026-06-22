@@ -22,6 +22,25 @@
 
   // ---- the offer algorithm (mirrors compute_offer in SQL) ----------
   var DEFAULT_PRICING = { margin_low: 0.35, margin_mid: 0.45, margin_high: 0.57, tier_mid_min: 20, tier_high_min: 50, ship_cost: 4.50, fee_pct: 0.029, fee_flat: 0.30, min_quote: 25, min_games: 3 };
+
+  // ---- Bulk Seller program (beta) — single source of truth for the rules ----
+  // Hard requirements gating entry + the ongoing commitments approved sellers
+  // must keep. Surfaced identically in the customer app and the staff console.
+  var BULK_RULES = {
+    min_paid: 25,        // lifetime paid claims, in good standing, to qualify
+    min_age_days: 30,    // account must be at least this old
+    min_per_shipment: 10,// games per shipment once active
+    min_per_month: 25,   // paid claims per month or the seller is suspended
+    reapply_months: 3    // wait after a closure before reapplying
+  };
+  var BULK_STATUSES = ['pending', 'approved', 'suspended', 'declined', 'closed'];
+  // Compute a seller's eligibility from their paid-claim count and account age.
+  function bulkEligibility(paidClaims, ageDays) {
+    var paidOk = paidClaims >= BULK_RULES.min_paid;
+    var ageOk = ageDays >= BULK_RULES.min_age_days;
+    return { paidClaims: paidClaims, ageDays: ageDays, paidOk: paidOk, ageOk: ageOk, eligible: paidOk && ageOk };
+  }
+  function daysSince(iso) { if (!iso) return 0; return Math.floor((Date.now() - Date.parse(iso)) / 86400000); }
   function marginFor(unit, c) { c = c || DEFAULT_PRICING; if (unit >= c.tier_high_min) return c.margin_high; if (unit >= c.tier_mid_min) return c.margin_mid; return c.margin_low; }
   // items: [{ unit_market, qty }]
   function computeOffer(items, c) {
@@ -70,7 +89,12 @@
       history: mapHistory(row.claim_history), assignee: row.assignee_name || null, assigneeId: row.assignee_id || null,
       offerAmount: row.offer_amount, customerResponse: row.customer_response, flagged: !!row.flagged, notes: mapNotes(row.claim_notes), customerNote: row.customer_notes || '' };
   }
-  function mapAccount(row) { return { id: row.id, name: row.full_name, email: row.email, phone: row.phone, address: row.address, joined: fmtDate(row.created_at), flagged: !!row.flagged, notes: mapNotes(row.account_notes) }; }
+  function mapBulk(row) {
+    return { status: row.bulk_status || null, reason: row.bulk_reason || '', appliedAt: row.bulk_applied_at || null,
+      decidedAt: row.bulk_decided_at || null, agreementAt: row.bulk_agreement_at || null, idProvided: !!row.bulk_id_provided,
+      lifetimePaid: row.lifetime_paid != null ? Number(row.lifetime_paid) : 0 };
+  }
+  function mapAccount(row) { return { id: row.id, name: row.full_name, email: row.email, phone: row.phone, address: row.address, createdAt: row.created_at, joined: fmtDate(row.created_at), flagged: !!row.flagged, notes: mapNotes(row.account_notes), bulk: mapBulk(row) }; }
   function mapPricing(row) { var o = {}; Object.keys(DEFAULT_PRICING).forEach(function (k) { o[k] = row && row[k] != null ? Number(row[k]) : DEFAULT_PRICING[k]; }); return o; }
 
   // =================================================================
@@ -95,6 +119,10 @@
     async updateProfile(p) { var u = await supa.currentUser(); if (!u) throw new Error('Not signed in'); var patch = {}; if (p.full_name != null) patch.full_name = p.full_name; if (p.phone != null) patch.phone = p.phone; if (p.address != null) patch.address = p.address; return unwrap(await sb.from('profiles').update(patch).eq('id', u.id).select().single()); },
     async requestDataExport() { return rpc('request_data_export'); },
     async deleteAccount() { await rpc('delete_my_account'); try { await sb.auth.signOut(); } catch (e) {} },
+    // Bulk Seller (beta). Customer applies; staff approve/decline/suspend/close.
+    async bulkApply(o) { return rpc('apply_bulk_seller', { p_agreement: !!(o && o.agreement), p_id_provided: !!(o && o.idProvided) }); },
+    async listBulkSellers() { var rows = unwrap(await sb.from('profiles').select('*, account_notes(*)').not('bulk_status', 'is', null).order('bulk_applied_at', { ascending: false })); return rows.map(mapAccount); },
+    async decideBulkSeller(profileId, decision, reason) { return rpc('decide_bulk_seller', { p_profile: profileId, p_decision: decision, p_reason: reason || '' }); },
     async getCatalog() {
       var r = await Promise.all([sb.from('platforms').select('*').order('position'), sb.from('titles').select('*').order('position'), sb.from('editions').select('*').order('position'), sb.from('conditions').select('*').order('position'), sb.from('pricing_config').select('*').eq('id', 1).single()]);
       var platforms = unwrap(r[0]), titles = unwrap(r[1]), editions = unwrap(r[2]), conditions = unwrap(r[3]);
@@ -178,11 +206,18 @@
     var seq = 1;
     function h(label, note, when) { return { label: label, note: note || null, created_at: when }; }
 
+    function bulkFields(o) { return Object.assign({ bulk_status: null, bulk_reason: '', bulk_applied_at: null, bulk_decided_at: null, bulk_agreement_at: null, bulk_id_provided: false, lifetime_paid: 0 }, o || {}); }
     var profiles = [
-      { id: 'staff-connor', full_name: 'Connor Waugaman', email: 'admin@getrestash.gg', phone: '', address: '', role: 'staff', flagged: false, created_at: days(120), account_notes: [] },
-      { id: 'cust-maya', full_name: 'Maya Chen', email: 'maya.chen@email.com', phone: '(518) 555-0142', address: '203 Remsen St, Cohoes, NY 12047', role: 'customer', flagged: false, created_at: days(8), account_notes: [] },
-      { id: 'cust-devon', full_name: 'Devon Brooks', email: 'devon.brooks@email.com', phone: '(518) 555-0188', address: '88 Vliet Blvd, Cohoes, NY 12047', role: 'customer', flagged: false, created_at: days(9), account_notes: [] },
-      { id: 'cust-noah', full_name: 'Noah Kim', email: 'noah.kim@email.com', phone: '(518) 555-0195', address: '31 Howard St, Cohoes, NY 12047', role: 'customer', flagged: true, created_at: days(11), account_notes: [{ body: 'Submitted a non-working copy described as Complete. Review future claims carefully.', author_name: 'Connor Waugaman', created_at: days(10) }] } ];
+      Object.assign({ id: 'staff-connor', full_name: 'Connor Waugaman', email: 'admin@getrestash.gg', phone: '', address: '', role: 'staff', flagged: false, created_at: days(120), account_notes: [] }, bulkFields()),
+      // Maya is a long-tenured power seller — meets the bar, so signing in as
+      // her demonstrates the customer "apply for Bulk Seller" happy path.
+      Object.assign({ id: 'cust-maya', full_name: 'Maya Chen', email: 'maya.chen@email.com', phone: '(518) 555-0142', address: '203 Remsen St, Cohoes, NY 12047', role: 'customer', flagged: false, created_at: days(64), account_notes: [] }, bulkFields({ lifetime_paid: 27 })),
+      Object.assign({ id: 'cust-devon', full_name: 'Devon Brooks', email: 'devon.brooks@email.com', phone: '(518) 555-0188', address: '88 Vliet Blvd, Cohoes, NY 12047', role: 'customer', flagged: false, created_at: days(9), account_notes: [] }, bulkFields()),
+      Object.assign({ id: 'cust-noah', full_name: 'Noah Kim', email: 'noah.kim@email.com', phone: '(518) 555-0195', address: '31 Howard St, Cohoes, NY 12047', role: 'customer', flagged: true, created_at: days(11), account_notes: [{ body: 'Submitted a non-working copy described as Complete. Review future claims carefully.', author_name: 'Connor Waugaman', created_at: days(10) }] }, bulkFields()),
+      // A pending application waiting in the console's Bulk Sellers queue.
+      Object.assign({ id: 'cust-jordan', full_name: 'Jordan Vega', email: 'jordan.vega@email.com', phone: '(518) 555-0117', address: '12 Saratoga St, Cohoes, NY 12047', role: 'customer', flagged: false, created_at: days(58), account_notes: [] }, bulkFields({ lifetime_paid: 33, bulk_status: 'pending', bulk_applied_at: days(2), bulk_agreement_at: days(2), bulk_id_provided: true })),
+      // An approved, active Bulk Seller (locked out of the standard flow).
+      Object.assign({ id: 'cust-riley', full_name: 'Riley Park', email: 'riley.park@email.com', phone: '(518) 555-0163', address: '5 Ontario St, Cohoes, NY 12047', role: 'customer', flagged: false, created_at: days(96), account_notes: [] }, bulkFields({ lifetime_paid: 41, bulk_status: 'approved', bulk_applied_at: days(20), bulk_decided_at: days(18), bulk_agreement_at: days(20), bulk_id_provided: true })) ];
     var team = [
       { group_name: 'Founders', name: 'Connor Waugaman', role: 'Co-Founder & Operations', email: 'connor@getrestash.gg', location: 'Cohoes, NY', focus: ['Buyback pricing', 'Claim review', 'Payouts'], description: 'Runs Restash day to day — sets pricing, reviews edge-case claims, and signs off on every payout.', position: 1 },
       { group_name: 'Founders', name: 'Kamryn Washington', role: 'Co-Founder & Intake / Inspection', email: 'kamryn@getrestash.gg', location: 'Cohoes, NY', focus: ['Intake', 'Condition grading', 'Counterfeit checks'], description: 'Handles games on arrival — receives shipments, grades condition, and flags counterfeit or non-working copies.', position: 2 } ];
@@ -209,6 +244,9 @@
     function push(c, label, note) { c.claim_history.push(h(label, note, new Date().toISOString())); }
     function isStaffEmail(e) { e = (e || '').toLowerCase(); return /(^|[.@])(admin|staff|connor|kamryn)([.@])/.test(e) || e === 'admin@getrestash.gg' || /@getrestash\.gg$/.test(e); }
     function suggested(c) { return computeOffer(c.claim_items, pricing); }
+    // Lifetime paid claims = seeded history (lifetime_paid) + live paid claims.
+    function paidClaimsFor(prof) { var live = claims.filter(function (c) { return c.customer_id === prof.id && c.status === 'paid'; }).length; return (prof.lifetime_paid || 0) + live; }
+    function bulkStatsFor(prof) { return bulkEligibility(paidClaimsFor(prof), daysSince(prof.created_at)); }
 
     var demoApi = {
       demo: true, _session: null,
@@ -216,12 +254,12 @@
       onAuthChange: function () { return function () {}; },
       async signUp(o) {
         var prof = findProfileByEmail(o.email);
-        if (!prof) { prof = { id: 'cust-' + (seq++), full_name: o.name || 'New User', email: o.email, phone: o.phone || '', address: '', role: 'customer', flagged: false, created_at: new Date().toISOString(), account_notes: [] }; profiles.push(prof); }
+        if (!prof) { prof = Object.assign({ id: 'cust-' + (seq++), full_name: o.name || 'New User', email: o.email, phone: o.phone || '', address: '', role: 'customer', flagged: false, created_at: new Date().toISOString(), account_notes: [] }, bulkFields()); profiles.push(prof); }
         demoApi._session = { id: prof.id, email: prof.email, _prof: prof }; return { user: { id: prof.id } };
       },
       async signIn(o) {
         var prof = findProfileByEmail(o.email);
-        if (!prof) { prof = { id: (isStaffEmail(o.email) ? 'staff-' : 'cust-') + (seq++), full_name: nameFromEmail(o.email), email: o.email, phone: '', address: '', role: isStaffEmail(o.email) ? 'staff' : 'customer', flagged: false, created_at: new Date().toISOString(), account_notes: [] }; profiles.push(prof); }
+        if (!prof) { prof = Object.assign({ id: (isStaffEmail(o.email) ? 'staff-' : 'cust-') + (seq++), full_name: nameFromEmail(o.email), email: o.email, phone: '', address: '', role: isStaffEmail(o.email) ? 'staff' : 'customer', flagged: false, created_at: new Date().toISOString(), account_notes: [] }, bulkFields()); profiles.push(prof); }
         demoApi._session = { id: prof.id, email: prof.email, _prof: prof }; return { user: { id: prof.id } };
       },
       async signOut() { demoApi._session = null; },
@@ -232,6 +270,31 @@
       async updateProfile(patch) { var p = sessionProfile(); if (!p) throw new Error('Not signed in'); if (patch.full_name != null) p.full_name = patch.full_name; if (patch.phone != null) p.phone = patch.phone; if (patch.address != null) p.address = patch.address; return JSON.parse(JSON.stringify(p)); },
       async requestDataExport() { var p = sessionProfile(); if (!p) throw new Error('Not signed in'); p.account_notes.push({ body: 'Customer requested a copy of their information.', author_name: 'System', created_at: new Date().toISOString() }); return { ok: true }; },
       async deleteAccount() { var p = sessionProfile(); if (!p) throw new Error('Not signed in'); for (var i = claims.length - 1; i >= 0; i--) { if (claims[i].customer_id === p.id) claims.splice(i, 1); } var idx = profiles.indexOf(p); if (idx >= 0) profiles.splice(idx, 1); demoApi._session = null; return { ok: true }; },
+      async bulkApply(o) {
+        var p = sessionProfile(); if (!p) throw new Error('Not signed in');
+        if (p.bulk_status === 'pending') throw new Error('Your application is already under review.');
+        if (p.bulk_status === 'approved') throw new Error('You are already an approved Bulk Seller.');
+        if (p.bulk_status === 'suspended') throw new Error('Your Bulk Seller status is suspended — meet the monthly minimum to reinstate.');
+        var s = bulkStatsFor(p);
+        if (!s.eligible) throw new Error('You do not meet the Bulk Seller requirements yet.');
+        if (!(o && o.agreement)) throw new Error('You must accept the Bulk Seller Agreement.');
+        if (!(o && o.idProvided)) throw new Error('You must confirm you can provide a government ID.');
+        var now = new Date().toISOString();
+        p.bulk_status = 'pending'; p.bulk_applied_at = now; p.bulk_agreement_at = now; p.bulk_id_provided = true; p.bulk_reason = ''; p.bulk_decided_at = null;
+        return { ok: true };
+      },
+      async listBulkSellers() { requireStaff(); return profiles.filter(function (p) { return !!p.bulk_status; }).map(function (p) { var a = mapAccount(p); a.bulk.paidClaims = paidClaimsFor(p); a.bulk.ageDays = daysSince(p.created_at); return a; }).sort(function (a, b) { return Date.parse(b.bulk.appliedAt || 0) - Date.parse(a.bulk.appliedAt || 0); }); },
+      async decideBulkSeller(profileId, decision, reason) {
+        requireStaff(); var p = findProfileById(profileId); if (!p) throw new Error('Account not found');
+        var now = new Date().toISOString();
+        if (decision === 'approve' || decision === 'reinstate') { p.bulk_status = 'approved'; p.bulk_reason = ''; }
+        else if (decision === 'decline') { p.bulk_status = 'declined'; p.bulk_reason = (reason || '').trim(); }
+        else if (decision === 'suspend') { p.bulk_status = 'suspended'; p.bulk_reason = (reason || '').trim(); }
+        else if (decision === 'close') { p.bulk_status = 'closed'; p.bulk_reason = (reason || '').trim(); }
+        else throw new Error('Unknown decision');
+        p.bulk_decided_at = now;
+        return { ok: true };
+      },
       async getCatalog() { return { platforms: JSON.parse(JSON.stringify(platforms)), conditions: JSON.parse(JSON.stringify(conds)), pricing: JSON.parse(JSON.stringify(pricing)) }; },
       async conditions() { return JSON.parse(JSON.stringify(conds)); },
       async pricing() { return JSON.parse(JSON.stringify(pricing)); },
@@ -286,5 +349,9 @@
   API.marketValue = marketValue;
   API.marginFor = marginFor;
   API.DEFAULT_PRICING = DEFAULT_PRICING;
+  API.BULK = BULK_RULES;
+  API.BULK_STATUSES = BULK_STATUSES;
+  API.bulkEligibility = bulkEligibility;
+  API.daysSince = daysSince;
   window.RestashAPI = API;
 })();

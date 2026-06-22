@@ -2,8 +2,8 @@
 
 A recommerce platform for buying physical video games back from sellers. Customers submit games, get an estimate, ship them in, and get paid by PayPal or check. This repo holds two front-end surfaces:
 
-- **`index.html`** — the customer app. Buyback flow: platform → title → edition → condition → cart → claim → track status → accept or decline offers, plus account/profile.
-- **`console.html`** — the internal staff console. Review claims, claim/assign ownership, inspect, make offers (with a fair-price guardrail), record payouts, manage customer accounts, leave notes/flags, and view the team/department directory.
+- **`index.html`** — the customer app. Buyback flow: platform → title → edition → condition → cart → claim → track status → accept or decline offers. The account area is a left-nav layout — **Profile · Claims · Bulk Seller · Controls** (Profile first).
+- **`console.html`** — the internal staff console. Review claims, claim/assign ownership, inspect, make offers (with a fair-price guardrail), record payouts, manage customer accounts, **review the Bulk Seller queue**, leave notes/flags, and view the team/department directory.
 
 Contact: **hello@getrestash.gg** · Governing law: **New York (Cohoes, Albany County)**
 
@@ -107,6 +107,32 @@ Integrate a carrier/label API (e.g. EasyPost or Shippo) to generate a prepaid la
 ### 12. Brand assets (trademark / copyright)
 - The prototype intentionally uses **generic icons** — not console-maker logos (PlayStation/Xbox/Nintendo) or game box art, which are trademarked/copyrighted.
 - Only use official platform logos if you have the rights. Keep the "not affiliated / trademarks of their respective owners" disclaimers.
+
+---
+
+## Bulk Seller program (beta)
+
+A separate lane for high-volume sellers, gated by **hard requirements** and
+**approved by the Restash team**. Sellers apply from their account
+(**Bulk Seller** tab); staff review the queue in the console (**Bulk Sellers**
+tab) and approve / decline / suspend / close — each with an inline reason the
+seller sees. Rules live in one place (`RestashAPI.BULK` in `js/api.js`) and are
+shown identically on both surfaces:
+
+- **To apply:** ≥ 25 lifetime paid claims (in good standing), ≥ 30 days on
+  Restash, a government ID, and the signed Bulk Seller agreement.
+- **Once active:** ≥ 25 paid claims/month (or **suspended**), ≥ 10 games per
+  shipment, and no counterfeits / ownership issues / repeated mismatches
+  (**immediate closure**). A closed seller may reapply after 3 months.
+- **Lane lock:** an active Bulk Seller can **not** use the standard one-by-one
+  flow — they're routed to the bulk lane. (Closed/suspended sellers keep using
+  Restash normally.)
+
+This first cut is **application + status + staff approval**. The actual bulk
+submission lane (the streamlined "skip the process" intake) is deferred. The
+program is wired end-to-end in **demo mode**; the production schema + RPCs are
+scaffolded in `supabase/migrations/0013_bulk_seller.sql` (eligibility checked
+server-side, decisions staff-only, customers can't self-set their status).
 
 ---
 
