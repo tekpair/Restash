@@ -100,6 +100,7 @@
   .s-gold { color: var(--gold-label); background: var(--gold-soft); }
   .s-purple { color: var(--purple); background: var(--purple-tint); }
   .s-red { color: var(--red); background: var(--red-soft); }
+  .s-green { color: #1c6b3a; background: #e4f4ea; }
 
   .backbtn { display: inline-flex; align-items: center; gap: 4px; font-family: var(--body); font-size: 13.5px; font-weight: 500; color: var(--muted); background: none; border: none; cursor: pointer; padding: 2px 0; margin-bottom: 8px; }
   .backbtn svg { width: 16px; height: 16px; }
@@ -187,7 +188,32 @@
   .offer-input span { font-size: 18px; font-weight: 700; color: var(--muted); }
   .offer-input input { flex: 1; min-width: 0; border: none; outline: none; font-family: var(--display); font-weight: 700; font-size: 22px; color: var(--ink); padding: 8px 0; background: transparent; }
   .offer-hint { font-size: 12px; color: var(--muted); margin-top: 7px; line-height: 1.5; }
-  .offer-buttons { display: flex; gap: 10px; margin-top: 14px; }
+  .offer-buttons { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+
+  /* Inline reason form — decline / reject on a claim, and bulk-seller decisions */
+  .reason-box { margin-top: 2px; }
+  .reason-box .reason-sub { font-size: 12.5px; color: var(--muted); line-height: 1.45; margin-bottom: 12px; }
+  .reason-box label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 7px; }
+  .reason-box .reason-opt { font-weight: 500; color: var(--muted); }
+  .reason-box textarea { width: 100%; font-family: var(--body); font-size: 14px; color: var(--ink); background: var(--surface); border: 1.5px solid var(--border); border-radius: 11px; padding: 11px 13px; resize: vertical; }
+  .reason-box textarea:focus { outline: none; border-color: var(--purple); box-shadow: 0 0 0 3px rgba(91,63,214,0.16); }
+
+  /* Bulk Seller console */
+  .bulk-note { display: flex; gap: 10px; align-items: flex-start; font-size: 12.5px; line-height: 1.55; color: var(--muted); background: var(--surface); border: 1.5px solid var(--border); border-radius: 12px; padding: 12px 14px; margin: 14px 0 0; }
+  .bulk-note svg { flex: none; width: 17px; height: 17px; margin-top: 1px; color: var(--purple); }
+  .bulk-note strong { color: var(--ink); font-weight: 600; }
+  .card.bulk-admin { margin-top: 16px; }
+  .bulk-reqs { margin: 4px 0 6px; }
+  .bulk-reqs .kv.met .k svg { color: #1c6b3a; }
+  .bulk-reqs .kv .v.ok { color: #1c6b3a; }
+  .bulk-reason { display: flex; gap: 8px; align-items: flex-start; font-size: 12.5px; line-height: 1.5; color: var(--amber); background: var(--amber-tint); border-radius: 10px; padding: 10px 12px; margin: 10px 0; }
+  .bulk-reason svg { flex: none; width: 15px; height: 15px; margin-top: 1px; }
+  .bulk-hint { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--muted); margin-top: 4px; }
+  .bulk-hint svg { width: 16px; height: 16px; flex: none; }
+  .bulk-admin .actions { margin-top: 12px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .bulk-detail-card .card-h svg { width: 15px; height: 15px; vertical-align: -3px; margin-right: 5px; }
+  .bulk-detail-card p { font-size: 13px; color: var(--muted); line-height: 1.55; text-transform: none; letter-spacing: 0; font-weight: 400; }
+  .bulk-detail-card p strong { color: var(--ink); font-weight: 600; }
 
   /* inspection grade panel */
   .assessed { margin-left: auto; font-size: 13px; font-weight: 700; color: var(--purple); background: var(--purple-tint); padding: 3px 10px; border-radius: 999px; }
@@ -350,7 +376,10 @@
     spark: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.7 6.6L20 12l-6.3 1.6L12 22l-1.7-8.4L4 12l6.3-1.6z"/></svg>',
     case: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8.5 3v18"/></svg>',
     disc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="2.4"/></svg>',
-    noplay: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M14.5 9.5l-5 5M9.5 9.5l5 5"/></svg>'
+    noplay: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M14.5 9.5l-5 5M9.5 9.5l5 5"/></svg>',
+    star: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.5l2.5 5.3 5.8.7-4.3 4 1.1 5.7L12 16.6 6.9 19.2l1.1-5.7-4.3-4 5.8-.7Z"/></svg>',
+    shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V6Z"/><path d="M9 12l2 2 4-4"/></svg>',
+    clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>'
   };
 
   const BADGES = {
@@ -361,9 +390,15 @@
   };
   const badge = (st) => { const b = BADGES[st] || BADGES.submitted; return '<span class="badge ' + b[1] + '">' + b[0] + '</span>'; };
   const flagBadge = () => '<span class="badge s-amber">Flagged</span>';
+  const BULK_BADGE = { pending: ['Under review', 's-amber'], approved: ['Active', 's-green'], suspended: ['Suspended', 's-amber'], declined: ['Not approved', 's-grey'], closed: ['Closed', 's-red'] };
+  const bulkBadge = (st) => { const b = BULK_BADGE[st]; return b ? '<span class="badge ' + b[1] + '">' + b[0] + '</span>' : '<span class="badge s-grey">Not applied</span>'; };
+  function bulkStatsForAccount(a) {
+    const paid = claimsForEmail(a.email).filter(c => c.status === 'paid').length + ((a.bulk && a.bulk.lifetimePaid) || 0);
+    return { paidClaims: paid, ageDays: RestashAPI.daysSince(a.createdAt) };
+  }
 
   const FILTERS = [['all', 'All'], ['submitted', 'New'], ['reviewing', 'Review'], ['accepted', 'Accepted'], ['received', 'Received'], ['offer', 'Offer sent'], ['paid', 'Paid'], ['declined', 'Declined'], ['returned', 'Returned']];
-  const TAB_VIEW = { claims: 'dashboard', accounts: 'accounts', payouts: 'payouts', team: 'team', resources: 'resources' };
+  const TAB_VIEW = { claims: 'dashboard', accounts: 'accounts', bulk: 'bulkSellers', payouts: 'payouts', team: 'team', resources: 'resources' };
   const CUR_TEXT = {
     submitted: 'This claim is new and awaiting your review.',
     reviewing: 'You\u2019re reviewing this claim. Accept it to email a shipping label, or decline.',
@@ -384,7 +419,8 @@
 
   let state = {
     view: 'login', loggedIn: false, admin: { name: '', id: null },
-    tab: 'claims', filter: 'all', search: '', activeRef: null, activeEmail: null, offerOpen: false, flash: null,
+    tab: 'claims', filter: 'all', search: '', activeRef: null, activeEmail: null, offerOpen: false, declineOpen: false, rejectOpen: false, flash: null,
+    bulkAction: null, bulkSellers: [],
     team: [], accounts: [], claims: [], conditions: [], pricing: {}
   };
 
@@ -395,6 +431,9 @@
   function todayStr() { return new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); }
   const initials = (name) => name.split(/\s+/).map(p => p[0]).slice(0, 2).join('').toUpperCase();
   const itemsSummary = (items) => { const n = items.reduce((s, i) => s + i.qty, 0); const plats = items.map(i => i.platformName).filter((x, i, a) => a.indexOf(x) === i); return n + ' game' + (n > 1 ? 's' : '') + ' · ' + plats.join(', '); };
+  const claimSummary = (c) => c.bulk ? ('Bulk lot' + (c.estCount ? ' · ~' + c.estCount + ' games' : '')) : itemsSummary(c.items);
+  const claimTitle = (c) => c.bulk ? ('Bulk lot' + (c.estCount ? ' (~' + c.estCount + ')' : '')) : (c.items[0] ? c.items[0].titleName + (c.items.length > 1 ? ' +' + (c.items.length - 1) : '') : '—');
+  const bulkPill = (c) => c.bulk ? '<span class="badge s-purple">Bulk</span>' : '';
   const estMid = (c) => Math.round((c.estLow + c.estHigh) / 2);
   const marketTotal = (c) => c.items.reduce((s, i) => s + i.lineMid, 0);
   const suggestedOffer = (c) => RestashAPI.computeOffer(c.items.map(i => ({ unit_market: i.unitMarket, qty: i.qty })), state.pricing);
@@ -457,9 +496,34 @@
     }
   }
 
+  // Inline "reason shown to the customer" form — replaces the old window.prompt
+  // for declining (under review) and rejecting on inspection. Lives right in
+  // the action card so the reason is written in context, in the console.
+  function reasonForm(ref, opt) {
+    return '<div class="reason-box"><div class="reason-sub">' + opt.sub + '</div>'
+      + '<label for="reason-text">' + opt.label + ' <span class="reason-opt">— the customer sees this</span></label>'
+      + '<textarea id="reason-text" rows="3" placeholder="' + opt.placeholder + '"></textarea>'
+      + flashMsg(opt.slot)
+      + '<div class="offer-buttons"><button class="btn ' + opt.btnClass + '" data-action="' + opt.confirm + '" data-ref="' + ref + '">' + opt.confirmLabel + '</button>'
+      + '<button class="btn btn-secondary" data-action="' + opt.cancel + '">Cancel</button></div></div>';
+  }
+
   function actionCard(c) {
     let header, body, live = false;
-    if (state.offerOpen && c.status === 'received') {
+    if (state.declineOpen && (c.status === 'submitted' || c.status === 'reviewing')) {
+      header = 'Decline this claim'; live = true;
+      body = reasonForm(c.ref, { sub: 'Decline this claim and email the customer. Add an optional reason — they’ll see it on their claim.', label: 'Reason for declining', placeholder: 'e.g. We aren’t buying this title right now.', slot: 'decline', confirm: 'send-decline', confirmLabel: 'Decline claim', cancel: 'cancel-decline', btnClass: 'btn-danger' });
+    } else if (state.rejectOpen && c.status === 'received') {
+      header = 'Reject on inspection'; live = true;
+      body = reasonForm(c.ref, { sub: 'Reject these games on inspection and return them to the seller. Add an optional reason — they’ll see it on their claim.', label: 'Reason for rejecting', placeholder: 'e.g. Disc graded Not Working; failed to boot.', slot: 'reject', confirm: 'send-reject', confirmLabel: 'Reject & return', cancel: 'cancel-reject', btnClass: 'btn-danger' });
+    } else if (state.offerOpen && c.status === 'received' && c.bulk) {
+      header = 'One bulk offer'; live = true;
+      body = '<div class="offer-box"><div class="offer-sub">Bulk lots skip per-item grading — inspect the lot and send a single offer for everything. The seller accepts or declines it.</div>'
+        + '<label for="offer-amount" style="margin-top:6px;">Bulk offer amount</label><div class="offer-input"><span>$</span><input id="offer-amount" type="number" min="1" placeholder="0"></div>'
+        + '<label for="offer-reason" style="margin-top:14px;">Why this offer <span style="font-weight:500;color:var(--muted);">— the seller sees this</span></label><textarea id="offer-reason" rows="2" placeholder="e.g. ~30-game lot, mostly Complete; priced to current market." style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-family:var(--body);font-size:14px;resize:vertical;"></textarea>'
+        + flashMsg('offer')
+        + '<div class="offer-buttons"><button class="btn btn-primary" data-action="send-offer" data-ref="' + c.ref + '">Send bulk offer</button><button class="btn btn-secondary" data-action="cancel-offer">Cancel</button></div></div>';
+    } else if (state.offerOpen && c.status === 'received') {
       header = 'Make an offer'; live = true;
       const market = marketTotal(c), sugg = suggestedOffer(c);
       const lo = Math.max(1, Math.floor(sugg * 0.85)), hi = Math.max(lo, Math.ceil(sugg * 1.15)), mid = sugg;
@@ -515,9 +579,49 @@
     return '<div class="assign-bar"><span class="assign-info">' + I.user + info + '</span>' + btn + '</div>';
   }
 
+  // Bulk Seller review card on an account — approve/decline/suspend/close, with
+  // an inline reason field (no popups) shown to the seller.
+  const BULK_ACTION_META = {
+    decline: ['Decline application', 'Decline', 'btn-danger', 'e.g. Doesn’t meet the paid-claim minimum yet.'],
+    suspend: ['Suspend Bulk Seller', 'Suspend', 'btn-danger', 'e.g. Missed this month’s minimum of paid claims.'],
+    close: ['Close Bulk Seller account', 'Close account', 'btn-danger', 'e.g. Repeated condition mismatches / ownership issue.']
+  };
+  function bulkActionButtons(st, a) {
+    const id = esc(a.id), email = esc(a.email);
+    const btn = (act, kind, label, cls) => '<button class="btn ' + cls + '" data-action="' + act + '" data-value="' + email + '" data-id="' + id + '"' + (kind ? ' data-kind="' + kind + '"' : '') + '>' + label + '</button>';
+    if (st === 'pending') return '<div class="actions">' + btn('bulk-decide', 'approve', 'Approve', 'btn-primary') + btn('bulk-open', 'decline', 'Decline', 'btn-danger') + '</div>';
+    if (st === 'approved') return '<div class="actions">' + btn('bulk-open', 'suspend', 'Suspend', 'btn-secondary') + btn('bulk-open', 'close', 'Close account', 'btn-danger') + '</div>';
+    if (st === 'suspended') return '<div class="actions">' + btn('bulk-decide', 'reinstate', 'Reinstate', 'btn-primary') + btn('bulk-open', 'close', 'Close account', 'btn-danger') + '</div>';
+    if (st === 'declined' || st === 'closed') return '<div class="actions">' + btn('bulk-decide', 'approve', 'Approve into program', 'btn-primary') + '</div>';
+    return '<div class="bulk-hint">' + I.info + 'This seller hasn’t applied to the program.</div>';
+  }
+  function bulkReasonForm(a, kind) {
+    const m = BULK_ACTION_META[kind];
+    return '<div class="reason-box"><div class="reason-sub">' + m[0] + ' — the seller sees this reason on their account.</div>'
+      + '<label for="bulk-reason-text">Reason <span class="reason-opt">— shown to the seller</span></label>'
+      + '<textarea id="bulk-reason-text" rows="3" placeholder="' + m[3] + '"></textarea>'
+      + flashMsg('bulk')
+      + '<div class="offer-buttons"><button class="btn ' + m[2] + '" data-action="bulk-decide" data-value="' + esc(a.email) + '" data-id="' + esc(a.id) + '" data-kind="' + kind + '">' + m[1] + '</button>'
+      + '<button class="btn btn-secondary" data-action="bulk-cancel">Cancel</button></div></div>';
+  }
+  function bulkAdminCard(a) {
+    const b = a.bulk || {}, st = b.status, B = RestashAPI.BULK, s = bulkStatsForAccount(a);
+    const reqRow = (ok, label, detail) => '<div class="kv' + (ok ? ' met' : '') + '"><span class="k">' + (ok ? I.check : I.lock) + label + '</span><span class="v' + (ok ? ' ok' : '') + '">' + detail + '</span></div>';
+    const reqs = '<div class="bulk-reqs">'
+      + reqRow(s.paidClaims >= B.min_paid, B.min_paid + '+ paid claims', s.paidClaims)
+      + reqRow(s.ageDays >= B.min_age_days, B.min_age_days + '+ days on Restash', s.ageDays + 'd')
+      + reqRow(!!b.idProvided, 'Government ID', b.idProvided ? 'Confirmed' : 'Not confirmed')
+      + reqRow(!!b.agreementAt, 'Agreement accepted', b.agreementAt ? esc(RestashAPI.fmtDate(b.agreementAt)) : '—')
+      + '</div>';
+    const reason = b.reason ? '<div class="bulk-reason">' + I.info + '<span>Reason on file: ' + esc(b.reason) + '</span></div>' : '';
+    const acting = state.bulkAction && state.bulkAction.email === a.email;
+    const actions = acting ? bulkReasonForm(a, state.bulkAction.kind) : bulkActionButtons(st, a);
+    return '<div class="card bulk-admin"><div class="card-h">Bulk Seller ' + bulkBadge(st) + '</div>' + reqs + reason + actions + '</div>';
+  }
+
   const tbRight = () => state.loggedIn ? '<span class="tb-user">' + esc(state.admin.name) + '</span><button class="tb-logout" data-action="logout">' + I.logout + 'Sign out</button>' : '';
   function tabs() {
-    const T = [['claims', 'Claims'], ['accounts', 'Accounts'], ['payouts', 'Payouts'], ['team', 'Team'], ['resources', 'Resources']];
+    const T = [['claims', 'Claims'], ['accounts', 'Accounts'], ['bulk', 'Bulk Sellers'], ['payouts', 'Payouts'], ['team', 'Team'], ['resources', 'Resources']];
     return '<div class="tabs">' + T.map(t => '<button class="tab' + (state.tab === t[0] ? ' on' : '') + '" data-action="tab" data-value="' + t[0] + '">' + t[1] + '</button>').join('') + '</div>';
   }
 
@@ -549,6 +653,29 @@
       return '<div class="screen wrap">' + tabs()
         + '<div class="toolbar"><div class="search">' + I.search + '<input id="admin-search" type="text" placeholder="Search by name or email" value="' + esc(state.search) + '"></div></div>'
         + '<div id="list-region">' + accountsListHTML() + '</div></div>';
+    },
+    bulkSellers() {
+      const B = RestashAPI.BULK;
+      const list = state.bulkSellers.slice();
+      const order = { pending: 0, suspended: 1, approved: 2, declined: 3, closed: 4 };
+      list.sort((a, b) => (order[a.bulk.status] - order[b.bulk.status]) || (Date.parse(b.bulk.appliedAt || 0) - Date.parse(a.bulk.appliedAt || 0)));
+      const pendingN = list.filter(a => a.bulk.status === 'pending').length;
+      const activeN = list.filter(a => a.bulk.status === 'approved').length;
+      const suspN = list.filter(a => a.bulk.status === 'suspended').length;
+      const tiles = '<button class="stat read"><span class="stat-top">' + I.inbox + '<span class="stat-label">Pending review</span></span><span class="stat-num">' + pendingN + '</span></button>'
+        + '<button class="stat read"><span class="stat-top">' + I.star + '<span class="stat-label">Active sellers</span></span><span class="stat-num">' + activeN + '</span></button>'
+        + '<button class="stat read"><span class="stat-top">' + I.clock + '<span class="stat-label">Suspended</span></span><span class="stat-num">' + suspN + '</span></button>';
+      const rows = list.length ? list.map(a => {
+        const s = bulkStatsForAccount(a);
+        return '<button class="row" data-action="open-account" data-value="' + esc(a.email) + '"><span class="row-avatar">' + initials(a.name) + '</span>'
+          + '<span class="row-main"><span class="row-line1"><span class="row-name">' + esc(a.name) + '</span>' + bulkBadge(a.bulk.status) + (a.flagged ? flagBadge() : '') + '</span>'
+          + '<span class="row-meta">' + s.paidClaims + ' paid · ' + s.ageDays + 'd on Restash' + (a.bulk.appliedAt ? ' · applied ' + esc(RestashAPI.fmtDate(a.bulk.appliedAt)) : '') + '</span></span>'
+          + '<span class="chev">' + I.chevron + '</span></button>';
+      }).join('') : '<div class="empty">No Bulk Seller applications yet.</div>';
+      return '<div class="screen wrap">' + tabs()
+        + '<div class="stats" style="grid-template-columns:repeat(3,1fr);">' + tiles + '</div>'
+        + '<div class="bulk-note">' + I.shield + '<span>Beta program. Hard requirements: <strong>' + B.min_paid + '+ paid claims</strong>, <strong>' + B.min_age_days + '+ days</strong> on Restash, a government ID, and the signed agreement. Once active: <strong>' + B.min_per_month + '+ games/month</strong> or suspended, <strong>' + B.min_per_shipment + '+ per shipment</strong>, no counterfeits/ownership issues/mismatches. Approve or decline below.</span></div>'
+        + '<div class="rows" style="margin-top:8px;">' + rows + '</div></div>';
     },
     payouts() {
       const paid = state.claims.filter(c => c.status === 'paid').sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
@@ -606,14 +733,17 @@
     claimDetail() {
       const c = findClaim(state.activeRef);
       if (!c) return '<div class="screen wrap"><button class="backbtn" data-action="to-claims">' + I.back + 'Claims</button><div class="detail-ref">Claim not found</div></div>';
-      const amount = (c.status === 'paid') ? goldCard('Amount paid', '$' + c.offerAmount, 'joined')
-        : (c.status === 'offer') ? goldCard('Offer sent', '$' + c.offerAmount, 'joined')
+      const amount = (c.status === 'paid') ? goldCard(c.bulk ? 'Bulk amount paid' : 'Amount paid', '$' + c.offerAmount, 'joined')
+        : (c.status === 'offer') ? goldCard(c.bulk ? 'Bulk offer sent' : 'Offer sent', '$' + c.offerAmount, 'joined')
         : (c.status === 'returned' && c.offerAmount) ? goldCard('Last offer', '$' + c.offerAmount, 'joined')
+        : c.bulk ? '<div class="card joined bulk-detail-card"><div class="card-h">' + I.box + 'Bulk lot</div><p>One offer for the whole lot after priority inspection.' + (c.estCount ? ' Seller estimates ~<strong>' + c.estCount + ' games</strong>.' : '') + '</p></div>'
         : goldCard('Customer estimate', '$' + c.estLow + ' – $' + c.estHigh, 'joined');
       const sendIcon = c.payout === 'PayPal' ? I.mail : I.pin;
-      const sendLabel = c.payout === 'PayPal' ? 'PayPal email' : 'Mailing address';
+      const lotCard = c.bulk
+        ? '<div class="card"><div class="card-h">Manifest' + bulkPill(c) + '</div><p class="cust-note">' + esc(c.manifest || '') + '</p></div>'
+        : itemsPanel(c.items);
       return '<div class="screen wrap"><button class="backbtn" data-action="to-claims">' + I.back + 'Claims</button>'
-        + '<div class="detail-head"><div><div class="detail-ref">' + c.ref + '</div><div class="detail-date">Submitted ' + esc(c.createdAt) + '</div></div><div class="head-tags">' + (c.flagged ? flagBadge() : '') + badge(c.status) + '</div></div>'
+        + '<div class="detail-head"><div><div class="detail-ref">' + c.ref + '</div><div class="detail-date">Submitted ' + esc(c.createdAt) + '</div></div><div class="head-tags">' + (c.flagged ? flagBadge() : '') + bulkPill(c) + badge(c.status) + '</div></div>'
         + assignBar(c)
         + actionCard(c)
         + '<div class="grid2"><div>' + amount
@@ -624,7 +754,7 @@
         +     '<div class="kv"><span class="k">' + I.card + 'Payout</span><span class="v">' + esc(c.payout) + '</span></div>'
         +     '<div class="kv"><span class="k">' + sendIcon + 'Send to</span><span class="v">' + esc(destOf(c)) + '</span></div>'
         +     '<div style="margin-top:14px;"><button class="btn btn-secondary full" data-action="view-account" data-value="' + esc(c.email) + '">' + I.user + 'View account</button></div></div></div>'
-        +   '<div>' + itemsPanel(c.items) + (c.customerNote ? '<div class="card"><div class="card-h">Note from the customer</div><p class="cust-note">' + esc(c.customerNote) + '</p></div>' : '') + '<div class="card"><div class="card-h">Status history</div>' + timeline(c.history) + '</div></div>'
+        +   '<div>' + lotCard + (c.customerNote ? '<div class="card"><div class="card-h">Note from the customer</div><p class="cust-note">' + esc(c.customerNote) + '</p></div>' : '') + '<div class="card"><div class="card-h">Status history</div>' + timeline(c.history) + '</div></div>'
         + '</div>' + notesFlagsCard({ notes: c.notes, flagged: c.flagged, flagAction: 'claim-flag', noteAction: 'claim-note', value: c.ref, noun: 'claim', inputId: 'claim-note-input' }) + '</div>';
     },
     accountDetail() {
@@ -633,7 +763,7 @@
       const cl = claimsForEmail(a.email);
       const paidTotal = cl.filter(c => c.status === 'paid').reduce((s, c) => s + (c.offerAmount || 0), 0);
       const rows = cl.length ? cl.map(c =>
-        '<button class="row" data-action="open-claim" data-ref="' + c.ref + '"><span class="row-avatar">' + I.gamepad + '</span><span class="row-main"><span class="row-line1"><span class="row-name">' + esc(c.items[0].titleName) + (c.items.length > 1 ? ' +' + (c.items.length - 1) : '') + '</span>' + badge(c.status) + '</span><span class="row-meta">' + c.ref + ' · ' + esc(c.createdAt) + '</span></span><span class="row-right"><span class="row-amt">$' + c.estLow + '–$' + c.estHigh + '</span></span><span class="chev">' + I.chevron + '</span></button>'
+        '<button class="row" data-action="open-claim" data-ref="' + c.ref + '"><span class="row-avatar">' + (c.bulk ? I.box : I.gamepad) + '</span><span class="row-main"><span class="row-line1"><span class="row-name">' + esc(claimTitle(c)) + '</span>' + badge(c.status) + bulkPill(c) + '</span><span class="row-meta">' + c.ref + ' · ' + esc(c.createdAt) + '</span></span><span class="row-right"><span class="row-amt">' + (c.bulk ? (c.offerAmount ? '$' + c.offerAmount : 'Bulk') : '$' + c.estLow + '–$' + c.estHigh) + '</span></span><span class="chev">' + I.chevron + '</span></button>'
       ).join('') : '<div class="empty">No claims for this account.</div>';
       return '<div class="screen wrap"><button class="backbtn" data-action="to-accounts">' + I.back + 'Accounts</button>'
         + '<div class="detail-head"><div class="detail-ref">' + esc(a.name) + '</div>' + (a.flagged ? '<div class="head-tags">' + flagBadge() + '</div>' : '') + '</div>'
@@ -644,6 +774,7 @@
         +   '<div class="kv"><span class="k">' + I.calendar + 'Joined</span><span class="v">' + esc(a.joined) + '</span></div>'
         +   '<div class="kv"><span class="k">' + I.hash + 'Claims</span><span class="v">' + cl.length + '</span></div>'
         +   '<div class="kv"><span class="k">' + I.dollar + 'Paid to date</span><span class="v">$' + paidTotal + '</span></div></div>'
+        + bulkAdminCard(a)
         + notesFlagsCard({ notes: a.notes, flagged: a.flagged, flagAction: 'flag-toggle', noteAction: 'add-note', value: a.email, noun: 'account', inputId: 'note-input' })
         + '<div class="card-h" style="margin-top:24px;">Claims</div><div class="rows" style="margin-top:0;">' + rows + '</div></div>';
     }
@@ -654,7 +785,7 @@
     if (!list.length) return '<div class="empty">No claims match this filter.</div>';
     return '<div class="rows">' + list.map(c =>
       '<button class="row" data-action="open-claim" data-ref="' + c.ref + '"><span class="row-avatar">' + initials(c.cust) + '</span>'
-      + '<span class="row-main"><span class="row-line1"><span class="row-name">' + esc(c.cust) + '</span>' + badge(c.status) + (c.flagged ? flagBadge() : '') + (c.assignee ? '<span class="assign-pill">' + I.user + esc(c.assignee) + '</span>' : '') + '</span><span class="row-meta">' + c.ref + ' · ' + esc(itemsSummary(c.items)) + '</span></span>'
+      + '<span class="row-main"><span class="row-line1"><span class="row-name">' + esc(c.cust) + '</span>' + badge(c.status) + bulkPill(c) + (c.flagged ? flagBadge() : '') + (c.assignee ? '<span class="assign-pill">' + I.user + esc(c.assignee) + '</span>' : '') + '</span><span class="row-meta">' + c.ref + ' · ' + esc(claimSummary(c)) + '</span></span>'
       + '<span class="row-right"><span class="row-amt">' + ((c.status === 'paid' || c.status === 'offer') ? '$' + c.offerAmount : '$' + c.estLow + '–$' + c.estHigh) + '</span><span class="row-date">' + esc(c.createdAt) + '</span></span>'
       + '<span class="chev">' + I.chevron + '</span></button>'
     ).join('') + '</div>';
@@ -671,7 +802,7 @@
 
   function syncTopbar() { document.getElementById('tbRight').innerHTML = tbRight(); }
   function render() { document.getElementById('screen').innerHTML = views[state.view](); syncTopbar(); window.scrollTo({ top: 0, behavior: 'auto' }); }
-  function go(view) { state.view = view; state.offerOpen = false; state.flash = null; render(); }
+  function go(view) { state.view = view; state.offerOpen = false; state.declineOpen = false; state.rejectOpen = false; state.bulkAction = null; state.flash = null; render(); }
 
   const emailOk = v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 
@@ -710,7 +841,7 @@
       } catch (e2) { el.disabled = false; err.textContent = e2.message || 'Could not sign in.'; err.hidden = false; }
     }
     else if (a === 'logout') { try { await RestashAPI.signOut(); } catch (e3) {} state.loggedIn = false; state.search = ''; state.filter = 'all'; state.claims = []; state.accounts = []; state.team = []; go('login'); }
-    else if (a === 'tab') { state.tab = v; state.search = ''; if (v === 'team') await ensureTeam(); go(TAB_VIEW[v]); }
+    else if (a === 'tab') { state.tab = v; state.search = ''; if (v === 'team') await ensureTeam(); if (v === 'bulk') await ensureBulk(); go(TAB_VIEW[v]); }
     else if (a === 'to-claims') { state.tab = 'claims'; go('dashboard'); }
     else if (a === 'to-accounts') { state.tab = 'accounts'; go('accounts'); }
     else if (a === 'filter' || a === 'stat') { state.filter = (a === 'stat' && state.filter === v) ? 'all' : v; render(); }
@@ -719,21 +850,44 @@
 
     else if (a === 'st-review')    { await act(function () { return RestashAPI.reviewClaim(ref); }, ref); }
     else if (a === 'st-accept')    { await act(function () { return RestashAPI.acceptClaim(ref); }, ref); }
-    else if (a === 'st-decline')   { const r = window.prompt('Reason for declining (shown to the customer) — optional:', ''); if (r === null) return; await act(function () { return RestashAPI.declineClaim(ref, r); }, ref); }
+    else if (a === 'st-decline')   { state.flash = null; state.declineOpen = true; state.offerOpen = false; state.rejectOpen = false; render(); }
+    else if (a === 'cancel-decline') { state.flash = null; state.declineOpen = false; render(); }
+    else if (a === 'send-decline') {
+      const ta = document.getElementById('reason-text'); const reason = ta ? ta.value.trim() : '';
+      try { await RestashAPI.declineClaim(ref, reason); state.declineOpen = false; state.flash = null; await refreshAll(ref); }
+      catch (e2) { state.flash = { slot: 'decline', kind: 'err', text: e2.message }; render(); }
+    }
     else if (a === 'st-received')  { await act(function () { return RestashAPI.markReceived(ref); }, ref); }
-    else if (a === 'st-offer')     { state.flash = null; state.offerOpen = true; render(); }
+    else if (a === 'st-offer')     { state.flash = null; state.offerOpen = true; state.declineOpen = false; state.rejectOpen = false; render(); }
     else if (a === 'cancel-offer') { state.flash = null; state.offerOpen = false; render(); }
     else if (a === 'send-offer') {
       const amt = parseInt(document.getElementById('offer-amount').value, 10);
       const reasonEl = document.getElementById('offer-reason');
       const reason = reasonEl ? reasonEl.value.trim() : '';
-      try { await RestashAPI.makeOffer(ref, amt, reason); state.offerOpen = false; state.flash = null; await refreshAll(ref); }
+      const claim = findClaim(ref);
+      try { await (claim && claim.bulk ? RestashAPI.makeBulkOffer(ref, amt, reason) : RestashAPI.makeOffer(ref, amt, reason)); state.offerOpen = false; state.flash = null; await refreshAll(ref); }
       catch (e2) { state.flash = { slot: 'offer', kind: 'err', text: e2.message }; render(); }
     }
-    else if (a === 'st-reject')      { const r = window.prompt('Reason for rejecting on inspection (shown to the customer) — optional:', ''); if (r === null) return; await act(function () { return RestashAPI.rejectReturn(ref, r); }, ref); }
+    else if (a === 'st-reject')      { state.flash = null; state.rejectOpen = true; state.offerOpen = false; state.declineOpen = false; render(); }
+    else if (a === 'cancel-reject')  { state.flash = null; state.rejectOpen = false; render(); }
+    else if (a === 'send-reject') {
+      const ta = document.getElementById('reason-text'); const reason = ta ? ta.value.trim() : '';
+      try { await RestashAPI.rejectReturn(ref, reason); state.rejectOpen = false; state.flash = null; await refreshAll(ref); }
+      catch (e2) { state.flash = { slot: 'reject', kind: 'err', text: e2.message }; render(); }
+    }
     else if (a === 'authorize-pay')  { await act(function () { return RestashAPI.authorizePayment(ref); }, ref); }
     else if (a === 'confirm-return') { await act(function () { return RestashAPI.confirmReturn(ref); }, ref); }
 
+    else if (a === 'bulk-open')   { state.bulkAction = { email: v, id: el.dataset.id, kind: el.dataset.kind }; state.flash = null; render(); }
+    else if (a === 'bulk-cancel') { state.bulkAction = null; state.flash = null; render(); }
+    else if (a === 'bulk-decide') {
+      const kind = el.dataset.kind, id = el.dataset.id;
+      const ta = document.getElementById('bulk-reason-text'); const reason = ta ? ta.value.trim() : '';
+      if ((kind === 'decline' || kind === 'suspend' || kind === 'close') && !reason) { state.flash = { slot: 'bulk', kind: 'err', text: 'Add a short reason — the seller sees it.' }; render(); return; }
+      el.disabled = true;
+      try { await RestashAPI.decideBulkSeller(id, kind, reason); state.bulkAction = null; state.flash = null; await refreshBulk(v); }
+      catch (e2) { state.flash = { slot: 'bulk', kind: 'err', text: e2.message || 'Could not update.' }; render(); }
+    }
     else if (a === 'flag-toggle') { const ac = findAccount(v); if (!ac) return; try { await RestashAPI.setAccountFlag(ac.id, !ac.flagged); await refreshAccount(v); } catch (e2) { alert(e2.message); } }
     else if (a === 'add-note') {
       const ta = document.getElementById('note-input'); const txt = ta ? ta.value.trim() : '';
@@ -759,6 +913,8 @@
     try { state.pricing = await RestashAPI.pricing(); } catch (e) { state.pricing = RestashAPI.DEFAULT_PRICING; }
   }
   async function ensureTeam() { if (!state.team.length) { try { state.team = await RestashAPI.team(); } catch (e) {} } }
+  async function ensureBulk() { try { state.bulkSellers = await RestashAPI.listBulkSellers(); } catch (e) { state.bulkSellers = []; } }
+  async function refreshBulk(email) { try { state.bulkSellers = await RestashAPI.listBulkSellers(); } catch (e) {} if (email) { try { await mergeAccountDetail(email); } catch (e) {} } render(); }
   async function mergeClaimDetail(ref) { const d = await RestashAPI.staffClaimByRef(ref); const i = state.claims.findIndex(function (c) { return c.ref === ref; }); if (i >= 0) state.claims[i] = d; else state.claims.unshift(d); }
   async function mergeAccountDetail(email) { const d = await RestashAPI.accountByEmail(email); const i = state.accounts.findIndex(function (x) { return x.email === email; }); if (i >= 0) state.accounts[i] = d; else state.accounts.unshift(d); }
   async function refreshAll(ref) { state.claims = await RestashAPI.allClaims(); if (ref) { try { await mergeClaimDetail(ref); } catch (e) {} } render(); }
