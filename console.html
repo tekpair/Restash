@@ -20,19 +20,19 @@
     --green: #1f7a4d; --green-soft: #e7f4ec;
     --red: #b3261e; --red-soft: #fbeae8; --red-border: #f0c7c3;
     --blue: #1c5e8a; --blue-soft: #e6f0f6;
-    --bg: #f2f2f8; --surface: #ffffff; --border: #e6e5f1;
+    --bg: #f2f2f8; --surface: #ffffff; --border: #dcd6ee;
     --display: "Bricolage Grotesque", "Plus Jakarta Sans", system-ui, sans-serif;
     --body: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: var(--body); background: linear-gradient(165deg, #efebfb 0%, #e6e2f5 60%, #e9e5f7 100%); background-color: #e7e3f6; color: var(--ink); -webkit-font-smoothing: antialiased; }
+  body { font-family: var(--body); background: linear-gradient(165deg, #e7e2f7 0%, #d8d0ef 58%, #ded7f3 100%); background-color: #dad2f0; color: var(--ink); -webkit-font-smoothing: antialiased; }
   /* Textured, gently drifting light-purple backdrop (sits behind everything). */
   body::before { content: ""; position: fixed; inset: -28px; z-index: -1; pointer-events: none;
     background-image:
-      radial-gradient(42% 34% at 14% 8%, rgba(123,97,231,0.16), transparent 70%),
-      radial-gradient(40% 32% at 88% 12%, rgba(160,130,255,0.12), transparent 70%),
-      radial-gradient(48% 40% at 80% 94%, rgba(123,97,231,0.12), transparent 72%),
-      radial-gradient(rgba(91,63,214,0.06) 1px, transparent 1.7px);
+      radial-gradient(42% 34% at 14% 8%, rgba(123,97,231,0.22), transparent 70%),
+      radial-gradient(40% 32% at 88% 12%, rgba(160,130,255,0.17), transparent 70%),
+      radial-gradient(48% 40% at 80% 94%, rgba(123,97,231,0.18), transparent 72%),
+      radial-gradient(rgba(91,63,214,0.07) 1px, transparent 1.7px);
     background-size: auto, auto, auto, 22px 22px;
     background-repeat: no-repeat, no-repeat, no-repeat, repeat;
     animation: bgDrift 28s ease-in-out infinite alternate; }
@@ -347,6 +347,11 @@
   @media (max-width: 720px) { .stats { grid-template-columns: 1fr 1fr; } .grid2 { grid-template-columns: 1fr; } .team-grid { grid-template-columns: 1fr; } }
   @media (max-width: 480px) { .tb-inner, .wrap { padding-left: 16px; padding-right: 16px; } .row-right { display: none; } }
   @media (prefers-reduced-motion: reduce) { .screen, .stat, .row, .gold-num, #toast { animation: none; transition: none; } .spark { opacity: .4; animation: none; } }
+
+  /* Lift white surfaces off the tinted backdrop so they clearly stand out. */
+  .card, .row, .action-card, .stat, .team-card {
+    box-shadow: 0 1px 2px rgba(34,30,75,0.05), 0 12px 26px rgba(60,50,110,0.085);
+  }
 </style>
 </head>
 <body>
