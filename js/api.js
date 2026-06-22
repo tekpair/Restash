@@ -43,6 +43,19 @@
     return { paidClaims: paidClaims, ageDays: ageDays, paidOk: paidOk, ageOk: ageOk, eligible: paidOk && ageOk };
   }
   function daysSince(iso) { if (!iso) return 0; return Math.floor((Date.now() - Date.parse(iso)) / 86400000); }
+
+  // ---- Digital Card payout (store credit + 25% bonus) ----------------
+  // Opt-in payout method: instead of cash, the seller takes the value as a
+  // digital gift card for a chosen platform, with a 25% bonus. Choosing it
+  // waives the right to negotiate the inspected offer. The inspected amount is
+  // rounded UP to the next $5, then the 25% bonus is added (e.g. $19 -> $20 ->
+  // $25). Balance is store credit only (not withdrawable cash) and resets at
+  // month end.  NOTE: gift-card expiry + held balances have real legal nuance
+  // (state gift-card / escheatment law) — have an attorney review before launch.
+  var CARD = { bonus: 0.25, brands: ['PlayStation', 'Xbox', 'Nintendo'] };
+  function cardCredit(offer) { var base = Math.ceil((Number(offer) || 0) / 5) * 5; return Math.ceil(base * (1 + CARD.bonus)); }
+  function monthEndISO() { var d = new Date(); return new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59).toISOString(); }
+  function isCardPayout(p) { return /^Digital Card/.test(p || ''); }
   function marginFor(unit, c) { c = c || DEFAULT_PRICING; if (unit >= c.tier_high_min) return c.margin_high; if (unit >= c.tier_mid_min) return c.margin_mid; return c.margin_low; }
   // items: [{ unit_market, qty }]
   function computeOffer(items, c) {
@@ -86,13 +99,13 @@
     return { ref: row.ref, itemName: bulk ? bulkLabel(row) : labels.itemName, platform: bulk ? 'Bulk' : labels.platform, items: items,
       bulk: bulk, manifest: row.manifest || '', estCount: row.est_count != null ? Number(row.est_count) : null,
       estLow: row.est_low, estHigh: row.est_high,
-      payout: row.payout, address: row.address || '', offerAmount: row.offer_amount, customerResponse: row.customer_response,
-      createdAt: fmtDate(row.created_at), status: row.status, history: mapHistory(row.claim_history), customerNote: row.customer_notes || '' };
+      payout: row.payout, cardBrand: row.card_brand || null, paidAmount: row.paid_amount, address: row.address || '', offerAmount: row.offer_amount, customerResponse: row.customer_response,
+      createdAt: fmtDate(row.created_at), createdAtISO: row.created_at, status: row.status, history: mapHistory(row.claim_history), customerNote: row.customer_notes || '' };
   }
   function mapClaimStaff(row) {
-    return { ref: row.ref, cust: row.cust_name, email: row.cust_email, phone: row.cust_phone, payout: row.payout, address: row.address || '',
+    return { ref: row.ref, cust: row.cust_name, email: row.cust_email, phone: row.cust_phone, payout: row.payout, cardBrand: row.card_brand || null, address: row.address || '',
       status: row.status, createdAt: fmtDate(row.created_at), estLow: row.est_low, estHigh: row.est_high, items: mapItems(row.claim_items),
-      bulk: !!row.bulk, manifest: row.manifest || '', estCount: row.est_count != null ? Number(row.est_count) : null,
+      bulk: !!row.bulk, manifest: row.manifest || '', estCount: row.est_count != null ? Number(row.est_count) : null, paidAmount: row.paid_amount,
       history: mapHistory(row.claim_history), assignee: row.assignee_name || null, assigneeId: row.assignee_id || null,
       offerAmount: row.offer_amount, customerResponse: row.customer_response, flagged: !!row.flagged, notes: mapNotes(row.claim_notes), customerNote: row.customer_notes || '' };
   }
@@ -141,7 +154,7 @@
     },
     async conditions() { var rows = unwrap(await sb.from('conditions').select('*').order('position')); return mapConds(rows); },
     async pricing() { var row = unwrap(await sb.from('pricing_config').select('*').eq('id', 1).single()); return mapPricing(row); },
-    async submitClaim(o) { return rpc('submit_claim', { p_items: o.items, p_payout: o.payout, p_phone: o.phone || '', p_address: o.address || '', p_notes: o.notes || '' }); },
+    async submitClaim(o) { return rpc('submit_claim', { p_items: o.items, p_payout: o.payout, p_phone: o.phone || '', p_address: o.address || '', p_notes: o.notes || '', p_card_brand: o.cardBrand || null }); },
     async myClaims() { var rows = unwrap(await sb.from('claims').select('*, claim_items(*), claim_history(*)').order('created_at', { ascending: false })); return rows.map(mapClaimCustomer); },
     async claimByRef(ref) { var row = unwrap(await sb.from('claims').select('*, claim_items(*), claim_history(*)').eq('ref', ref).single()); return mapClaimCustomer(row); },
     async respondToOffer(ref, r) { return rpc('respond_to_offer', { p_ref: ref, p_response: r }); },
@@ -234,7 +247,7 @@
 
     function newClaim(ref, prof, items, status, extra) {
       var c = Object.assign({ id: 'dc-' + (seq++), ref: ref, customer_id: prof.id, cust_name: prof.full_name, cust_email: prof.email, cust_phone: prof.phone,
-        payout: 'PayPal', address: '', est_low: 0, est_high: 0, status: status, offer_amount: null, customer_response: null, assignee_id: null, assignee_name: null,
+        payout: 'PayPal', card_brand: null, address: '', est_low: 0, est_high: 0, status: status, offer_amount: null, customer_response: null, assignee_id: null, assignee_name: null,
         flagged: false, paid_amount: null, paid_method: null, created_at: days(6), claim_items: items, claim_history: [], claim_notes: [], customer_notes: '' }, extra || {});
       var offer = computeOffer(items, pricing); c.est_high = offer; c.est_low = Math.round(offer * 0.85);
       return c;
@@ -254,7 +267,11 @@
       newClaim('RS-3K9P1B', profiles[2], [item('ed-gow', 'complete', 1, 1), item('ed-rdr2', 'loose', 2, 2)], 'received', { payout: 'Check', address: '88 Vliet Blvd, Cohoes, NY 12047', assignee_id: 'staff-connor', assignee_name: 'Connor Waugaman', customer_notes: 'The God of War case has a small crack on the back but the disc is mint. Both RDR2 copies are cart-only, no boxes.', created_at: days(3), claim_history: [h('Claim submitted', null, days(3)), h('Accepted — shipping label emailed', null, days(2)), h('Games received at facility', null, days(1))] }),
       newClaim('RS-2W8E4F', profiles[1], [item('ed-smash', 'sealed', 1, 1)], 'offer', { offer_amount: 28, created_at: days(5), claim_history: [h('Claim submitted', null, days(5)), h('Accepted — shipping label emailed', null, days(4)), h('Games received at facility', null, days(3)), h('Offer made: $28', 'Confirmed sealed; priced to current market.', days(2))] }),
       newClaim('RS-6N1R5G', profiles[2], [item('ed-forza', 'complete', 1, 1), item('ed-halo', 'complete', 1, 2)], 'paid', { offer_amount: 14, paid_amount: 14, paid_method: 'PayPal', created_at: days(12), claim_history: [h('Claim submitted', null, days(12)), h('Games received at facility', null, days(10)), h('Offer made: $14', null, days(9)), h('You accepted the offer', null, days(9)), h('Payment authorized via PayPal', 'PayPal 1–3 business days.', days(9))] }),
-      newClaim('RS-1F2G3H', profiles[3], [item('ed-cuphead', 'complete', 1, 1)], 'received', { assignee_id: 'staff-connor', assignee_name: 'Connor Waugaman', created_at: days(2), claim_history: [h('Claim submitted', null, days(2)), h('Games received at facility', null, days(1))] }) ];
+      newClaim('RS-1F2G3H', profiles[3], [item('ed-cuphead', 'complete', 1, 1)], 'received', { assignee_id: 'staff-connor', assignee_name: 'Connor Waugaman', created_at: days(2), claim_history: [h('Claim submitted', null, days(2)), h('Games received at facility', null, days(1))] }),
+      // Maya — a Digital Card claim already credited (offer $19 -> $20 -> $25 incl. 25% bonus).
+      newClaim('RS-PSN9K2', profiles[1], [item('ed-rdr2', 'complete', 1, 1)], 'paid', { payout: 'Digital Card', card_brand: 'PlayStation', offer_amount: 19, paid_amount: 25, paid_method: 'Digital Card (PlayStation)', customer_response: 'accepted', created_at: days(4), claim_history: [h('Claim submitted', 'Payout: PlayStation digital card (+25% bonus).', days(4)), h('Games received at facility', null, days(3)), h('Offer made: $19 → digital card $25', 'Rounded to $20, +25% bonus. Seller waived negotiation.', days(2))] }),
+      // Maya — a Digital Card claim still in progress (balance pending approval).
+      newClaim('RS-XBX4T7', profiles[1], [item('ed-smash', 'sealed', 1, 1)], 'received', { payout: 'Digital Card', card_brand: 'Xbox', assignee_id: 'staff-connor', assignee_name: 'Connor Waugaman', created_at: days(2), claim_history: [h('Claim submitted', 'Payout: Xbox digital card (+25% bonus).', days(2)), h('Games received at facility', null, days(1))] }) ];
 
     function findClaim(ref) { return claims.filter(function (c) { return c.ref === ref; })[0]; }
     function findProfileById(id) { return profiles.filter(function (p) { return p.id === id; })[0]; }
@@ -324,8 +341,14 @@
         var games = items.reduce(function (s, i) { return s + i.qty; }, 0);
         var offer = computeOffer(items, pricing);
         if (offer < pricing.min_quote && games < pricing.min_games) throw new Error('MIN_RULE: A claim needs an estimated offer of at least $' + pricing.min_quote + ' or at least ' + pricing.min_games + ' games.');
+        var brand = null;
+        if (isCardPayout(o.payout)) {
+          brand = o.cardBrand;
+          if (CARD.brands.indexOf(brand) === -1) throw new Error('Choose a digital card: ' + CARD.brands.join(', ') + '.');
+        }
         var ref = 'RS-' + Math.random().toString(36).slice(2, 8).toUpperCase();
-        var c = newClaim(ref, p, items, 'submitted', { payout: o.payout, address: o.address || '', cust_phone: o.phone || p.phone, customer_notes: (o.notes || '').trim(), created_at: new Date().toISOString(), claim_history: [h('Claim submitted', null, new Date().toISOString())] });
+        var note = isCardPayout(o.payout) ? 'Payout: ' + brand + ' digital card (+25% bonus).' : null;
+        var c = newClaim(ref, p, items, 'submitted', { payout: isCardPayout(o.payout) ? 'Digital Card' : o.payout, card_brand: brand, address: o.address || '', cust_phone: o.phone || p.phone, customer_notes: (o.notes || '').trim(), created_at: new Date().toISOString(), claim_history: [h('Claim submitted', note, new Date().toISOString())] });
         if (o.phone) p.phone = o.phone; if (o.payout === 'Check' && o.address) p.address = o.address;
         claims.unshift(c); return ref;
       },
@@ -362,7 +385,14 @@
       declineClaim: sa(function (c, x) { st(c, ['submitted', 'reviewing'], 'declined', 'Declined — not accepted', x || "We weren't able to accept this claim this cycle."); }),
       markReceived: sa(function (c) { st(c, 'accepted', 'received', 'Games received at facility'); }),
       regradeItem: function (itemId, condId) { return wrap(function () { requireStaff(); var c = claims.filter(function (cl) { return cl.claim_items.some(function (i) { return i.id === itemId; }); })[0]; if (!c) throw new Error('Item not found'); if (c.status !== 'received') throw new Error('Items can only be re-graded during inspection'); var it = c.claim_items.filter(function (i) { return i.id === itemId; })[0]; var e = ed[it.edition_id], cn = condById[condId]; if (!cn) throw new Error('Unknown condition'); var old = it.cond_name; it.condition_id = condId; it.cond_name = cn.name; it.unit_market = marketValue(e, cn); it.line_mid = Math.round(it.unit_market * it.qty); if (old !== cn.name) push(c, 'Re-graded ' + it.title_name + ': ' + old + ' → ' + cn.name, 'Condition confirmed on inspection.'); }); },
-      makeOffer: function (ref, amt, x) { return wrap(function () { requireStaff(); var c = findClaim(ref); if (!c) throw new Error('Claim not found'); if (c.bulk) throw new Error('Use the bulk offer for a bulk claim'); if (c.status !== 'received') throw new Error('Can only offer on a received claim'); var s = suggested(c); if (s <= 0) throw new Error('This claim has no eligible value — reject and return it instead.'); var lo = Math.max(1, Math.floor(s * 0.85)), hi = Math.max(lo, Math.ceil(s * 1.15)); if (!amt || amt < lo || amt > hi) throw new Error('Offer must be between $' + lo + ' and $' + hi + ' for this claim (algorithm suggests $' + s + ')'); c.status = 'offer'; c.offer_amount = amt; c.customer_response = null; push(c, 'Offer made: $' + amt, (x || '').trim() || null); }); },
+      makeOffer: function (ref, amt, x) { return wrap(function () { requireStaff(); var c = findClaim(ref); if (!c) throw new Error('Claim not found'); if (c.bulk) throw new Error('Use the bulk offer for a bulk claim'); if (c.status !== 'received') throw new Error('Can only offer on a received claim'); var s = suggested(c); if (s <= 0) throw new Error('This claim has no eligible value — reject and return it instead.'); var lo = Math.max(1, Math.floor(s * 0.85)), hi = Math.max(lo, Math.ceil(s * 1.15)); if (!amt || amt < lo || amt > hi) throw new Error('Offer must be between $' + lo + ' and $' + hi + ' for this claim (algorithm suggests $' + s + ')');
+        if (isCardPayout(c.payout)) {
+          // Seller waived negotiation — auto-credit the digital card (rounded up + 25% bonus).
+          var credit = cardCredit(amt); c.status = 'paid'; c.offer_amount = amt; c.customer_response = 'accepted'; c.paid_amount = credit; c.paid_method = 'Digital Card (' + c.card_brand + ')';
+          push(c, 'Offer made: $' + amt + ' → digital card $' + credit, ((x || '').trim() ? (x.trim() + ' ') : '') + 'Rounded up, +25% bonus. Seller waived negotiation.');
+          return;
+        }
+        c.status = 'offer'; c.offer_amount = amt; c.customer_response = null; push(c, 'Offer made: $' + amt, (x || '').trim() || null); }); },
       // One bulk offer for the whole lot — no per-item band (no items to price).
       makeBulkOffer: function (ref, amt, x) { return wrap(function () { requireStaff(); var c = findClaim(ref); if (!c) throw new Error('Claim not found'); if (!c.bulk) throw new Error('Not a bulk claim'); if (c.status !== 'received') throw new Error('Can only offer on a received claim'); amt = parseInt(amt, 10); if (!amt || amt < 1) throw new Error('Enter a bulk offer amount.'); c.status = 'offer'; c.offer_amount = amt; c.customer_response = null; push(c, 'Bulk offer made: $' + amt, (x || '').trim() || null); }); },
       rejectReturn: sa(function (c, x) { if (c.status !== 'received') throw new Error('Claim is not in inspection'); c.status = 'returned'; push(c, 'Rejected on inspection — returning to seller', (x || '').trim() || "We'll email tracking."); }),
@@ -396,5 +426,9 @@
   API.BULK_STATUSES = BULK_STATUSES;
   API.bulkEligibility = bulkEligibility;
   API.daysSince = daysSince;
+  API.CARD = CARD;
+  API.cardCredit = cardCredit;
+  API.monthEndISO = monthEndISO;
+  API.isCardPayout = isCardPayout;
   window.RestashAPI = API;
 })();
