@@ -25,7 +25,7 @@
     --body: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: var(--body); background: var(--bg); color: var(--ink); -webkit-font-smoothing: antialiased; }
+  body { font-family: var(--body); background: radial-gradient(1000px 560px at 50% -8%, #f4f2fc 0%, #eae7f5 46%, #e7e4f3 100%) no-repeat; background-color: #e7e4f3; color: var(--ink); -webkit-font-smoothing: antialiased; }
   svg { display: block; }
   a { color: var(--purple); }
 
@@ -78,8 +78,9 @@
   .rows { margin-top: 16px; display: flex; flex-direction: column; gap: 10px; }
   .row { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; background: var(--surface); border: 1.5px solid var(--border); border-radius: 14px; padding: 15px 17px; cursor: pointer; font-family: var(--body); color: var(--ink); transition: border-color .15s ease, background .15s ease; }
   .row:hover { border-color: var(--purple); background: var(--purple-tint-2); }
-  .row.gold { background: var(--gold-soft); border-color: #efe0b8; }
-  .row.gold:hover { border-color: var(--gold-label); background: #fbeecb; }
+  /* Flagged accounts — a warm accent (gold edge stripe + soft gradient), not a flat block. */
+  .row.gold { background: linear-gradient(100deg, #fff8ea 0%, #fdeecb 100%); border-color: #efdca6; box-shadow: inset 3px 0 0 var(--amber); }
+  .row.gold:hover { border-color: var(--amber); background: linear-gradient(100deg, #fff3d6 0%, #fbe6b6 100%); }
   .row:focus-visible { outline: none; border-color: var(--purple); box-shadow: 0 0 0 3px rgba(91,63,214,0.16); }
   .row-avatar { flex: none; width: 42px; height: 42px; border-radius: 11px; background: var(--purple-tint); color: var(--purple); display: flex; align-items: center; justify-content: center; font-family: var(--display); font-weight: 700; font-size: 16px; }
   .row-avatar svg { width: 21px; height: 21px; }
@@ -401,6 +402,10 @@
 
   const FILTERS = [['all', 'All'], ['submitted', 'New'], ['reviewing', 'Review'], ['accepted', 'Accepted'], ['received', 'Received'], ['offer', 'Offer sent'], ['paid', 'Paid'], ['declined', 'Declined'], ['returned', 'Returned']];
   const TAB_VIEW = { claims: 'dashboard', accounts: 'accounts', bulk: 'bulkSellers', payouts: 'payouts', team: 'team', resources: 'resources' };
+  const TAB_LABEL = { claims: 'Claims', accounts: 'Accounts', bulk: 'Bulk Sellers', payouts: 'Payouts', team: 'Team', resources: 'Resources' };
+  // Back button returns to whichever tab you opened the detail from (so a seller
+  // opened from Bulk Sellers goes back to Bulk Sellers, a payout to Payouts…).
+  function backBtn() { return '<button class="backbtn" data-action="back-to-tab">' + I.back + (TAB_LABEL[state.tab] || 'Back') + '</button>'; }
   const CUR_TEXT = {
     submitted: 'This claim is new and awaiting your review.',
     reviewing: 'You\u2019re reviewing this claim. Accept it to email a shipping label, or decline.',
@@ -666,7 +671,7 @@
         + '<button class="stat read"><span class="stat-top">' + I.star + '<span class="stat-label">Active sellers</span></span><span class="stat-num">' + activeN + '</span></button>'
         + '<button class="stat read"><span class="stat-top">' + I.clock + '<span class="stat-label">Suspended</span></span><span class="stat-num">' + suspN + '</span></button>';
       const rows = list.length ? list.map(a =>
-        '<button class="row" data-action="open-account" data-value="' + esc(a.email) + '"><span class="row-avatar">' + initials(a.name) + '</span>'
+        '<button class="row' + (a.flagged ? ' gold' : '') + '" data-action="open-account" data-value="' + esc(a.email) + '"><span class="row-avatar">' + initials(a.name) + '</span>'
         + '<span class="row-main"><span class="row-line1"><span class="row-name">' + esc(a.name) + '</span></span></span>'
         + '<span class="chev">' + I.chevron + '</span></button>'
       ).join('') : '<div class="empty">No Bulk Seller applications yet.</div>';
@@ -729,7 +734,7 @@
     },
     claimDetail() {
       const c = findClaim(state.activeRef);
-      if (!c) return '<div class="screen wrap"><button class="backbtn" data-action="to-claims">' + I.back + 'Claims</button><div class="detail-ref">Claim not found</div></div>';
+      if (!c) return '<div class="screen wrap">' + backBtn() + '<div class="detail-ref">Claim not found</div></div>';
       const amount = (c.status === 'paid') ? goldCard(c.bulk ? 'Bulk amount paid' : 'Amount paid', '$' + c.offerAmount, 'joined')
         : (c.status === 'offer') ? goldCard(c.bulk ? 'Bulk offer sent' : 'Offer sent', '$' + c.offerAmount, 'joined')
         : (c.status === 'returned' && c.offerAmount) ? goldCard('Last offer', '$' + c.offerAmount, 'joined')
@@ -739,7 +744,7 @@
       const lotCard = c.bulk
         ? '<div class="card"><div class="card-h">Manifest ' + bulkPill(c) + '</div><p class="cust-note">' + esc(c.manifest || '') + '</p></div>'
         : itemsPanel(c.items);
-      return '<div class="screen wrap"><button class="backbtn" data-action="to-claims">' + I.back + 'Claims</button>'
+      return '<div class="screen wrap">' + backBtn() + ''
         + '<div class="detail-head"><div><div class="detail-ref">' + c.ref + '</div><div class="detail-date">Submitted ' + esc(c.createdAt) + '</div></div><div class="head-tags">' + (c.flagged ? flagBadge() : '') + bulkPill(c) + badge(c.status) + '</div></div>'
         + assignBar(c)
         + actionCard(c)
@@ -756,13 +761,13 @@
     },
     accountDetail() {
       const a = findAccount(state.activeEmail);
-      if (!a) return '<div class="screen wrap"><button class="backbtn" data-action="to-accounts">' + I.back + 'Accounts</button><div class="detail-ref">Account not found</div></div>';
+      if (!a) return '<div class="screen wrap">' + backBtn() + '<div class="detail-ref">Account not found</div></div>';
       const cl = claimsForEmail(a.email);
       const paidTotal = cl.filter(c => c.status === 'paid').reduce((s, c) => s + (c.offerAmount || 0), 0);
       const rows = cl.length ? cl.map(c =>
         '<button class="row" data-action="open-claim" data-ref="' + c.ref + '"><span class="row-avatar">' + (c.bulk ? I.box : I.gamepad) + '</span><span class="row-main"><span class="row-line1"><span class="row-name">' + esc(claimTitle(c)) + '</span>' + badge(c.status) + bulkPill(c) + '</span><span class="row-meta">' + c.ref + ' · ' + esc(c.createdAt) + '</span></span><span class="row-right"><span class="row-amt">' + (c.bulk ? (c.offerAmount ? '$' + c.offerAmount : 'Bulk') : '$' + c.estLow + '–$' + c.estHigh) + '</span></span><span class="chev">' + I.chevron + '</span></button>'
       ).join('') : '<div class="empty">No claims for this account.</div>';
-      return '<div class="screen wrap"><button class="backbtn" data-action="to-accounts">' + I.back + 'Accounts</button>'
+      return '<div class="screen wrap">' + backBtn() + ''
         + '<div class="detail-head"><div class="detail-ref">' + esc(a.name) + '</div>' + (a.flagged ? '<div class="head-tags">' + flagBadge() + '</div>' : '') + '</div>'
         + '<div class="card" style="margin-top:18px;"><div class="card-h">Profile</div>'
         +   '<div class="kv"><span class="k">' + I.mail + 'Email</span><span class="v">' + esc(a.email) + '</span></div>'
@@ -792,7 +797,7 @@
     if (!list.length) return '<div class="empty">No accounts match.</div>';
     return '<div class="rows">' + list.map(a => {
       const n = claimsForEmail(a.email).length;
-      return '<button class="row gold" data-action="open-account" data-value="' + esc(a.email) + '"><span class="row-avatar">' + initials(a.name) + '</span><span class="row-main"><span class="row-line1"><span class="row-name">' + esc(a.name) + '</span></span></span><span class="row-right"><span class="row-amt" style="font-size:14px;">' + n + ' claim' + (n === 1 ? '' : 's') + '</span></span><span class="chev">' + I.chevron + '</span></button>';
+      return '<button class="row' + (a.flagged ? ' gold' : '') + '" data-action="open-account" data-value="' + esc(a.email) + '"><span class="row-avatar">' + initials(a.name) + '</span><span class="row-main"><span class="row-line1"><span class="row-name">' + esc(a.name) + '</span></span></span><span class="row-right"><span class="row-amt" style="font-size:14px;">' + n + ' claim' + (n === 1 ? '' : 's') + '</span></span><span class="chev">' + I.chevron + '</span></button>';
     }).join('') + '</div>';
   }
   function listRegionHTML() { return state.view === 'accounts' ? accountsListHTML() : claimsListHTML(); }
@@ -839,6 +844,7 @@
     }
     else if (a === 'logout') { try { await RestashAPI.signOut(); } catch (e3) {} state.loggedIn = false; state.search = ''; state.filter = 'all'; state.claims = []; state.accounts = []; state.team = []; go('login'); }
     else if (a === 'tab') { state.tab = v; state.search = ''; if (v === 'team') await ensureTeam(); if (v === 'bulk') await ensureBulk(); go(TAB_VIEW[v]); }
+    else if (a === 'back-to-tab') { if (state.tab === 'bulk') await ensureBulk(); go(TAB_VIEW[state.tab] || 'dashboard'); }
     else if (a === 'to-claims') { state.tab = 'claims'; go('dashboard'); }
     else if (a === 'to-accounts') { state.tab = 'accounts'; go('accounts'); }
     else if (a === 'filter' || a === 'stat') { state.filter = (a === 'stat' && state.filter === v) ? 'all' : v; render(); }
