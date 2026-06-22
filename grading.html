@@ -140,7 +140,12 @@
   .foot-bottom { margin-top: 16px; font-size: 12px; line-height: 1.5; color: #9a9ab4; }
   .foot-fine { margin-top: 5px; }
 
-  .grade { box-shadow: 0 1px 2px rgba(34,30,75,0.05), 0 12px 26px rgba(60,50,110,0.085); }
+  .grade { background: rgba(255,255,255,0.56); backdrop-filter: blur(16px) saturate(1.5); -webkit-backdrop-filter: blur(16px) saturate(1.5); border-color: rgba(255,255,255,0.7); box-shadow: 0 1px 2px rgba(34,30,75,0.05), 0 14px 30px rgba(60,50,110,0.10), inset 0 1px 0 rgba(255,255,255,0.6); }
+  .btn { position: relative; overflow: hidden; transition: background .18s ease, transform .2s cubic-bezier(.2,.8,.2,1), box-shadow .2s ease; }
+  .btn::after { content: ""; position: absolute; inset: 0; background: linear-gradient(115deg, transparent 38%, rgba(255,255,255,0.30) 50%, transparent 62%); transform: translateX(-135%); transition: transform .6s cubic-bezier(.2,.7,.3,1); pointer-events: none; }
+  .btn:hover::after { transform: translateX(135%); }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 12px 26px rgba(91,63,214,0.30); }
+  @media (prefers-reduced-motion: reduce) { .btn { transition: none; } .btn:hover { transform: none; } .btn::after { display: none; } }
   @media (max-width: 560px) { h1 { font-size: 28px; } .pill { margin-left: 0; } }
 </style>
 </head>
