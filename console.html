@@ -367,8 +367,6 @@
   .btn:active { transform: translateY(0); }
   .row, .stat { transition: transform .2s cubic-bezier(.2,.8,.2,1), border-color .15s ease, background .15s ease, box-shadow .2s ease; }
   .row:hover, .stat:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(34,30,75,0.06), 0 20px 38px rgba(60,50,110,0.14); }
-  .offer-card-note { display: flex; gap: 9px; align-items: flex-start; background: var(--purple-tint); color: var(--purple-deep); font-size: 13px; line-height: 1.5; padding: 11px 13px; border-radius: 11px; margin-top: 10px; }
-  .offer-card-note svg { flex: none; width: 16px; height: 16px; margin-top: 1px; }
   @media (prefers-reduced-motion: reduce) { .btn::after { display: none; } .btn:hover, .row:hover, .stat:hover { transform: none; } }
 </style>
 </head>
@@ -576,11 +574,10 @@
           + '<div class="offer-buttons"><button class="btn btn-danger" data-action="st-reject" data-ref="' + c.ref + '">Reject &amp; return</button><button class="btn btn-secondary" data-action="cancel-offer">Cancel</button></div></div>';
       } else {
         body += '<div class="offer-hint">Market value $' + market + ' · <strong>Algorithm suggests $' + sugg + '</strong> (margin − shipping − fees). Offer must be between $' + lo + ' and $' + hi + '.</div>'
-          + (RestashAPI.isCardPayout(c.payout) ? '<div class="offer-card-note">' + I.info + '<span>Seller chose a <strong>' + esc(c.cardBrand || 'digital') + ' card</strong> and <strong>waived negotiation</strong>. Your offer is auto-credited (rounded up to $5, +25% bonus) — no customer accept step.</span></div>' : '')
           + '<label for="offer-amount" style="margin-top:14px;">Offer amount</label><div class="offer-input"><span>$</span><input id="offer-amount" type="number" min="' + lo + '" max="' + hi + '" value="' + mid + '"></div>'
           + '<label for="offer-reason" style="margin-top:14px;">Why this offer <span style="font-weight:500;color:var(--muted);">— the customer sees this</span></label><textarea id="offer-reason" rows="2" placeholder="e.g. Graded Complete, light disc wear; priced to current market." style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;font-family:var(--body);font-size:14px;resize:vertical;"></textarea>'
           + flashMsg('offer')
-          + '<div class="offer-buttons"><button class="btn btn-primary" data-action="send-offer" data-ref="' + c.ref + '">' + (RestashAPI.isCardPayout(c.payout) ? 'Make offer &amp; credit card' : 'Send offer') + '</button><button class="btn btn-secondary" data-action="cancel-offer">Cancel</button></div></div>';
+          + '<div class="offer-buttons"><button class="btn btn-primary" data-action="send-offer" data-ref="' + c.ref + '">Send offer</button><button class="btn btn-secondary" data-action="cancel-offer">Cancel</button></div></div>';
       }
     } else if (c.status === 'offer') {
       live = true;
@@ -771,8 +768,7 @@
     claimDetail() {
       const c = findClaim(state.activeRef);
       if (!c) return '<div class="screen wrap">' + backBtn() + '<div class="detail-ref">Claim not found</div></div>';
-      const amount = (c.status === 'paid' && RestashAPI.isCardPayout(c.payout)) ? goldCard((c.cardBrand ? c.cardBrand + ' ' : '') + 'card credited', '$' + (c.paidAmount || RestashAPI.cardCredit(c.offerAmount)), 'joined')
-        : (c.status === 'paid') ? goldCard(c.bulk ? 'Bulk amount paid' : 'Amount paid', '$' + c.offerAmount, 'joined')
+      const amount = (c.status === 'paid') ? goldCard(c.bulk ? 'Bulk amount paid' : 'Amount paid', '$' + c.offerAmount, 'joined')
         : (c.status === 'offer') ? goldCard(c.bulk ? 'Bulk offer sent' : 'Offer sent', '$' + c.offerAmount, 'joined')
         : (c.status === 'returned' && c.offerAmount) ? goldCard('Last offer', '$' + c.offerAmount, 'joined')
         : c.bulk ? '<div class="card joined bulk-detail-card"><div class="card-h">' + I.box + 'Bulk lot</div><p>One offer for the whole lot after priority inspection.' + (c.estCount ? ' Seller estimates ~<strong>' + c.estCount + ' games</strong>.' : '') + '</p></div>'
@@ -790,7 +786,7 @@
         +     '<div class="kv"><span class="k">' + I.user + 'Name</span><span class="v">' + esc(c.cust) + '</span></div>'
         +     '<div class="kv"><span class="k">' + I.mail + 'Email</span><span class="v">' + esc(c.email) + '</span></div>'
         +     '<div class="kv"><span class="k">' + I.phone + 'Phone</span><span class="v">' + esc(c.phone) + '</span></div>'
-        +     '<div class="kv"><span class="k">' + I.card + 'Payout</span><span class="v">' + esc(RestashAPI.isCardPayout(c.payout) ? ((c.cardBrand ? c.cardBrand + ' ' : '') + 'digital card (+25%)') : c.payout) + '</span></div>'
+        +     '<div class="kv"><span class="k">' + I.card + 'Payout</span><span class="v">' + esc(c.payout) + '</span></div>'
         +     '<div class="kv"><span class="k">' + sendIcon + 'Send to</span><span class="v">' + esc(destOf(c)) + '</span></div>'
         +     '<div style="margin-top:14px;"><button class="btn btn-secondary full" data-action="view-account" data-value="' + esc(c.email) + '">' + I.user + 'View account</button></div></div></div>'
         +   '<div>' + lotCard + (c.customerNote ? '<div class="card"><div class="card-h">Note from the customer</div><p class="cust-note">' + esc(c.customerNote) + '</p></div>' : '') + '<div class="card"><div class="card-h">Status history</div>' + timeline(c.history) + '</div></div>'

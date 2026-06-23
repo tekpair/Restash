@@ -214,6 +214,8 @@
   .inline-msg { font-size: 13.5px; font-weight: 500; padding: 10px 13px; border-radius: 11px; margin-top: 12px; line-height: 1.45; }
   .inline-msg.err { color: #b3261e; background: #fbeae8; border: 1px solid #f0c7c3; }
   .inline-msg.ok { color: #5b3fd6; background: #f4f1fd; border: 1px solid #ece8fb; }
+  .cap-note { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; line-height: 1.45; color: var(--gold-label); background: var(--gold-soft); border: 1px solid var(--gold-soft-border); border-radius: 11px; padding: 10px 13px; margin-top: 12px; }
+  .cap-note svg { width: 15px; height: 15px; flex: none; margin-top: 1px; }
   [hidden] { display: none !important; }
   .forgot { margin-top: 8px; text-align: right; }
   .forgot a { font-size: 13px; font-weight: 500; cursor: pointer; text-decoration: none; }
@@ -413,6 +415,9 @@
   .bstep-n { flex: none; width: 22px; height: 22px; border-radius: 50%; background: var(--purple-tint); color: var(--purple); font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
   .bulk-select { width: 100%; font-family: var(--body); font-size: 15px; color: var(--ink); background: var(--surface); border: 1.5px solid var(--border); border-radius: 11px; padding: 12px 13px; cursor: pointer; }
   .bulk-select:focus { outline: none; border-color: var(--purple); box-shadow: 0 0 0 3px rgba(91,63,214,0.16); }
+  .bulk-payout-fixed { display: flex; flex-direction: column; gap: 2px; cursor: default; }
+  .bulk-payout-fixed strong { color: var(--ink); font-size: 15px; }
+  .bulk-payout-fixed span { font-size: 12.5px; font-weight: 500; color: var(--muted); }
   .bulk-line { margin-top: 18px; background: var(--surface); border: 1.5px solid var(--border); border-radius: 14px; padding: 15px 16px; }
   .bl-h { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 14px; color: var(--ink); }
   .bl-h svg { width: 17px; height: 17px; color: var(--purple); }
@@ -512,31 +517,9 @@
   .btn-secondary:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(91,63,214,0.18); }
   .btn-danger:hover { transform: translateY(-2px); }
   .btn:active { transform: translateY(0); }
-  .card, .pay-opt, .brand-opt, .claim-row, .acct-tab { transition: transform .2s cubic-bezier(.2,.8,.2,1), border-color .15s ease, background .15s ease, box-shadow .2s ease, color .15s ease; }
+  .card, .pay-opt, .claim-row, .acct-tab { transition: transform .2s cubic-bezier(.2,.8,.2,1), border-color .15s ease, background .15s ease, box-shadow .2s ease, color .15s ease; }
   .card:hover, .pay-opt:hover, .claim-row:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(34,30,75,0.06), 0 22px 42px rgba(60,50,110,0.15); }
-  @media (prefers-reduced-motion: reduce) { .btn, .card, .pay-opt, .brand-opt, .claim-row { transition: none; } .btn:hover, .btn-primary:hover, .btn-secondary:hover, .card:hover, .pay-opt:hover, .claim-row:hover { transform: none; } .btn::after { display: none; } }
-
-  /* ---- Digital Card payout ---- */
-  .pay-grid { grid-template-columns: 1fr; }
-  .pico.brandcard, .pay-opt.sel .pico.brandcard { background: linear-gradient(135deg, #5b3fd6 0%, #9b4dff 100%); color: #fff; }
-  .bonus-tag { display: inline-block; font-size: 10.5px; font-weight: 800; letter-spacing: .02em; color: #1c6b3a; background: #dcf3e4; border-radius: 999px; padding: 1px 7px; margin-left: 6px; vertical-align: middle; }
-  .brand-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 9px; }
-  .brand-opt { font-family: var(--body); font-size: 13.5px; font-weight: 600; color: var(--ink); background: rgba(255,255,255,0.72); border: 1.5px solid var(--border); border-radius: 11px; padding: 12px 8px; cursor: pointer; }
-  .brand-opt:hover { border-color: var(--purple); transform: translateY(-1px); }
-  .brand-opt.sel { border-color: var(--purple); background: var(--purple-tint); color: var(--purple-deep); box-shadow: 0 0 0 3px rgba(91,63,214,0.14); }
-  .card-note { display: flex; gap: 9px; align-items: flex-start; margin-top: 12px; font-size: 12.5px; line-height: 1.5; color: var(--muted); background: var(--gold-soft); border: 1px solid var(--gold-soft-border); border-radius: 12px; padding: 11px 13px; }
-  .card-note svg { width: 16px; height: 16px; flex: none; color: var(--gold-label); margin-top: 1px; }
-  .card-note strong { color: var(--ink); }
-  .card-agree { margin-top: 12px; }
-  .brand-chip { display: inline-block; font-size: 11px; font-weight: 700; color: #fff; border-radius: 999px; padding: 2px 9px; }
-  .brand-chip.b-psn { background: #003087; }
-  .brand-chip.b-xbox { background: #107c10; }
-  .brand-chip.b-nintendo { background: #e60012; }
-  .card-meta { margin-top: 12px; font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
-  .card-state { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 999px; flex: none; }
-  .card-state.ok { color: #1c6b3a; background: #dcf3e4; }
-  .card-state.pend { color: var(--amber); background: var(--amber-tint); }
-  .card-state.no { color: var(--red); background: var(--red-soft); }
+  @media (prefers-reduced-motion: reduce) { .btn, .card, .pay-opt, .claim-row { transition: none; } .btn:hover, .btn-primary:hover, .btn-secondary:hover, .card:hover, .pay-opt:hover, .claim-row:hover { transform: none; } .btn::after { display: none; } }
 </style>
 </head>
 <body>
@@ -642,7 +625,7 @@
   let state = {
     view: 'platform', returnTo: 'platform', pendingClaim: false,
     platformId: null, titleId: null, editionId: null, condId: null,
-    cart: [], payout: null, cardBrand: null, draft: {}, regDraft: {}, flash: null,
+    cart: [], payout: null, draft: {}, regDraft: {}, flash: null,
     loggedIn: false, user: { name: '', email: '', phone: '' },
     activeClaimRef: null, acctTab: 'profile', bulk: { status: null }, confirmDelete: false,
     claims: []
@@ -663,6 +646,9 @@
     return { offer, market, games, meetsMin, low: Math.round(offer * 0.85), high: offer };
   }
   const cartQty = () => state.cart.reduce((s, it) => s + it.qty, 0);
+  const MAX_CLAIM_GAMES = 10;
+  const bulkActive = () => !!(state.bulk && state.bulk.status === 'approved');
+  const claimCapReached = () => !bulkActive() && cartQty() >= MAX_CLAIM_GAMES;
   function makeRef() { let r; do { r = 'RS-' + Math.random().toString(36).slice(2, 8).toUpperCase(); } while (state.claims.some(c => c.ref === r)); return r; }
   function todayStr() { return new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); }
   const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -780,8 +766,10 @@
     cart() {
       if (!state.cart.length) { state.view = 'platform'; return views.platform(); }
       const t = cartTotals();
+      const atCap = claimCapReached();
+      const incAttr = atCap ? ' disabled style="opacity:.4;cursor:not-allowed;"' : '';
       const lines = state.cart.map((it, i) =>
-        '<div class="cart-line"><div class="cl-top"><span class="cl-icon">' + I.gamepad + '</span><span class="cl-body"><span class="cl-title">' + esc(it.titleName) + '</span><span class="cl-meta">' + esc(it.platformName + ' · ' + it.editionName + ' · ' + it.condName) + '</span></span><button class="cl-remove" data-action="cart-remove" data-idx="' + i + '" aria-label="Remove ' + esc(it.titleName) + '">' + I.x + '</button></div><div class="cl-bottom"><div class="qty"><button class="qbtn" data-action="qty-dec" data-idx="' + i + '" aria-label="Decrease quantity">' + I.minus + '</button><span class="qn">' + it.qty + '</span><button class="qbtn" data-action="qty-inc" data-idx="' + i + '" aria-label="Increase quantity">' + I.plus + '</button></div><span class="cl-amt">$' + lineMidOf(it) + '</span></div></div>'
+        '<div class="cart-line"><div class="cl-top"><span class="cl-icon">' + I.gamepad + '</span><span class="cl-body"><span class="cl-title">' + esc(it.titleName) + '</span><span class="cl-meta">' + esc(it.platformName + ' · ' + it.editionName + ' · ' + it.condName) + '</span></span><button class="cl-remove" data-action="cart-remove" data-idx="' + i + '" aria-label="Remove ' + esc(it.titleName) + '">' + I.trash + '</button></div><div class="cl-bottom"><div class="qty"><button class="qbtn" data-action="qty-dec" data-idx="' + i + '" aria-label="Decrease quantity">' + I.minus + '</button><span class="qn">' + it.qty + '</span><button class="qbtn" data-action="qty-inc" data-idx="' + i + '" aria-label="Increase quantity"' + incAttr + '>' + I.plus + '</button></div><span class="cl-amt">$' + lineMidOf(it) + '</span></div></div>'
       ).join('');
       const minTip = 'We take claims with an estimated offer of at least $' + PRICING.min_quote + ', or ' + PRICING.min_games + '+ games — shipping makes a single low-value game a wash. Add another to continue.';
       const minFlag = t.meetsMin ? '' : '<span class="min-flag" tabindex="0" role="img" aria-label="' + minTip + '">!<span class="min-tip">' + minTip + '</span></span>';
@@ -791,7 +779,8 @@
       return '<div class="screen"><h1 class="h1">Your games</h1><p class="sub">Adjust quantities, add more games, or continue to your claim.</p>'
         + goldCard('Estimated cash offer', '$' + t.low + ' – $' + t.high)
         + '<div class="cart-list">' + lines + '</div>'
-        + '<div class="btn-stack"><button class="btn btn-secondary" data-action="add-another">' + I.plus + 'Add another game</button>' + continueBtn + '</div>'
+        + (atCap ? '<div class="cap-note">' + I.info + '<span>That’s the max <strong>' + MAX_CLAIM_GAMES + ' games</strong> for one claim. Submit this claim, then start another.</span></div>' : '')
+        + '<div class="btn-stack">' + (atCap ? '<button class="btn btn-secondary" disabled style="opacity:.55;cursor:not-allowed;">' + I.plus + 'Add another game</button>' : '<button class="btn btn-secondary" data-action="add-another">' + I.plus + 'Add another game</button>') + continueBtn + '</div>'
         + (state.loggedIn ? '' : '<br><span class="reg-note" style="display:flex;justify-content:center;">' + I.lock + 'You\u2019ll need a free account to submit.</span>')
         + '</div>';
     },
@@ -808,12 +797,8 @@
         + '<div class="field"><label for="cf-name">Full name</label><input id="cf-name" type="text" placeholder="Jordan Rivera" value="' + val('name') + '"></div>'
         + '<div class="field"><label for="cf-email">Email</label><input id="cf-email" type="email" placeholder="you@email.com" value="' + val('email') + '"></div>'
         + '<div class="field"><label for="cf-phone">Phone</label><input id="cf-phone" type="tel" placeholder="(518) 555-0123" value="' + val('phone') + '"></div>'
-        + '<div class="field"><span class="flabel">How would you like to be paid?</span><div class="pay-grid"><button type="button" class="pay-opt' + sel('PayPal') + '" data-action="pick-payout" data-value="PayPal"><span class="pico brandfull">' + I.paypal + '</span><span><span class="pname">PayPal</span><span class="pdesc">To your PayPal email</span></span></button><button type="button" class="pay-opt' + sel('Check') + '" data-action="pick-payout" data-value="Check"><span class="pico brandcheck">' + I.receipt + '</span><span><span class="pname">Check</span><span class="pdesc">Mailed to your address</span></span></button><button type="button" class="pay-opt' + sel('Digital Card') + '" data-action="pick-payout" data-value="Digital Card"><span class="pico brandcard">' + I.card + '</span><span><span class="pname">Digital card <span class="bonus-tag">+25%</span></span><span class="pdesc">Store credit — the biggest payout</span></span></button></div></div>'
+        + '<div class="field"><span class="flabel">How would you like to be paid?</span><div class="pay-grid"><button type="button" class="pay-opt' + sel('PayPal') + '" data-action="pick-payout" data-value="PayPal"><span class="pico brandfull">' + I.paypal + '</span><span><span class="pname">PayPal</span><span class="pdesc">To your PayPal email</span></span></button><button type="button" class="pay-opt' + sel('Check') + '" data-action="pick-payout" data-value="Check"><span class="pico brandcheck">' + I.receipt + '</span><span><span class="pname">Check</span><span class="pdesc">Mailed to your address</span></span></button></div></div>'
         + '<div class="field" id="cf-addr-field"' + (state.payout === 'Check' ? '' : ' hidden') + '><label for="cf-addr">Mailing address <span class="opt">(for your check)</span></label><input id="cf-addr" type="text" placeholder="Street, City, State ZIP" value="' + val('address') + '"></div>'
-        + '<div class="field" id="cf-card-field"' + (state.payout === 'Digital Card' ? '' : ' hidden') + '><span class="flabel">Choose your digital card</span>'
-        + '<div class="brand-grid">' + RestashAPI.CARD.brands.map(b => '<button type="button" class="brand-opt' + (state.cardBrand === b ? ' sel' : '') + '" data-action="pick-card-brand" data-value="' + b + '">' + b + '</button>').join('') + '</div>'
-        + '<div class="card-note">' + I.spark + '<div><strong>+25% bonus, paid as a gift card.</strong> We round your inspected offer up and add 25% (e.g. $19 → $20 → <strong>$25</strong>). The balance is store credit for the platform you pick and <strong>resets at month end</strong>.</div></div>'
-        + '<label class="agree card-agree"><input type="checkbox" id="cf-card-agree"><span>I understand that a digital card <strong>waives my right to negotiate</strong> the inspected offer, and that the balance only applies once Restash <strong>approves</strong> the claim — otherwise it returns to $0 and my games are returned. I agree to the <a data-action="goto" data-value="terms">Terms</a>.</span></label></div>'
         + '<div class="field"><label for="cf-notes">Notes <span class="opt">(optional)</span></label><textarea id="cf-notes" rows="3" placeholder="Anything we should know about your games?">' + esc(d.notes || '') + '</textarea></div>'
         + '<div class="notice"><span class="nico">' + I.info + '</span><p>An estimate and a submitted claim don\u2019t guarantee a sale. We accept a limited number of games right now and personally choose which to inspect — you\u2019ll get the decision in <strong>My Claims</strong> and by email. If a game\u2019s condition differs from what you selected, we re-grade it on inspection and adjust the offer, with the reason shown on your claim — and you still review before any payment. Payouts are sent only to a PayPal account or check in the <strong>same name as your Restash account</strong>.</p></div>'
         + '<div class="agree"><input type="checkbox" id="cf-terms"' + (d.terms ? ' checked' : '') + '><label for="cf-terms">I certify under penalty of perjury that I am the legal owner of these games and that they are authentic, and I agree to the <a data-action="goto" data-value="terms">Terms of Service</a> and <a data-action="goto" data-value="privacy">Privacy Policy</a>.</label></div>'
@@ -889,7 +874,7 @@
         + '</div></div>';
     },
     bulkSubmit() {
-      const u = state.user, B = RestashAPI.BULK, L = RestashAPI.BULK_LINE;
+      const B = RestashAPI.BULK, L = RestashAPI.BULK_LINE;
       return '<div class="screen"><button class="backbtn" data-action="goto-bulk">' + I.back + 'Bulk Seller</button>'
         + '<h1 class="h1">Submit a bulk manifest</h1>'
         + '<p class="sub">One manifest for the whole lot. We email a prepaid label, inspect on arrival (priority), and send a single bulk offer for everything.</p>'
@@ -897,8 +882,7 @@
         + '<div class="panel" style="margin-top:18px;">'
         + '<div class="field"><label for="bulk-manifest">Manifest</label><textarea id="bulk-manifest" rows="5" placeholder="Describe the lot — platforms, rough counts, condition mix, anything sealed or notable."></textarea></div>'
         + '<div class="field"><label for="bulk-count">Estimated games <span class="opt">(min ' + B.min_per_shipment + ' per shipment)</span></label><input id="bulk-count" type="number" min="' + B.min_per_shipment + '" placeholder="e.g. 30"></div>'
-        + '<div class="field"><label for="bulk-payout">Payout method</label><select id="bulk-payout" class="bulk-select"><option value="PayPal" selected>PayPal</option><option value="Check">Check (mailed)</option></select></div>'
-        + '<div class="field"><label for="bulk-addr">Mailing address <span class="opt">(required for check)</span></label><input id="bulk-addr" type="text" placeholder="Street, City, State ZIP" value="' + esc(u.address || '') + '"></div>'
+        + '<div class="field"><label>Payout method</label><div class="bulk-select bulk-payout-fixed"><strong>PayPal</strong><span>The only payout for Bulk Sellers — sent to your PayPal email.</span></div></div>'
         + '<p class="form-error" id="bulk-error" hidden></p>'
         + '<button class="btn btn-primary full" data-action="submit-bulk">' + I.star + 'Submit manifest &amp; get a label</button></div>'
         + bulkLineCard(L) + '</div>';
@@ -910,16 +894,7 @@
       const offerNote = (c.history.filter(function (h) { return /^(Bulk offer made|Offer made)/.test(h.label); }).pop() || {}).note;
       const whyHtml = offerNote ? '<p class="offer-help"><strong>Why this offer:</strong> ' + esc(offerNote) + '</p>' : '';
       let moneyCard;
-      if (RestashAPI.isCardPayout(c.payout)) {
-        if (c.status === 'paid') {
-          const credit = c.paidAmount || RestashAPI.cardCredit(c.offerAmount);
-          moneyCard = goldCard('Digital card credited', '$' + credit) + '<p class="offer-help">' + brandChip(c.cardBrand) + ' Credited to your ' + esc(c.cardBrand || 'digital') + ' card, including the 25% bonus. Resets at month end.</p>';
-        } else if (c.status === 'returned' || c.status === 'declined') {
-          moneyCard = goldCard('Not approved', '$0') + '<p class="offer-help">This claim wasn’t approved, so the digital card balance returns to $0 and your games are returned.</p>';
-        } else {
-          moneyCard = '<div class="bulk-pending"><span class="bs-ic">' + I.spark + '</span><div><div class="bs-title">Digital card — pending approval</div><div class="bs-sub">Estimated <strong>~$' + RestashAPI.cardCredit(c.estHigh) + '</strong> on your ' + esc(c.cardBrand || 'digital') + ' card (incl. 25% bonus). You waived negotiation — we credit the inspected offer automatically once approved.</div></div></div>';
-        }
-      } else if (c.status === 'offer' && c.offerAmount) {
+      if (c.status === 'offer' && c.offerAmount) {
         if (!c.customerResponse) {
           moneyCard = goldCard('Your offer', '$' + c.offerAmount) + '<p class="offer-help">Accept to authorize payment via ' + c.payout + ', or decline and we\u2019ll return your games free.</p><div class="btn-row two"><button class="btn btn-primary" data-action="offer-accept" data-ref="' + c.ref + '">Accept offer</button><button class="btn btn-secondary" data-action="offer-decline" data-ref="' + c.ref + '">Decline</button></div>';
         } else if (c.customerResponse === 'accepted') {
@@ -949,7 +924,7 @@
         : '<div class="section"><div class="section-title">Games in this claim</div>' + itemsPanel(claimDisplay(items)) + '</div>';
       const summary = c.bulk
         ? '<div class="summary">' + sumRow(I.star, 'Type', 'Bulk lot') + (c.estCount ? sumRow(I.box, 'Estimated games', '~' + c.estCount) : '') + sumRow(I.card, 'Payout method', c.payout) + (c.payout === 'Check' && c.address ? sumRow(I.pin, 'Mailing address', c.address) : '') + sumRow(I.hash, 'Reference', c.ref) + sumRow(I.calendar, 'Submitted', c.createdAt) + '</div>'
-        : '<div class="summary">' + sumRow(I.dollar, 'Estimate', '$' + c.estLow + ' – $' + c.estHigh) + sumRow(I.card, 'Payout method', RestashAPI.isCardPayout(c.payout) ? (c.cardBrand ? c.cardBrand + ' digital card (+25%)' : 'Digital card (+25%)') : c.payout) + (c.payout === 'Check' && c.address ? sumRow(I.pin, 'Mailing address', c.address) : '') + sumRow(I.hash, 'Reference', c.ref) + sumRow(I.calendar, 'Submitted', c.createdAt) + '</div>';
+        : '<div class="summary">' + sumRow(I.dollar, 'Estimate', '$' + c.estLow + ' – $' + c.estHigh) + sumRow(I.card, 'Payout method', c.payout) + (c.payout === 'Check' && c.address ? sumRow(I.pin, 'Mailing address', c.address) : '') + sumRow(I.hash, 'Reference', c.ref) + sumRow(I.calendar, 'Submitted', c.createdAt) + '</div>';
       return '<div class="screen">' + back + '<h1 class="h1">Claim ' + c.ref + '</h1><div style="margin-top:12px;">' + badge(c.status) + (c.bulk ? ' <span class="bulk-badge b-purple">Bulk</span>' : '') + '</div>'
         + moneyCard
         + lotSection
@@ -960,7 +935,7 @@
   };
 
   // ---- Account: left-nav tabs (Profile / Claims / Bulk Seller / Controls) ----
-  const ACCT_TABS = [['profile', 'Profile'], ['claims', 'Claims'], ['card', 'Digital Card'], ['bulk', 'Bulk Seller'], ['controls', 'Controls']];
+  const ACCT_TABS = [['profile', 'Profile'], ['claims', 'Claims'], ['bulk', 'Bulk Seller'], ['controls', 'Controls']];
   function acctNav() {
     return ACCT_TABS.map(t => {
       const dot = (t[0] === 'bulk' && state.bulk && ['pending', 'approved', 'suspended'].indexOf(state.bulk.status) !== -1) ? '<span class="acct-dot"></span>' : '';
@@ -969,7 +944,6 @@
   }
   function acctPanelHTML() {
     if (state.acctTab === 'claims') return acctClaims();
-    if (state.acctTab === 'card') return acctCard();
     if (state.acctTab === 'bulk') return acctBulk();
     if (state.acctTab === 'controls') return acctControls();
     return acctProfile();
@@ -1012,49 +986,6 @@
           : '<button class="btn btn-danger full" data-action="delete-account">' + I.trash + 'Delete account</button>')
       + '</div>'
       + '<div class="btn-stack"><button class="btn btn-secondary" data-action="logout">' + I.logout + 'Log out</button></div>';
-  }
-
-  // ---- Digital Card (store credit + 25% bonus) ----
-  const BRAND_CLASS = { PlayStation: 'b-psn', Xbox: 'b-xbox', Nintendo: 'b-nintendo' };
-  function brandChip(b) { return b ? '<span class="brand-chip ' + (BRAND_CLASS[b] || '') + '">' + esc(b) + '</span>' : ''; }
-  function acctCard() {
-    const C = RestashAPI.CARD;
-    const cards = state.claims.filter(c => RestashAPI.isCardPayout(c.payout));
-    const head = '<div class="panel-head"><span class="bulk-kicker">' + I.spark + '+25% bonus</span>'
-      + '<h2 class="panel-title">Digital Card</h2>'
-      + '<p class="panel-sub">Take your payout as store credit for ' + C.brands.join(', ') + ' and get <strong>25% more</strong>. Pick it at checkout under “How would you like to be paid?”.</p></div>';
-    if (!cards.length) {
-      return head + '<div class="bulk-card"><div class="bulk-card-h">' + I.spark + 'How it works</div><ul class="bulk-rules">'
-        + '<li>Choose a <strong>digital card</strong> as your payout when you submit a claim.</li>'
-        + '<li>We round your inspected offer up and add <strong>25%</strong> (e.g. $19 → $20 → <strong>$25</strong>).</li>'
-        + '<li>The balance applies <strong>only once Restash approves</strong> the claim — otherwise it returns to $0 and your games are returned.</li>'
-        + '<li>Choosing a digital card <strong>waives your right to negotiate</strong> the inspected offer.</li>'
-        + '<li>Balance is store credit for your chosen platform and <strong>resets at month end</strong>.</li>'
-        + '</ul></div>'
-        + '<div class="empty">No digital card yet. <a data-action="home">Sell a game</a> and pick a digital card at checkout.</div>';
-    }
-    const active = cards.filter(c => c.status === 'paid');
-    const pendingClaims = cards.filter(c => ['submitted', 'reviewing', 'accepted', 'received', 'offer'].indexOf(c.status) !== -1);
-    const activeBal = active.reduce((s, c) => s + (c.paidAmount || RestashAPI.cardCredit(c.offerAmount)), 0);
-    const pendingBal = pendingClaims.reduce((s, c) => s + RestashAPI.cardCredit(c.estHigh), 0);
-    const brand = (active[0] || pendingClaims[0] || {}).cardBrand;
-    const expires = RestashAPI.fmtDate(RestashAPI.monthEndISO());
-    const rows = cards.map(c => {
-      const credited = c.status === 'paid';
-      const amt = credited ? (c.paidAmount || RestashAPI.cardCredit(c.offerAmount)) : RestashAPI.cardCredit(c.estHigh);
-      const tag = credited ? '<span class="card-state ok">Credited</span>' : (c.status === 'returned' || c.status === 'declined' ? '<span class="card-state no">Not approved</span>' : '<span class="card-state pend">Pending approval</span>');
-      return '<button class="claim-row" data-action="goto" data-value="claimDetail" data-ref="' + c.ref + '"><span class="claim-main"><span class="claim-item">' + brandChip(c.cardBrand) + ' ' + (credited ? '$' + amt : '~$' + amt) + '</span><span class="claim-ref">' + c.ref + ' · ' + c.createdAt + '</span></span>' + tag + '<span class="chev">' + I.chevron + '</span></button>';
-    }).join('');
-    return head
-      + goldCard('Digital card balance', '$' + activeBal)
-      + '<div class="card-meta">' + (brand ? brandChip(brand) + ' · ' : '') + (activeBal > 0 ? 'Expires ' + expires : 'No active balance') + (pendingBal > 0 ? ' · ~$' + pendingBal + ' pending approval' : '') + '</div>'
-      + '<div class="section" style="margin-top:18px;"><div class="section-title">Your digital card claims</div><div class="acct-claims">' + rows + '</div></div>'
-      + '<div class="bulk-card"><div class="bulk-card-h">' + I.info + 'The fine print</div><ul class="bulk-rules">'
-      + '<li>Balance applies <strong>only after Restash approves</strong> the claim — otherwise it returns to $0 and your games are returned.</li>'
-      + '<li>Digital card = you <strong>waive negotiation</strong> of the inspected offer.</li>'
-      + '<li>Inspected offer is rounded up, then +25%. Store credit for your chosen platform.</li>'
-      + '<li>Balance <strong>resets at month end</strong>.</li>'
-      + '</ul></div>';
   }
 
   // ---- Bulk Seller program (beta) ----
@@ -1234,10 +1165,12 @@
 
   function addCurrentItemToCart() {
     const p = plat(), t = title(), e = edition(), cd = cond();
-    if (!p || !t || !e || !cd) return;
+    if (!p || !t || !e || !cd) return false;
+    if (claimCapReached()) return false;
     const existing = state.cart.find(it => it.editionId === e.id && it.conditionId === cd.id);
     if (existing) { existing.qty += 1; }
     else { state.cart.push({ platformName: p.name, titleName: t.name, editionName: e.name, editionId: e.id, editionBase: e.base, condName: cd.name, conditionId: cd.id, condMult: cd.mult, unitMarket: RestashAPI.marketValue(e, cd), qty: 1 }); }
+    return true;
   }
 
   document.body.addEventListener('click', async (e) => {
@@ -1253,12 +1186,11 @@
     else if (a === 'pick-condition') { const c = CONDITIONS.find(x => x.id === v); state.condId = v; if (c && c.ineligible) { go('ineligible'); } else { addCurrentItemToCart(); resetItem(); go('cart'); } }
     else if (a === 'add-another') { resetItem(); go('platform'); }
     else if (a === 'goto-cart') { if (state.cart.length) go('cart'); else go('platform'); }
-    else if (a === 'qty-inc') { if (idx != null && state.cart[idx]) { state.cart[idx].qty += 1; render(); } }
-    else if (a === 'qty-dec') { if (idx != null && state.cart[idx]) { state.cart[idx].qty = Math.max(1, state.cart[idx].qty - 1); render(); } }
+    else if (a === 'qty-inc') { if (idx != null && state.cart[idx]) { if (claimCapReached()) return; state.cart[idx].qty += 1; render(); } }
+    else if (a === 'qty-dec') { if (idx != null && state.cart[idx]) { if (state.cart[idx].qty <= 1) { state.cart.splice(idx, 1); if (!state.cart.length) { resetItem(); go('platform'); } else { render(); } } else { state.cart[idx].qty -= 1; render(); } } }
     else if (a === 'cart-remove') { if (idx != null && state.cart[idx]) { state.cart.splice(idx, 1); if (!state.cart.length) { resetItem(); go('platform'); } else { render(); } } }
     else if (a === 'to-claim') { if (!state.cart.length) return go('platform'); if (!cartTotals().meetsMin) return; if (state.loggedIn) { go('claim'); } else { state.pendingClaim = true; goto('authRequired'); } }
-    else if (a === 'pick-payout') { state.payout = v; document.querySelectorAll('.pay-opt').forEach(o => o.classList.toggle('sel', o.dataset.value === v)); const af = document.getElementById('cf-addr-field'); if (af) af.hidden = (v !== 'Check'); const cf = document.getElementById('cf-card-field'); if (cf) cf.hidden = (v !== 'Digital Card'); const er = document.getElementById('cf-error'); if (er) er.hidden = true; }
-    else if (a === 'pick-card-brand') { state.cardBrand = v; document.querySelectorAll('.brand-opt').forEach(o => o.classList.toggle('sel', o.dataset.value === v)); const er = document.getElementById('cf-error'); if (er) er.hidden = true; }
+    else if (a === 'pick-payout') { state.payout = v; document.querySelectorAll('.pay-opt').forEach(o => o.classList.toggle('sel', o.dataset.value === v)); const af = document.getElementById('cf-addr-field'); if (af) af.hidden = (v !== 'Check'); const er = document.getElementById('cf-error'); if (er) er.hidden = true; }
     else if (a === 'submit-claim') {
       if (!state.loggedIn) { state.pendingClaim = true; return goto('authRequired'); }
       if (!state.cart.length) return go('platform');
@@ -1272,23 +1204,18 @@
       if (!state.payout) return showErr('cf-error', 'Please choose how you\u2019d like to be paid.');
       const address = state.payout === 'Check' ? document.getElementById('cf-addr').value.trim() : '';
       if (state.payout === 'Check' && !address) return showErr('cf-error', 'Please enter the mailing address for your check.');
-      if (state.payout === 'Digital Card') {
-        if (!state.cardBrand) return showErr('cf-error', 'Please choose a digital card: ' + RestashAPI.CARD.brands.join(', ') + '.');
-        const ca = document.getElementById('cf-card-agree');
-        if (!ca || !ca.checked) return showErr('cf-error', 'Please agree to the digital card terms (you waive negotiation) to continue.');
-      }
       if (!terms) return showErr('cf-error', 'Please certify ownership and agree to the Terms to continue.');
       const notesEl = document.getElementById('cf-notes');
       const notes = notesEl ? notesEl.value.trim() : '';
       el.disabled = true;
       try {
         const items = state.cart.map(it => ({ edition_id: it.editionId, condition_id: it.conditionId, qty: it.qty }));
-        const r = await RestashAPI.submitClaim({ items, payout: state.payout, cardBrand: state.cardBrand, phone, address, notes });
+        const r = await RestashAPI.submitClaim({ items, payout: state.payout, phone, address, notes });
         await loadClaims();
         // Clear the in-progress claim and skip go()'s captureDraft (the form is
         // still mounted), so the next claim starts blank — no carried-over
         // notes, payout, or checked Terms box.
-        state.activeClaimRef = r; state.cart = []; state.draft = {}; state.payout = null; state.cardBrand = null; resetItem();
+        state.activeClaimRef = r; state.cart = []; state.draft = {}; state.payout = null; resetItem();
         state.flash = null; state.view = 'success'; render();
       } catch (err) { el.disabled = false; showErr('cf-error', err.message || 'Could not submit your claim.'); }
     }
@@ -1364,16 +1291,14 @@
     else if (a === 'submit-bulk') {
       const manifest = document.getElementById('bulk-manifest').value.trim();
       const countRaw = document.getElementById('bulk-count').value.trim();
-      const payout = document.getElementById('bulk-payout').value;
-      const address = document.getElementById('bulk-addr').value.trim();
+      const payout = 'PayPal';
       const B = RestashAPI.BULK;
       if (manifest.length < 10) return showErr('bulk-error', 'Add a short manifest describing the lot.');
       const count = countRaw ? parseInt(countRaw, 10) : null;
       if (count != null && count < B.min_per_shipment) return showErr('bulk-error', 'Bulk shipments need at least ' + B.min_per_shipment + ' games.');
-      if (payout === 'Check' && !address) return showErr('bulk-error', 'Enter the mailing address for your check.');
       el.disabled = true;
       try {
-        const ref = await RestashAPI.submitBulkClaim({ manifest, estCount: count, payout, address });
+        const ref = await RestashAPI.submitBulkClaim({ manifest, estCount: count, payout, address: '' });
         await loadClaims();
         state.acctTab = 'claims'; goto('claimDetail', ref);
       } catch (err) { el.disabled = false; showErr('bulk-error', err.message || 'Could not submit your manifest.'); }
