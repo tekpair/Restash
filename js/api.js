@@ -131,6 +131,7 @@
     async deleteAccount() { await rpc('delete_my_account'); try { await sb.auth.signOut(); } catch (e) {} },
     // Bulk Seller (beta). Customer applies; staff approve/decline/suspend/close.
     async bulkApply(o) { return rpc('apply_bulk_seller', { p_agreement: !!(o && o.agreement), p_id_provided: !!(o && o.idProvided) }); },
+    async closeBulkMembership() { return rpc('close_bulk_membership', {}); },
     async listBulkSellers() { var rows = unwrap(await sb.from('profiles').select('*, account_notes(*)').not('bulk_status', 'is', null).order('bulk_applied_at', { ascending: false })); return rows.map(mapAccount); },
     async decideBulkSeller(profileId, decision, reason) { return rpc('decide_bulk_seller', { p_profile: profileId, p_decision: decision, p_reason: reason || '' }); },
     // Active Bulk Seller submits one manifest -> auto-accepted, prepaid label.
@@ -304,6 +305,14 @@
         if (!(o && o.idProvided)) throw new Error('You must confirm you can provide a government ID.');
         var now = new Date().toISOString();
         p.bulk_status = 'pending'; p.bulk_applied_at = now; p.bulk_agreement_at = now; p.bulk_id_provided = true; p.bulk_reason = ''; p.bulk_decided_at = null;
+        return { ok: true };
+      },
+      async closeBulkMembership() {
+        var p = sessionProfile(); if (!p) throw new Error('Not signed in');
+        if (p.bulk_status !== 'approved' && p.bulk_status !== 'suspended') throw new Error('Only an active Bulk Seller can close their membership.');
+        p.bulk_status = 'closed';
+        p.bulk_reason = 'Closed at your request — our team will follow up within 2–3 business days.';
+        p.bulk_decided_at = new Date().toISOString();
         return { ok: true };
       },
       async listBulkSellers() { requireStaff(); return profiles.filter(function (p) { return !!p.bulk_status; }).map(function (p) { var a = mapAccount(p); a.bulk.paidClaims = paidClaimsFor(p); a.bulk.ageDays = daysSince(p.created_at); return a; }).sort(function (a, b) { return Date.parse(b.bulk.appliedAt || 0) - Date.parse(a.bulk.appliedAt || 0); }); },

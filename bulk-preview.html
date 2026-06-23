@@ -503,6 +503,8 @@
   .pv-seg button:not(.on):hover { color: var(--ink); }
   .pv-ok { display: flex; gap: 8px; align-items: flex-start; margin-top: 14px; padding: 11px 13px; border-radius: 12px; font-size: 13px; line-height: 1.45; color: #1c6b3a; background: #e3f3e9; border: 1px solid #bfe6cd; }
   .pv-ok svg { width: 15px; height: 15px; flex: none; margin-top: 1px; }
+  .bulk-danger { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--border); }
+  .bulk-danger-h { font-size: 12px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); margin-bottom: 11px; }
 </style>
 </head>
 <body>
@@ -562,8 +564,11 @@
     clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>',
     plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>',
     phone: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3h3l1.5 4-2 1.5a12 12 0 0 0 4.5 4.5l1.5-2 4 1.5v3a2 2 0 0 1-2.2 2A16 16 0 0 1 4.5 5.2 2 2 0 0 1 6.5 3Z"/></svg>',
-    mail: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M4 6.5l8 6 8-6"/></svg>'
+    mail: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M4 6.5l8 6 8-6"/></svg>',
+    alert: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v5"/><circle cx="12" cy="16.5" r="0.5" fill="currentColor" stroke="none"/><path d="M10.3 4.2 2.8 18a2 2 0 0 0 1.7 3h15a2 2 0 0 0 1.7-3L13.7 4.2a2 2 0 0 0-3.4 0Z"/></svg>',
+    trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13M10 11v6M14 11v6"/></svg>'
   };
+  let closeConfirm = false;
 
   // --- realistic demo numbers, mirroring the app rules ---
   const RULES = { min_paid: 50, min_age_days: 60, min_per_shipment: 15, min_games_per_month: 50 };
@@ -579,7 +584,7 @@
     + '<li>Send a minimum of <strong>' + RULES.min_per_shipment + ' games per shipment</strong>.</li>'
     + '<li>No counterfeits or repeated condition mismatches.</li>'
     + '<li>Sharing or selling access to your account is not allowed.</li>'
-    + '<li><strong>PayPal only</strong> — the single authorized payout for Bulk Sellers.</li>'
+    + '<li><strong>PayPal</strong> is the only authorized payout method.</li>'
     + '<li>While active, you may <strong>only</strong> sell through Bulk Seller.</li>'
     + '</ul></div>';
 
@@ -595,14 +600,14 @@
       + req(ME.paid >= RULES.min_paid, RULES.min_paid + '+ paid claims', 'You have ' + ME.paid)
       + req(ME.ageDays >= RULES.min_age_days, RULES.min_age_days + '+ days on Restash', ME.ageDays + ' days so far')
       + req(ME.clean, 'Account in good standing', ME.clean ? 'No flags' : 'Flagged')
-      + req(false, 'A valid government ID for verification', 'Confirm below')
+      + req(false, 'A valid government ID', 'Confirm below')
       + '</ul></div>';
     const form = '<div class="bulk-apply">'
-      + '<div class="inline-msg err" id="apply-msg" hidden></div>'
       + '<div class="bulk-consent">'
       + '<label class="bulk-check"><input type="checkbox" id="bulk-id"><span>I can provide a valid government ID when the Restash team asks.</span></label>'
       + '<label class="bulk-check"><input type="checkbox" id="bulk-agree"><span>I have read and accept the <a href="bulk-agreement.html" target="_blank" rel="noopener">Bulk Seller Agreement</a> and the commitments above.</span></label>'
       + '</div>'
+      + '<p class="form-error" id="apply-msg" hidden></p>'
       + '<button class="btn btn-primary full" id="applyBtn">' + I.star + 'Apply to the Bulk Seller program</button>'
       + '</div>';
     return HEAD('') + AGREEMENT + reqs + form;
@@ -611,7 +616,7 @@
   function pendingPanel() {
     return HEAD(' <span class="bulk-badge b-amber">Under review</span>')
       + statusCard('amber', I.clock, 'Application under review',
-        'The Restash team is reviewing your application (submitted ' + today + '). We’ll email you with a decision. You can keep selling normally in the meantime.')
+        'The Restash team is reviewing your application (submitted ' + today + '). We’ll email you within 1-2 weeks with a final decision. You can keep selling normally in the meantime.')
       + AGREEMENT;
   }
 
@@ -623,6 +628,15 @@
       + '<div class="bm-note">' + (ok ? 'You’ve met this month’s minimum.' : 'Ship ' + RULES.min_games_per_month + ' games this month to stay active.') + '</div></div>';
   }
 
+  function dangerZone() {
+    return '<div class="bulk-danger"><div class="bulk-danger-h">Close membership</div>'
+      + (closeConfirm
+          ? '<div class="danger-confirm"><p><span class="dc-ic">' + I.alert + '</span>Submitting a closure <strong>closes your Bulk Seller account</strong>. You won’t be able to reopen or reapply for <strong>3 months</strong>. You also <strong>forfeit any active bulk lot claims</strong> — please finalize all your bulk lot claims before closing, or risk losing them. Expect a response within <strong>2–3 business days</strong>.</p>'
+            + '<div class="btn-row two"><button class="btn btn-danger" id="closeConfirmBtn">Yes, close my account</button><button class="btn btn-secondary" id="closeCancelBtn">Cancel</button></div></div>'
+          : '<button class="btn btn-danger full" id="closeStartBtn">' + I.trash + 'Close Bulk Seller account</button>')
+      + '</div>';
+  }
+
   function activePanel() {
     return HEAD(' <span class="bulk-badge b-green">Active</span>')
       + statusCard('green', I.check, 'You’re an active Bulk Seller',
@@ -630,6 +644,14 @@
       + '<button class="btn btn-primary full" id="manifestBtn">' + I.plus + 'Submit a bulk manifest</button>'
       + meter(32)
       + LINE
+      + AGREEMENT
+      + dangerZone();
+  }
+
+  function closedPanel() {
+    return HEAD(' <span class="bulk-badge b-red">Closed</span>')
+      + statusCard('grey', I.info, 'Your Bulk Seller account is closed',
+        'Closed at your request — our team will follow up within 2–3 business days. You may reapply after 3 months. You can keep using Restash normally.')
       + AGREEMENT;
   }
 
@@ -642,7 +664,8 @@
       + '<div class="panel" style="margin-top:18px;">'
       + '<div class="field"><label for="bulk-manifest">Manifest</label><textarea id="bulk-manifest" rows="5" placeholder="Describe the lot — platforms, rough counts, condition mix, anything sealed or notable."></textarea></div>'
       + '<div class="field"><label for="bulk-count">Estimated games <span class="opt">(min ' + RULES.min_per_shipment + ' per shipment)</span></label><input id="bulk-count" type="number" min="' + RULES.min_per_shipment + '" placeholder="e.g. 30"></div>'
-      + '<div class="field"><label>Payout method</label><div class="bulk-select bulk-payout-fixed"><strong>PayPal</strong><span>The only payout for Bulk Sellers — sent to your PayPal email.</span></div></div>'
+      + '<div class="field"><label>Payout method</label><div class="bulk-select bulk-payout-fixed"><strong>PayPal</strong><span>Sent directly to your PayPal email.</span></div></div>'
+      + '<p class="form-error" id="manifest-error" hidden></p>'
       + '<div class="pv-ok" id="manifestOk" hidden>' + I.check + '<span>Manifest received (demo). In the real app we’d email your prepaid label.</span></div>'
       + '<button class="btn btn-primary full" id="manifestSubmit" style="margin-top:14px;">' + I.star + 'Submit manifest &amp; get a label</button></div>'
       + LINE;
@@ -669,23 +692,23 @@
     panel.innerHTML = stateKey === 'apply' ? applyPanel()
       : stateKey === 'pending' ? pendingPanel()
       : stateKey === 'manifest' ? manifestPanel()
+      : stateKey === 'closed' ? closedPanel()
       : activePanel();
     document.querySelectorAll('.pv-seg button').forEach(b => {
       const s = b.dataset.state;
-      b.classList.toggle('on', (s === 'apply' && (stateKey === 'apply' || stateKey === 'pending')) || (s === 'active' && (stateKey === 'active' || stateKey === 'manifest')));
+      b.classList.toggle('on', (s === 'apply' && (stateKey === 'apply' || stateKey === 'pending')) || (s === 'active' && (stateKey === 'active' || stateKey === 'manifest' || stateKey === 'closed')));
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   // segmented control
   document.querySelectorAll('.pv-seg button').forEach(b => {
-    b.addEventListener('click', () => render(b.dataset.state));
+    b.addEventListener('click', () => { closeConfirm = false; render(b.dataset.state); });
   });
 
   // delegated interactions inside the panel
   panel.addEventListener('click', (e) => {
-    const apply = e.target.closest('#applyBtn');
-    if (apply) {
+    if (e.target.closest('#applyBtn')) {
       const id = document.getElementById('bulk-id'), ag = document.getElementById('bulk-agree');
       const msg = document.getElementById('apply-msg');
       if (!id.checked || !ag.checked) { msg.textContent = 'Please confirm the government ID and accept the agreement to apply.'; msg.hidden = false; return; }
@@ -695,10 +718,18 @@
     if (e.target.closest('#manifestBtn')) { render('manifest'); return; }
     if (e.target.closest('#manifestBack')) { render('active'); return; }
     if (e.target.closest('#manifestSubmit')) {
+      const raw = (document.getElementById('bulk-count').value || '').trim();
+      const n = parseInt(raw, 10);
+      const err = document.getElementById('manifest-error');
+      if (isNaN(n) || n < RULES.min_per_shipment) { err.textContent = 'Enter an estimate of at least ' + RULES.min_per_shipment + ' games per shipment.'; err.hidden = false; return; }
+      err.hidden = true;
       const ok = document.getElementById('manifestOk'); if (ok) ok.hidden = false;
       e.target.closest('#manifestSubmit').disabled = true;
       return;
     }
+    if (e.target.closest('#closeStartBtn')) { closeConfirm = true; render('active'); return; }
+    if (e.target.closest('#closeCancelBtn')) { closeConfirm = false; render('active'); return; }
+    if (e.target.closest('#closeConfirmBtn')) { closeConfirm = false; render('closed'); return; }
   });
 
   render('apply');
