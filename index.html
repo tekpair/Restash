@@ -409,6 +409,8 @@
   .bm-fill.ok { background: #2c9b5a; }
   .bm-note { font-size: 12px; color: var(--muted); margin-top: 8px; }
   .b-purple { color: var(--purple); background: var(--purple-tint); }
+  .bulk-danger { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--border); }
+  .bulk-danger-h { font-size: 12px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); margin-bottom: 11px; }
 
   /* ---- Bulk submission lane (active sellers) ---- */
   .bulk-cta { display: flex; gap: 12px; align-items: flex-start; margin-top: 22px; padding: 16px 17px; border-radius: 14px; border: 1.5px solid var(--purple); background: var(--purple-tint-2); }
@@ -631,7 +633,7 @@
     platformId: null, titleId: null, editionId: null, condId: null,
     cart: [], payout: null, draft: {}, regDraft: {}, flash: null,
     loggedIn: false, user: { name: '', email: '', phone: '' },
-    activeClaimRef: null, acctTab: 'profile', bulk: { status: null }, confirmDelete: false,
+    activeClaimRef: null, acctTab: 'profile', bulk: { status: null }, confirmDelete: false, confirmBulkClose: false,
     claims: []
   };
 
@@ -886,7 +888,7 @@
         + '<div class="panel" style="margin-top:18px;">'
         + '<div class="field"><label for="bulk-manifest">Manifest</label><textarea id="bulk-manifest" rows="5" placeholder="Describe the lot — platforms, rough counts, condition mix, anything sealed or notable."></textarea></div>'
         + '<div class="field"><label for="bulk-count">Estimated games <span class="opt">(min ' + B.min_per_shipment + ' per shipment)</span></label><input id="bulk-count" type="number" min="' + B.min_per_shipment + '" placeholder="e.g. 30"></div>'
-        + '<div class="field"><label>Payout method</label><div class="bulk-select bulk-payout-fixed"><strong>PayPal</strong><span>The only payout for Bulk Sellers — sent to your PayPal email.</span></div></div>'
+        + '<div class="field"><label>Payout method</label><div class="bulk-select bulk-payout-fixed"><strong>PayPal</strong><span>Sent directly to your PayPal email.</span></div></div>'
         + '<p class="form-error" id="bulk-error" hidden></p>'
         + '<button class="btn btn-primary full" data-action="submit-bulk">' + I.star + 'Submit manifest &amp; get a label</button></div>'
         + bulkLineCard(L) + '</div>';
@@ -1016,7 +1018,7 @@
       + '<li>Send a minimum of <strong>' + B.min_per_shipment + ' games per shipment</strong>.</li>'
       + '<li>No counterfeits or repeated condition mismatches.</li>'
       + '<li>Sharing or selling access to your account is not allowed.</li>'
-      + '<li><strong>PayPal only</strong> — the single authorized payout for Bulk Sellers.</li>'
+      + '<li><strong>PayPal</strong> is the only authorized payout method.</li>'
       + '<li>While active, you may <strong>only</strong> sell through Bulk Seller.</li>'
       + '</ul></div>';
   }
@@ -1025,14 +1027,14 @@
       + reqRow(elig.paidOk, B.min_paid + '+ paid claims', 'You have ' + paid)
       + reqRow(elig.ageOk, B.min_age_days + '+ days on Restash', age + ' day' + (age === 1 ? '' : 's') + ' so far')
       + reqRow(elig.clean, 'Account in good standing', elig.clean ? 'No flags' : 'Flagged')
-      + reqRow(false, 'A valid government ID for verification', 'Confirm below')
+      + reqRow(false, 'A valid government ID', 'Confirm below')
       + '</ul></div>'
       + '<div class="bulk-apply">'
-      + flashMsg('bulk')
       + '<div class="bulk-consent">'
       + '<label class="bulk-check"><input type="checkbox" id="bulk-id"><span>I can provide a valid government ID when the Restash team asks.</span></label>'
       + '<label class="bulk-check"><input type="checkbox" id="bulk-agree"><span>I have read and accept the <a href="bulk-agreement.html" target="_blank" rel="noopener">Bulk Seller Agreement</a> and the commitments above.</span></label>'
       + '</div>'
+      + '<p class="form-error" id="bulk-apply-error" hidden></p>'
       + (elig.eligible
           ? '<button class="btn btn-primary full" data-action="bulk-apply">' + I.star + 'Apply to the Bulk Seller program</button>'
           : '<button class="btn btn-primary full" disabled>Apply to the Bulk Seller program</button><p class="bulk-gate">' + I.lock + 'You may only apply once you’ve met the minimum requirements.</p>')
@@ -1040,6 +1042,15 @@
   }
   function bulkStatusCard(kind, icon, title, sub) {
     return '<div class="bulk-status ' + kind + '"><span class="bs-ic">' + icon + '</span><div><div class="bs-title">' + title + '</div><div class="bs-sub">' + sub + '</div></div></div>';
+  }
+  function bulkCloseCard() {
+    return '<div class="bulk-danger"><div class="bulk-danger-h">Close membership</div>'
+      + (state.confirmBulkClose
+          ? '<div class="danger-confirm"><p><span class="dc-ic">' + I.alert + '</span>Submitting a closure <strong>closes your Bulk Seller account</strong>. You won’t be able to reopen or reapply for <strong>3 months</strong>. You also <strong>forfeit any active bulk lot claims</strong> — please finalize all your bulk lot claims before closing, or risk losing them. Expect a response within <strong>2–3 business days</strong>.</p>'
+            + '<p class="form-error" id="bulk-close-error" hidden></p>'
+            + '<div class="btn-row two"><button class="btn btn-danger" data-action="bulk-close-confirm">Yes, close my account</button><button class="btn btn-secondary" data-action="bulk-close-cancel">Cancel</button></div></div>'
+          : '<button class="btn btn-danger full" data-action="bulk-close-start">' + I.trash + 'Close Bulk Seller account</button>')
+      + '</div>';
   }
   function acctBulk() {
     const B = RestashAPI.BULK;
@@ -1052,7 +1063,7 @@
       + '<p class="panel-sub">A lane built for high-volume sellers. Send one manifest for an entire lot — we email a prepaid label, give it priority inspection on arrival, and make a single offer for everything, with a direct line to our team. Membership is by application and reviewed by Restash.</p></div>';
     if (st === 'pending') {
       return head + bulkStatusCard('amber', I.clock, 'Application under review',
-        'The Restash team is reviewing your application' + (state.bulk.appliedAt ? ' (submitted ' + esc(RestashAPI.fmtDate(state.bulk.appliedAt)) + ')' : '') + '. We’ll email you with a decision. You can keep selling normally in the meantime.')
+        'The Restash team is reviewing your application' + (state.bulk.appliedAt ? ' (submitted ' + esc(RestashAPI.fmtDate(state.bulk.appliedAt)) + ')' : '') + '. We’ll email you within 1-2 weeks with a final decision. You can keep selling normally in the meantime.')
         + bulkAgreementCard(B);
     }
     if (st === 'approved') {
@@ -1063,7 +1074,8 @@
         + '<button class="btn btn-primary full" data-action="goto-bulk-submit">' + I.plus + 'Submit a bulk manifest</button>'
         + '<div class="bulk-meter"><div class="bm-top"><span>Games shipped this month</span><span class="bm-val' + (monthOk ? ' ok' : '') + '">' + month + ' / ' + B.min_games_per_month + '</span></div><div class="bm-track"><span class="bm-fill' + (monthOk ? ' ok' : '') + '" style="width:' + pct + '%"></span></div><div class="bm-note">' + (monthOk ? 'You’ve met this month’s minimum.' : 'Ship ' + B.min_games_per_month + ' games this month to stay active.') + '</div></div>'
         + bulkLineCard(RestashAPI.BULK_LINE)
-        + bulkAgreementCard(B);
+        + bulkAgreementCard(B)
+        + bulkCloseCard();
     }
     if (st === 'suspended') {
       return head + bulkStatusCard('amber', I.alert, 'Your Bulk Seller status is suspended',
@@ -1163,7 +1175,7 @@
       } catch (e) { /* Places unavailable — leave as a plain input */ }
     });
   }
-  function go(view) { if (state.view === 'claim') captureDraft(); if (state.view === 'register') captureReg(); state.view = view; state.flash = null; state.confirmDelete = false; render(); }
+  function go(view) { if (state.view === 'claim') captureDraft(); if (state.view === 'register') captureReg(); state.view = view; state.flash = null; state.confirmDelete = false; state.confirmBulkClose = false; render(); }
   function goto(view, ref) { if (!PAGES.includes(state.view)) state.returnTo = state.view; if (ref) state.activeClaimRef = ref; go(view); }
   function afterAuth() { if (state.pendingClaim) { state.pendingClaim = false; go('claim'); } else { state.acctTab = 'profile'; go('account'); } }
   function resetItem() { state.platformId = state.titleId = state.editionId = state.condId = null; }
@@ -1294,7 +1306,7 @@
       } catch (err) { state.flash = { slot: 'profile', kind: 'err', text: err.message || 'Could not save your profile.' }; }
       el.disabled = false; renderAcctPanel();
     }
-    else if (a === 'acct-tab') { state.acctTab = v; state.flash = null; state.confirmDelete = false; renderAcctPanel(); }
+    else if (a === 'acct-tab') { state.acctTab = v; state.flash = null; state.confirmDelete = false; state.confirmBulkClose = false; renderAcctPanel(); }
     else if (a === 'goto-bulk') { state.acctTab = 'bulk'; state.flash = null; goto('account'); }
     else if (a === 'goto-bulk-submit') { go('bulkSubmit'); }
     else if (a === 'back-to-claims') { state.acctTab = 'claims'; state.flash = null; goto('account'); }
@@ -1304,8 +1316,8 @@
       const payout = 'PayPal';
       const B = RestashAPI.BULK;
       if (manifest.length < 10) return showErr('bulk-error', 'Add a short manifest describing the lot.');
-      const count = countRaw ? parseInt(countRaw, 10) : null;
-      if (count != null && count < B.min_per_shipment) return showErr('bulk-error', 'Bulk shipments need at least ' + B.min_per_shipment + ' games.');
+      const count = parseInt(countRaw, 10);
+      if (isNaN(count) || count < B.min_per_shipment) return showErr('bulk-error', 'Enter an estimate of at least ' + B.min_per_shipment + ' games per shipment.');
       el.disabled = true;
       try {
         const ref = await RestashAPI.submitBulkClaim({ manifest, estCount: count, payout, address: '' });
@@ -1315,15 +1327,24 @@
     }
     else if (a === 'bulk-apply') {
       const id = document.getElementById('bulk-id'), agree = document.getElementById('bulk-agree');
-      if (!id || !id.checked) { state.flash = { slot: 'bulk', kind: 'err', text: 'Please confirm you can provide a government ID.' }; renderAcctPanel(); return; }
-      if (!agree || !agree.checked) { state.flash = { slot: 'bulk', kind: 'err', text: 'Please accept the Bulk Seller Agreement to apply.' }; renderAcctPanel(); return; }
+      if (!id || !id.checked || !agree || !agree.checked) return showErr('bulk-apply-error', 'Please confirm the government ID and accept the agreement to apply.');
       el.disabled = true;
       try {
         await RestashAPI.bulkApply({ agreement: true, idProvided: true });
         await loadSession();
-        state.flash = { slot: 'bulk', kind: 'ok', text: 'Application submitted. The Restash team will review it and email you a decision.' };
-      } catch (err) { state.flash = { slot: 'bulk', kind: 'err', text: err.message || 'Could not submit your application.' }; }
-      renderAcctPanel();
+        renderAcctPanel();
+      } catch (err) { el.disabled = false; showErr('bulk-apply-error', err.message || 'Could not submit your application.'); }
+    }
+    else if (a === 'bulk-close-start') { state.confirmBulkClose = true; renderAcctPanel(); }
+    else if (a === 'bulk-close-cancel') { state.confirmBulkClose = false; renderAcctPanel(); }
+    else if (a === 'bulk-close-confirm') {
+      el.disabled = true;
+      try {
+        await RestashAPI.closeBulkMembership();
+        await loadSession();
+        state.confirmBulkClose = false;
+        renderAcctPanel();
+      } catch (err) { el.disabled = false; showErr('bulk-close-error', err.message || 'Could not submit your closure.'); }
     }
     else if (a === 'offer-accept' || a === 'offer-decline') {
       const resp = a === 'offer-accept' ? 'accepted' : 'declined';
