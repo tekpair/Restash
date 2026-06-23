@@ -81,7 +81,9 @@
   .brand .mark { width: 30px; height: 30px; border-radius: 9px; background: var(--purple-tint); color: var(--purple); display: flex; align-items: center; justify-content: center; }
   .brand .mark svg { width: 18px; height: 18px; }
   .brand .word { font-family: var(--display); font-weight: 700; font-size: 19px; letter-spacing: -0.02em; color: var(--ink); }
+  .head-actions { display: flex; align-items: center; gap: 10px; }
   .acct { position: relative; width: 36px; height: 36px; border-radius: 50%; background: var(--surface); border: 1.5px solid var(--border); color: var(--ink); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: border-color .15s ease, background .15s ease; }
+  .acct[hidden] { display: none; }
   .acct svg { width: 19px; height: 19px; }
   .acct:hover, .acct.live { border-color: var(--purple); background: var(--purple-tint-2); color: var(--purple); }
   .acct:focus-visible, .brand:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(91,63,214,0.22); border-radius: 50%; }
@@ -409,8 +411,15 @@
   .bm-fill.ok { background: #2c9b5a; }
   .bm-note { font-size: 12px; color: var(--muted); margin-top: 8px; }
   .b-purple { color: var(--purple); background: var(--purple-tint); }
-  .bulk-danger { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--border); }
-  .bulk-danger-h { font-size: 12px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); margin-bottom: 11px; }
+  .bulk-danger { margin-top: 22px; border: 1.5px solid #f0c7c3; background: rgba(253,243,242,0.72); border-radius: 16px; padding: 16px 17px; }
+  .bulk-danger-h { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: #7a1d18; }
+  .bulk-danger-h svg { width: 16px; height: 16px; flex: none; color: #b3261e; }
+  .bulk-danger-sub { font-size: 12.5px; line-height: 1.5; color: #9a5b56; margin-top: 5px; }
+  .bulk-danger-warn { font-size: 13px; line-height: 1.55; color: #7a1d18; margin-top: 9px; }
+  .bulk-danger-warn strong { color: #5e1612; font-weight: 700; }
+  .bulk-danger .btn { margin-top: 0; }
+  .bulk-danger .btn.full { margin-top: 12px; }
+  .bulk-danger .btn-row.two { margin-top: 13px; }
 
   /* ---- Bulk submission lane (active sellers) ---- */
   .bulk-cta { display: flex; gap: 12px; align-items: flex-start; margin-top: 22px; padding: 16px 17px; border-radius: 14px; border: 1.5px solid var(--purple); background: var(--purple-tint-2); }
@@ -535,10 +544,15 @@
         <span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 13.5a6.5 6.5 0 0 1 10.4-5.2"/><path d="M16 5.7v3.2h-3.2"/><path d="M18.5 10.5a6.5 6.5 0 0 1-10.4 5.2"/><path d="M8 18.3v-3.2h3.2"/></svg></span>
         <span class="word">Restash</span>
       </button>
-      <button class="acct" id="acctBtn" data-action="account-icon" aria-label="Account">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5c0-3.6 3.1-5.5 7-5.5s7 1.9 7 5.5"/></svg>
-        <span class="cart-dot" id="cartDot"></span>
-      </button>
+      <div class="head-actions">
+        <button class="acct cart-btn" id="cartBtn" data-action="goto-cart" aria-label="Your games" hidden>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.3"/><circle cx="17" cy="20" r="1.3"/><path d="M3 4h2l2.2 11.2a1 1 0 0 0 1 .8h8.4a1 1 0 0 0 1-.8L20 8H6"/></svg>
+          <span class="cart-dot" id="cartDot"></span>
+        </button>
+        <button class="acct" id="acctBtn" data-action="account-icon" aria-label="Account">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5c0-3.6 3.1-5.5 7-5.5s7 1.9 7 5.5"/></svg>
+        </button>
+      </div>
     </header>
 
     <div id="progress"></div>
@@ -988,7 +1002,7 @@
     return '<div class="panel-head"><h2 class="panel-title">Controls</h2></div>'
       + '<div class="data-actions">'
       + (state.confirmDelete
-          ? '<div class="danger-confirm"><p><span class="dc-ic">' + I.alert + '</span>This permanently closes and deletes your account, including all your claims. This cannot be undone.</p><div class="btn-row two"><button class="btn btn-danger" data-action="confirm-delete">Yes, delete</button><button class="btn btn-secondary" data-action="cancel-delete">Cancel</button></div></div>'
+          ? '<div class="danger-confirm"><p><span class="dc-ic">' + I.alert + '</span><span>This deletes your account and all your claims. You’ll have <strong>1 week</strong> to contact the Restash team to re-enable it — after that it’s permanent, and you <strong>forfeit all your claims</strong> for Restash to sell without paying you.</span></p><div class="btn-row two"><button class="btn btn-danger" data-action="confirm-delete">Yes, delete</button><button class="btn btn-secondary" data-action="cancel-delete">Cancel</button></div></div>'
           : '<button class="btn btn-danger full" data-action="delete-account">' + I.trash + 'Delete account</button>')
       + '</div>'
       + '<div class="btn-stack"><button class="btn btn-secondary" data-action="logout">' + I.logout + 'Log out</button></div>';
@@ -1044,12 +1058,16 @@
     return '<div class="bulk-status ' + kind + '"><span class="bs-ic">' + icon + '</span><div><div class="bs-title">' + title + '</div><div class="bs-sub">' + sub + '</div></div></div>';
   }
   function bulkCloseCard() {
-    return '<div class="bulk-danger"><div class="bulk-danger-h">Close membership</div>'
-      + (state.confirmBulkClose
-          ? '<div class="danger-confirm"><p><span class="dc-ic">' + I.alert + '</span>Submitting a closure <strong>closes your Bulk Seller account</strong>. You won’t be able to reopen or reapply for <strong>3 months</strong>. You also <strong>forfeit any active bulk lot claims</strong> — please finalize all your bulk lot claims before closing, or risk losing them. Expect a response within <strong>2–3 business days</strong>.</p>'
-            + '<p class="form-error" id="bulk-close-error" hidden></p>'
-            + '<div class="btn-row two"><button class="btn btn-danger" data-action="bulk-close-confirm">Yes, close my account</button><button class="btn btn-secondary" data-action="bulk-close-cancel">Cancel</button></div></div>'
-          : '<button class="btn btn-danger full" data-action="bulk-close-start">' + I.trash + 'Close Bulk Seller account</button>')
+    if (state.confirmBulkClose) {
+      return '<div class="bulk-danger"><div class="bulk-danger-h">' + I.alert + 'Close membership</div>'
+        + '<p class="bulk-danger-warn">Submitting a closure <strong>closes your Bulk Seller account</strong>. You won’t be able to reopen or reapply for <strong>3 months</strong>. You also <strong>forfeit any active bulk lot claims</strong> — please finalize all your bulk lot claims before closing, or risk losing them. Expect a response within <strong>2–3 business days</strong>.</p>'
+        + '<p class="form-error" id="bulk-close-error" hidden></p>'
+        + '<div class="btn-row two"><button class="btn btn-danger" data-action="bulk-close-confirm">Yes, close my account</button><button class="btn btn-secondary" data-action="bulk-close-cancel">Cancel</button></div>'
+        + '</div>';
+    }
+    return '<div class="bulk-danger"><div class="bulk-danger-h">' + I.alert + 'Close membership</div>'
+      + '<p class="bulk-danger-sub">Leaving the program closes your bulk membership. You can keep selling on Restash normally afterward.</p>'
+      + '<button class="btn btn-danger full" data-action="bulk-close-start">' + I.trash + 'Close Bulk Seller account</button>'
       + '</div>';
   }
   function acctBulk() {
@@ -1120,8 +1138,9 @@
   }
   function syncAcct() {
     const b = document.getElementById('acctBtn'); b.classList.toggle('live', state.loggedIn); b.setAttribute('aria-label', state.loggedIn ? 'Your account' : 'Account');
-    const dot = document.getElementById('cartDot'); const q = cartQty();
-    if (q > 0) { dot.textContent = q; dot.classList.add('show'); } else { dot.classList.remove('show'); }
+    const cartBtn = document.getElementById('cartBtn'); const dot = document.getElementById('cartDot'); const q = cartQty();
+    if (q > 0) { dot.textContent = q; dot.classList.add('show'); cartBtn.hidden = false; cartBtn.setAttribute('aria-label', 'Your games (' + q + ')'); }
+    else { dot.classList.remove('show'); cartBtn.hidden = true; }
   }
   let welcomeTimer;
   function enterApp() {

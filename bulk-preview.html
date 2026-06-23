@@ -503,8 +503,15 @@
   .pv-seg button:not(.on):hover { color: var(--ink); }
   .pv-ok { display: flex; gap: 8px; align-items: flex-start; margin-top: 14px; padding: 11px 13px; border-radius: 12px; font-size: 13px; line-height: 1.45; color: #1c6b3a; background: #e3f3e9; border: 1px solid #bfe6cd; }
   .pv-ok svg { width: 15px; height: 15px; flex: none; margin-top: 1px; }
-  .bulk-danger { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--border); }
-  .bulk-danger-h { font-size: 12px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); margin-bottom: 11px; }
+  .bulk-danger { margin-top: 22px; border: 1.5px solid #f0c7c3; background: rgba(253,243,242,0.72); border-radius: 16px; padding: 16px 17px; }
+  .bulk-danger-h { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: #7a1d18; }
+  .bulk-danger-h svg { width: 16px; height: 16px; flex: none; color: #b3261e; }
+  .bulk-danger-sub { font-size: 12.5px; line-height: 1.5; color: #9a5b56; margin-top: 5px; }
+  .bulk-danger-warn { font-size: 13px; line-height: 1.55; color: #7a1d18; margin-top: 9px; }
+  .bulk-danger-warn strong { color: #5e1612; font-weight: 700; }
+  .bulk-danger .btn { margin-top: 0; }
+  .bulk-danger .btn.full { margin-top: 12px; }
+  .bulk-danger .btn-row.two { margin-top: 13px; }
 </style>
 </head>
 <body>
@@ -629,11 +636,15 @@
   }
 
   function dangerZone() {
-    return '<div class="bulk-danger"><div class="bulk-danger-h">Close membership</div>'
-      + (closeConfirm
-          ? '<div class="danger-confirm"><p><span class="dc-ic">' + I.alert + '</span>Submitting a closure <strong>closes your Bulk Seller account</strong>. You won’t be able to reopen or reapply for <strong>3 months</strong>. You also <strong>forfeit any active bulk lot claims</strong> — please finalize all your bulk lot claims before closing, or risk losing them. Expect a response within <strong>2–3 business days</strong>.</p>'
-            + '<div class="btn-row two"><button class="btn btn-danger" id="closeConfirmBtn">Yes, close my account</button><button class="btn btn-secondary" id="closeCancelBtn">Cancel</button></div></div>'
-          : '<button class="btn btn-danger full" id="closeStartBtn">' + I.trash + 'Close Bulk Seller account</button>')
+    if (closeConfirm) {
+      return '<div class="bulk-danger"><div class="bulk-danger-h">' + I.alert + 'Close membership</div>'
+        + '<p class="bulk-danger-warn">Submitting a closure <strong>closes your Bulk Seller account</strong>. You won’t be able to reopen or reapply for <strong>3 months</strong>. You also <strong>forfeit any active bulk lot claims</strong> — please finalize all your bulk lot claims before closing, or risk losing them. Expect a response within <strong>2–3 business days</strong>.</p>'
+        + '<div class="btn-row two"><button class="btn btn-danger" id="closeConfirmBtn">Yes, close my account</button><button class="btn btn-secondary" id="closeCancelBtn">Cancel</button></div>'
+        + '</div>';
+    }
+    return '<div class="bulk-danger"><div class="bulk-danger-h">' + I.alert + 'Close membership</div>'
+      + '<p class="bulk-danger-sub">Leaving the program closes your bulk membership. You can keep selling on Restash normally afterward.</p>'
+      + '<button class="btn btn-danger full" id="closeStartBtn">' + I.trash + 'Close Bulk Seller account</button>'
       + '</div>';
   }
 
@@ -651,7 +662,7 @@
   function closedPanel() {
     return HEAD(' <span class="bulk-badge b-red">Closed</span>')
       + statusCard('grey', I.info, 'Your Bulk Seller account is closed',
-        'Closed at your request — our team will follow up within 2–3 business days. You may reapply after 3 months. You can keep using Restash normally.')
+        'Closed at your request — thank you for using Restash. You may reapply after 3 months. You can keep using Restash normally.')
       + AGREEMENT;
   }
 
