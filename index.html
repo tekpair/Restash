@@ -995,13 +995,15 @@
   // ---- Bulk Seller program (beta) ----
   function paidClaimsCount() { return state.claims.filter(c => c.status === 'paid').length + (state.user.lifetimePaid || 0); }
   function acctAgeDays() { return RestashAPI.daysSince(state.user.createdAt); }
-  function paidThisMonth() {
+  function gamesThisMonth() {
     const now = new Date();
-    return state.claims.filter(c => {
-      if (c.status !== 'paid') return false;
-      const t = Date.parse(c.createdAt); if (isNaN(t)) return false;
-      const d = new Date(t); return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-    }).length;
+    return state.claims.reduce((sum, c) => {
+      if (c.status !== 'paid') return sum;
+      const t = Date.parse(c.createdAt); if (isNaN(t)) return sum;
+      const d = new Date(t); if (d.getMonth() !== now.getMonth() || d.getFullYear() !== now.getFullYear()) return sum;
+      const g = c.bulk ? (c.estCount || 0) : (c.items || []).reduce((s, it) => s + (it.qty || 1), 0);
+      return sum + g;
+    }, 0);
   }
   const BULK_BADGE = { pending: ['Under review', 'b-amber'], approved: ['Active', 'b-green'], suspended: ['Suspended', 'b-amber'], declined: ['Not approved', 'b-grey'], closed: ['Closed', 'b-red'] };
   function bulkBadge(st) { const b = BULK_BADGE[st]; return b ? ' <span class="bulk-badge ' + b[1] + '">' + b[0] + '</span>' : ''; }
@@ -1010,17 +1012,19 @@
   }
   function bulkAgreementCard(B) {
     return '<div class="bulk-card"><div class="bulk-card-h">' + I.shield + 'The Bulk Seller agreement</div><ul class="bulk-rules">'
-      + '<li>Sell at least <strong>' + B.min_per_month + ' games per month</strong>.</li>'
-      + '<li>Ship a minimum of <strong>' + B.min_per_shipment + ' games per shipment</strong>.</li>'
+      + '<li>Ship at least <strong>' + B.min_games_per_month + ' games per month</strong>.</li>'
+      + '<li>Send a minimum of <strong>' + B.min_per_shipment + ' games per shipment</strong>.</li>'
       + '<li>No counterfeits or repeated condition mismatches.</li>'
       + '<li>Sharing or selling access to your account is not allowed.</li>'
+      + '<li><strong>PayPal only</strong> — the single authorized payout for Bulk Sellers.</li>'
       + '<li>While active, you may <strong>only</strong> sell through Bulk Seller.</li>'
       + '</ul></div>';
   }
   function bulkApplyForm(elig, paid, age, B) {
     return '<div class="bulk-card"><div class="bulk-card-h">' + I.check + 'Requirements to apply</div><ul class="req-list">'
-      + reqRow(elig.paidOk, B.min_paid + '+ paid claims in good standing', 'You have ' + paid)
+      + reqRow(elig.paidOk, B.min_paid + '+ paid claims', 'You have ' + paid)
       + reqRow(elig.ageOk, B.min_age_days + '+ days on Restash', age + ' day' + (age === 1 ? '' : 's') + ' so far')
+      + reqRow(elig.clean, 'Account in good standing', elig.clean ? 'No flags' : 'Flagged')
       + reqRow(false, 'A valid government ID for verification', 'Confirm below')
       + '</ul></div>'
       + '<div class="bulk-apply">'
@@ -1042,7 +1046,7 @@
     const st = state.bulk ? state.bulk.status : null;
     const reason = (state.bulk && state.bulk.reason) ? esc(state.bulk.reason) + ' ' : '';
     const paid = paidClaimsCount(), age = acctAgeDays();
-    const elig = RestashAPI.bulkEligibility(paid, age);
+    const elig = RestashAPI.bulkEligibility(paid, age, !state.user.flagged);
     const head = '<div class="panel-head"><span class="bulk-kicker">' + I.star + 'Beta program</span>'
       + '<h2 class="panel-title">Bulk Seller Program' + bulkBadge(st) + '</h2>'
       + '<p class="panel-sub">A lane built for high-volume sellers. Send one manifest for an entire lot — we email a prepaid label, give it priority inspection on arrival, and make a single offer for everything, with a direct line to our team. Membership is by application and reviewed by Restash.</p></div>';
@@ -1052,18 +1056,18 @@
         + bulkAgreementCard(B);
     }
     if (st === 'approved') {
-      const month = paidThisMonth(), monthOk = month >= B.min_per_month;
-      const pct = Math.min(100, Math.round(month / B.min_per_month * 100));
+      const month = gamesThisMonth(), monthOk = month >= B.min_games_per_month;
+      const pct = Math.min(100, Math.round(month / B.min_games_per_month * 100));
       return head + bulkStatusCard('green', I.check, 'You’re an active Bulk Seller',
         'Submit one manifest per lot — we email a prepaid label, inspect on arrival (priority), and send a single bulk offer. The standard one-by-one flow is turned off for your account.')
         + '<button class="btn btn-primary full" data-action="goto-bulk-submit">' + I.plus + 'Submit a bulk manifest</button>'
-        + '<div class="bulk-meter"><div class="bm-top"><span>This month’s paid claims</span><span class="bm-val' + (monthOk ? ' ok' : '') + '">' + month + ' / ' + B.min_per_month + '</span></div><div class="bm-track"><span class="bm-fill' + (monthOk ? ' ok' : '') + '" style="width:' + pct + '%"></span></div><div class="bm-note">' + (monthOk ? 'You’ve met this month’s minimum.' : 'Reach ' + B.min_per_month + ' paid claims this month to stay active.') + '</div></div>'
+        + '<div class="bulk-meter"><div class="bm-top"><span>Games shipped this month</span><span class="bm-val' + (monthOk ? ' ok' : '') + '">' + month + ' / ' + B.min_games_per_month + '</span></div><div class="bm-track"><span class="bm-fill' + (monthOk ? ' ok' : '') + '" style="width:' + pct + '%"></span></div><div class="bm-note">' + (monthOk ? 'You’ve met this month’s minimum.' : 'Ship ' + B.min_games_per_month + ' games this month to stay active.') + '</div></div>'
         + bulkLineCard(RestashAPI.BULK_LINE)
         + bulkAgreementCard(B);
     }
     if (st === 'suspended') {
       return head + bulkStatusCard('amber', I.alert, 'Your Bulk Seller status is suspended',
-        reason + 'Complete ' + B.min_per_month + ' paid claims this month to be reinstated. If you don’t, your Bulk Seller account is closed and you may reapply after ' + B.reapply_months + ' months. You can still sell normally.')
+        reason + 'Ship ' + B.min_games_per_month + ' games this month to be reinstated. If you don’t, your Bulk Seller account is closed and you may reapply after ' + B.reapply_months + ' months. You can still sell normally.')
         + bulkAgreementCard(B);
     }
     if (st === 'declined' || st === 'closed') {
@@ -1349,7 +1353,7 @@
     state.loggedIn = !!u;
     if (u) {
       const p = await RestashAPI.getProfile();
-      state.user = p ? { name: p.full_name, email: p.email, phone: p.phone, address: p.address, createdAt: p.created_at, lifetimePaid: p.lifetime_paid || 0 }
+      state.user = p ? { name: p.full_name, email: p.email, phone: p.phone, address: p.address, createdAt: p.created_at, lifetimePaid: p.lifetime_paid || 0, flagged: !!p.flagged }
                      : { name: '', email: u.email || '', phone: '' };
       state.bulk = p ? { status: p.bulk_status || null, reason: p.bulk_reason || '', appliedAt: p.bulk_applied_at || null, decidedAt: p.bulk_decided_at || null } : { status: null };
     } else {

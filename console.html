@@ -622,7 +622,7 @@
   // an inline reason field (no popups) shown to the seller.
   const BULK_ACTION_META = {
     decline: ['Decline application', 'Decline', 'btn-danger', 'e.g. Doesn’t meet the paid-claim minimum yet.'],
-    suspend: ['Suspend Bulk Seller', 'Suspend', 'btn-danger', 'e.g. Missed this month’s minimum of paid claims.'],
+    suspend: ['Suspend Bulk Seller', 'Suspend', 'btn-danger', 'e.g. Missed this month’s game minimum.'],
     close: ['Close Bulk Seller account', 'Close account', 'btn-danger', 'e.g. Repeated condition mismatches / ownership issue.']
   };
   function bulkActionButtons(st, a) {
@@ -649,6 +649,7 @@
     const reqs = '<div class="bulk-reqs">'
       + reqRow(s.paidClaims >= B.min_paid, B.min_paid + '+ paid claims', s.paidClaims)
       + reqRow(s.ageDays >= B.min_age_days, B.min_age_days + '+ days on Restash', s.ageDays + 'd')
+      + reqRow(!a.flagged, 'Good standing', a.flagged ? 'Flagged' : 'No flags')
       + reqRow(!!b.idProvided, 'Government ID', b.idProvided ? 'Confirmed' : 'Not confirmed')
       + reqRow(!!b.agreementAt, 'Agreement accepted', b.agreementAt ? esc(RestashAPI.fmtDate(b.agreementAt)) : '—')
       + '</div>';

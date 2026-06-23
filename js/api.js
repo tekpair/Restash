@@ -27,20 +27,22 @@
   // Hard requirements gating entry + the ongoing commitments approved sellers
   // must keep. Surfaced identically in the customer app and the staff console.
   var BULK_RULES = {
-    min_paid: 25,        // lifetime paid claims, in good standing, to qualify
-    min_age_days: 30,    // account must be at least this old
-    min_per_shipment: 10,// games per shipment once active
-    min_per_month: 25,   // paid claims per month or the seller is suspended
-    reapply_months: 3    // wait after a closure before reapplying
+    min_paid: 50,            // lifetime paid claims, in good standing, to qualify
+    min_age_days: 60,        // account must be at least this old
+    min_per_shipment: 15,    // games per shipment/manifest once active
+    min_games_per_month: 50, // games shipped per month or the seller is suspended
+    reapply_months: 3        // wait after a closure before reapplying
   };
   var BULK_STATUSES = ['pending', 'approved', 'suspended', 'declined', 'closed'];
   // 24/7 direct line Bulk Sellers get (placeholder contact for the demo).
   var BULK_LINE = { phone: '(518) 555-0100', email: 'bulk@getrestash.gg' };
-  // Compute a seller's eligibility from their paid-claim count and account age.
-  function bulkEligibility(paidClaims, ageDays) {
+  // Compute a seller's eligibility from paid-claim count, account age, and whether
+  // the account is in good standing (no counterfeit / condition-mismatch flags).
+  function bulkEligibility(paidClaims, ageDays, cleanStanding) {
     var paidOk = paidClaims >= BULK_RULES.min_paid;
     var ageOk = ageDays >= BULK_RULES.min_age_days;
-    return { paidClaims: paidClaims, ageDays: ageDays, paidOk: paidOk, ageOk: ageOk, eligible: paidOk && ageOk };
+    var clean = cleanStanding !== false;
+    return { paidClaims: paidClaims, ageDays: ageDays, paidOk: paidOk, ageOk: ageOk, clean: clean, eligible: paidOk && ageOk && clean };
   }
   function daysSince(iso) { if (!iso) return 0; return Math.floor((Date.now() - Date.parse(iso)) / 86400000); }
 
@@ -222,13 +224,13 @@
       Object.assign({ id: 'staff-connor', full_name: 'Connor Waugaman', email: 'admin@getrestash.gg', phone: '', address: '', role: 'staff', flagged: false, created_at: days(120), account_notes: [] }, bulkFields()),
       // Maya is a long-tenured power seller — meets the bar, so signing in as
       // her demonstrates the customer "apply for Bulk Seller" happy path.
-      Object.assign({ id: 'cust-maya', full_name: 'Maya Chen', email: 'maya.chen@email.com', phone: '(518) 555-0142', address: '203 Remsen St, Cohoes, NY 12047', role: 'customer', flagged: false, created_at: days(64), account_notes: [] }, bulkFields({ lifetime_paid: 27 })),
+      Object.assign({ id: 'cust-maya', full_name: 'Maya Chen', email: 'maya.chen@email.com', phone: '(518) 555-0142', address: '203 Remsen St, Cohoes, NY 12047', role: 'customer', flagged: false, created_at: days(78), account_notes: [] }, bulkFields({ lifetime_paid: 63 })),
       Object.assign({ id: 'cust-devon', full_name: 'Devon Brooks', email: 'devon.brooks@email.com', phone: '(518) 555-0188', address: '88 Vliet Blvd, Cohoes, NY 12047', role: 'customer', flagged: false, created_at: days(9), account_notes: [] }, bulkFields()),
       Object.assign({ id: 'cust-noah', full_name: 'Noah Kim', email: 'noah.kim@email.com', phone: '(518) 555-0195', address: '31 Howard St, Cohoes, NY 12047', role: 'customer', flagged: true, created_at: days(11), account_notes: [{ body: 'Submitted a non-working copy described as Complete. Review future claims carefully.', author_name: 'Connor Waugaman', created_at: days(10) }] }, bulkFields()),
       // A pending application waiting in the console's Bulk Sellers queue.
-      Object.assign({ id: 'cust-jordan', full_name: 'Jordan Vega', email: 'jordan.vega@email.com', phone: '(518) 555-0117', address: '12 Saratoga St, Cohoes, NY 12047', role: 'customer', flagged: false, created_at: days(58), account_notes: [] }, bulkFields({ lifetime_paid: 33, bulk_status: 'pending', bulk_applied_at: days(2), bulk_agreement_at: days(2), bulk_id_provided: true })),
+      Object.assign({ id: 'cust-jordan', full_name: 'Jordan Vega', email: 'jordan.vega@email.com', phone: '(518) 555-0117', address: '12 Saratoga St, Cohoes, NY 12047', role: 'customer', flagged: false, created_at: days(72), account_notes: [] }, bulkFields({ lifetime_paid: 58, bulk_status: 'pending', bulk_applied_at: days(2), bulk_agreement_at: days(2), bulk_id_provided: true })),
       // An approved, active Bulk Seller (locked out of the standard flow).
-      Object.assign({ id: 'cust-riley', full_name: 'Riley Park', email: 'riley.park@email.com', phone: '(518) 555-0163', address: '5 Ontario St, Cohoes, NY 12047', role: 'customer', flagged: false, created_at: days(96), account_notes: [] }, bulkFields({ lifetime_paid: 41, bulk_status: 'approved', bulk_applied_at: days(20), bulk_decided_at: days(18), bulk_agreement_at: days(20), bulk_id_provided: true })) ];
+      Object.assign({ id: 'cust-riley', full_name: 'Riley Park', email: 'riley.park@email.com', phone: '(518) 555-0163', address: '5 Ontario St, Cohoes, NY 12047', role: 'customer', flagged: false, created_at: days(112), account_notes: [] }, bulkFields({ lifetime_paid: 72, bulk_status: 'approved', bulk_applied_at: days(20), bulk_decided_at: days(18), bulk_agreement_at: days(20), bulk_id_provided: true })) ];
     var team = [
       { group_name: 'Founders', name: 'Connor Waugaman', role: 'Co-Founder & Operations', email: 'connor@getrestash.gg', location: 'Cohoes, NY', focus: ['Buyback pricing', 'Claim review', 'Payouts'], description: 'Runs Restash day to day — sets pricing, reviews edge-case claims, and signs off on every payout.', position: 1 },
       { group_name: 'Founders', name: 'Kamryn Washington', role: 'Co-Founder & Intake / Inspection', email: 'kamryn@getrestash.gg', location: 'Cohoes, NY', focus: ['Intake', 'Condition grading', 'Counterfeit checks'], description: 'Handles games on arrival — receives shipments, grades condition, and flags counterfeit or non-working copies.', position: 2 } ];
