@@ -361,40 +361,44 @@
   }
 
   /* ---- Bulk Seller (beta) ---- */
-  .bulk-kicker { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--purple); margin-bottom: 8px; }
-  .bulk-kicker svg { width: 13px; height: 13px; }
+  .bulk-kicker { display: inline-flex; align-items: center; gap: 6px; font-size: 10.5px; font-weight: 700; letter-spacing: 0.11em; text-transform: uppercase; color: var(--purple-deep); background: var(--purple-tint); border: 1px solid rgba(91,63,214,0.16); border-radius: 999px; padding: 4px 11px 4px 9px; margin-bottom: 13px; }
+  .bulk-kicker svg { width: 12px; height: 12px; color: var(--purple); }
   .bulk-badge { font-size: 11.5px; font-weight: 600; padding: 3px 10px; border-radius: 999px; }
   .b-green { color: #1c6b3a; background: #e4f4ea; }
   .b-amber { color: var(--amber); background: var(--amber-tint); }
   .b-grey { color: #6b6e8c; background: #ecebf4; }
   .b-red { color: var(--red); background: var(--red-soft); }
-  .bulk-status { display: flex; gap: 12px; align-items: flex-start; margin-top: 16px; padding: 15px 16px; border-radius: 14px; border: 1.5px solid var(--border); background: var(--surface); }
-  .bulk-status .bs-ic { flex: none; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; }
-  .bulk-status .bs-ic svg { width: 20px; height: 20px; }
+  .bulk-status { display: flex; gap: 13px; align-items: flex-start; margin-top: 16px; padding: 16px 17px; border-radius: 16px; border: 1.5px solid var(--border); background: var(--surface); }
+  .bulk-status .bs-ic { flex: none; width: 34px; height: 34px; border-radius: 10px; background: rgba(255,255,255,0.66); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.7); display: flex; align-items: center; justify-content: center; }
+  .bulk-status .bs-ic svg { width: 19px; height: 19px; }
   .bulk-status.green { border-color: #bfe6cd; background: #f1faf4; } .bulk-status.green .bs-ic { color: #1c6b3a; }
   .bulk-status.amber { border-color: var(--gold-soft-border); background: var(--amber-tint); } .bulk-status.amber .bs-ic { color: var(--amber); }
   .bulk-status.grey .bs-ic { color: var(--muted); }
   .bs-title { font-weight: 700; font-size: 15px; color: var(--ink); }
   .bs-sub { font-size: 13px; color: var(--muted); line-height: 1.5; margin-top: 3px; }
-  .bulk-card { margin-top: 16px; background: var(--surface); border: 1.5px solid var(--border); border-radius: 14px; padding: 16px 17px; }
-  .bulk-card-h { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 14px; color: var(--ink); margin-bottom: 12px; }
-  .bulk-card-h svg { width: 17px; height: 17px; color: var(--purple); flex: none; }
-  .bulk-rules { list-style: none; display: flex; flex-direction: column; gap: 9px; }
-  .bulk-rules li { position: relative; padding-left: 18px; font-size: 13px; line-height: 1.5; color: var(--muted); }
-  .bulk-rules li::before { content: ""; position: absolute; left: 0; top: 7px; width: 6px; height: 6px; border-radius: 50%; background: var(--purple); }
+  .bulk-card { margin-top: 16px; background: var(--surface); border: 1.5px solid var(--border); border-radius: 16px; padding: 18px 19px; }
+  .bulk-card-h { display: flex; align-items: center; gap: 11px; font-weight: 700; font-size: 14px; letter-spacing: -0.01em; color: var(--ink); margin-bottom: 15px; }
+  .bulk-card-h svg { width: 15px; height: 15px; padding: 6px; box-sizing: content-box; background: var(--purple-tint); border-radius: 9px; color: var(--purple); flex: none; }
+  .bulk-rules { list-style: none; display: flex; flex-direction: column; gap: 11px; }
+  .bulk-rules li { position: relative; padding-left: 19px; font-size: 13px; line-height: 1.5; color: var(--muted); }
+  .bulk-rules li::before { content: ""; position: absolute; left: 2px; top: 7px; width: 5px; height: 5px; border-radius: 50%; background: var(--purple); box-shadow: 0 0 0 3px var(--purple-tint); }
   .bulk-rules strong { color: var(--ink); font-weight: 600; }
-  .req-list { list-style: none; display: flex; flex-direction: column; gap: 11px; }
-  .req { display: flex; gap: 11px; align-items: flex-start; }
-  .req-ic { flex: none; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #ecebf4; color: var(--muted); }
-  .req-ic svg { width: 14px; height: 14px; }
-  .req.met .req-ic { background: #e4f4ea; color: #1c6b3a; }
-  .req-label { display: block; font-size: 13.5px; font-weight: 600; color: var(--ink); }
-  .req-detail { display: block; font-size: 12px; color: var(--muted); margin-top: 1px; }
-  .req.met .req-detail { color: #1c6b3a; }
-  .bulk-apply { margin-top: 16px; }
-  .bulk-check { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; line-height: 1.5; color: var(--ink); margin-bottom: 12px; cursor: pointer; }
-  .bulk-check input { margin-top: 1px; width: 16px; height: 16px; accent-color: var(--purple); flex: none; }
-  .bulk-gate { display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--muted); margin-top: 10px; }
+  .req-list { list-style: none; display: flex; flex-direction: column; }
+  .req { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid rgba(220,214,238,0.65); }
+  .req:first-child { border-top: none; padding-top: 1px; }
+  .req:last-child { padding-bottom: 1px; }
+  .req-ic { flex: none; width: 25px; height: 25px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #edebf6; color: var(--muted); }
+  .req-ic svg { width: 13px; height: 13px; }
+  .req.met .req-ic { background: #e3f3e9; color: #1c8a48; }
+  .req-label { flex: 1; min-width: 0; font-size: 13.5px; font-weight: 600; color: var(--ink); line-height: 1.4; }
+  .req-val { flex: none; font-size: 12px; font-weight: 600; color: var(--muted); white-space: nowrap; }
+  .req.met .req-val { color: #1c8a48; }
+  .bulk-apply { margin-top: 18px; }
+  .bulk-consent { border: 1.5px solid var(--border); border-radius: 14px; padding: 4px 15px; margin-bottom: 14px; background: rgba(255,255,255,0.5); }
+  .bulk-check { display: flex; gap: 11px; align-items: flex-start; font-size: 13px; line-height: 1.5; color: var(--ink); padding: 12px 0; cursor: pointer; border-top: 1px solid rgba(220,214,238,0.65); }
+  .bulk-check:first-child { border-top: none; }
+  .bulk-check input { margin-top: 1px; width: 17px; height: 17px; accent-color: var(--purple); flex: none; cursor: pointer; }
+  .bulk-gate { display: flex; align-items: center; justify-content: center; gap: 7px; font-size: 12.5px; color: var(--muted); margin-top: 12px; }
   .bulk-gate svg { width: 14px; height: 14px; flex: none; }
   .bulk-meter { margin-top: 16px; background: var(--surface); border: 1.5px solid var(--border); border-radius: 14px; padding: 15px 16px; }
   .bm-top { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; font-weight: 600; color: var(--ink); }
@@ -1002,7 +1006,7 @@
   const BULK_BADGE = { pending: ['Under review', 'b-amber'], approved: ['Active', 'b-green'], suspended: ['Suspended', 'b-amber'], declined: ['Not approved', 'b-grey'], closed: ['Closed', 'b-red'] };
   function bulkBadge(st) { const b = BULK_BADGE[st]; return b ? ' <span class="bulk-badge ' + b[1] + '">' + b[0] + '</span>' : ''; }
   function reqRow(ok, label, detail) {
-    return '<li class="req' + (ok ? ' met' : '') + '"><span class="req-ic">' + (ok ? I.check : I.lock) + '</span><span class="req-body"><span class="req-label">' + label + '</span>' + (detail ? '<span class="req-detail">' + detail + '</span>' : '') + '</span></li>';
+    return '<li class="req' + (ok ? ' met' : '') + '"><span class="req-ic">' + (ok ? I.check : I.lock) + '</span><span class="req-label">' + label + '</span>' + (detail ? '<span class="req-val">' + detail + '</span>' : '') + '</li>';
   }
   function bulkAgreementCard(B) {
     return '<div class="bulk-card"><div class="bulk-card-h">' + I.shield + 'The Bulk Seller agreement</div><ul class="bulk-rules">'
@@ -1021,8 +1025,10 @@
       + '</ul></div>'
       + '<div class="bulk-apply">'
       + flashMsg('bulk')
+      + '<div class="bulk-consent">'
       + '<label class="bulk-check"><input type="checkbox" id="bulk-id"><span>I can provide a valid government ID when the Restash team asks.</span></label>'
       + '<label class="bulk-check"><input type="checkbox" id="bulk-agree"><span>I have read and accept the <a href="bulk-agreement.html" target="_blank" rel="noopener">Bulk Seller Agreement</a> and the commitments above.</span></label>'
+      + '</div>'
       + (elig.eligible
           ? '<button class="btn btn-primary full" data-action="bulk-apply">' + I.star + 'Apply to the Bulk Seller program</button>'
           : '<button class="btn btn-primary full" disabled>Apply to the Bulk Seller program</button><p class="bulk-gate">' + I.lock + 'You may only apply once you’ve met the minimum requirements.</p>')
