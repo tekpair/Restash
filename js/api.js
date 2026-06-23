@@ -311,7 +311,7 @@
         var p = sessionProfile(); if (!p) throw new Error('Not signed in');
         if (p.bulk_status !== 'approved' && p.bulk_status !== 'suspended') throw new Error('Only an active Bulk Seller can close their membership.');
         p.bulk_status = 'closed';
-        p.bulk_reason = 'Closed at your request — our team will follow up within 2–3 business days.';
+        p.bulk_reason = 'Closed at your request — thank you for using Restash.';
         p.bulk_decided_at = new Date().toISOString();
         return { ok: true };
       },
