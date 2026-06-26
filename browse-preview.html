@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Bulk Seller — Preview (demo)</title>
+<title>What we buy — Preview (demo)</title>
 <meta name="robots" content="noindex" />
 <meta name="color-scheme" content="light dark" />
 <link rel="icon" type="image/svg+xml" href="favicon.svg" />
@@ -49,7 +49,9 @@
   .brand .mark { width: 30px; height: 30px; border-radius: 9px; background: var(--purple-tint); color: var(--purple); display: flex; align-items: center; justify-content: center; }
   .brand .mark svg { width: 18px; height: 18px; }
   .brand .word { font-family: var(--display); font-weight: 700; font-size: 19px; letter-spacing: -0.02em; color: var(--ink); }
+  .head-actions { display: flex; align-items: center; gap: 10px; }
   .acct { position: relative; width: 36px; height: 36px; border-radius: 50%; background: var(--surface); border: 1.5px solid var(--border); color: var(--ink); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: border-color .15s ease, background .15s ease; }
+  .acct[hidden] { display: none; }
   .acct svg { width: 19px; height: 19px; }
   .acct:hover, .acct.live { border-color: var(--purple); background: var(--purple-tint-2); color: var(--purple); }
   .acct:focus-visible, .brand:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(91,63,214,0.22); border-radius: 50%; }
@@ -377,6 +379,15 @@
   .bm-fill.ok { background: #2c9b5a; }
   .bm-note { font-size: 12px; color: var(--muted); margin-top: 8px; }
   .b-purple { color: var(--purple); background: var(--purple-tint); }
+  .bulk-danger { margin-top: 22px; border: 1.5px solid #f0c7c3; background: rgba(253,243,242,0.72); border-radius: 16px; padding: 16px 17px; }
+  .bulk-danger-h { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: #7a1d18; }
+  .bulk-danger-h svg { width: 16px; height: 16px; flex: none; color: #b3261e; }
+  .bulk-danger-sub { font-size: 12.5px; line-height: 1.5; color: #9a5b56; margin-top: 5px; }
+  .bulk-danger-warn { font-size: 13px; line-height: 1.55; color: #7a1d18; margin-top: 9px; }
+  .bulk-danger-warn strong { color: #5e1612; font-weight: 700; }
+  .bulk-danger .btn { margin-top: 0; }
+  .bulk-danger .btn.full { margin-top: 12px; }
+  .bulk-danger .btn-row.two { margin-top: 13px; }
 
   /* ---- Bulk submission lane (active sellers) ---- */
   .bulk-cta { display: flex; gap: 12px; align-items: flex-start; margin-top: 22px; padding: 16px 17px; border-radius: 14px; border: 1.5px solid var(--purple); background: var(--purple-tint-2); }
@@ -494,53 +505,65 @@
   @media (prefers-reduced-motion: reduce) { .btn, .card, .pay-opt, .claim-row { transition: none; } .btn:hover, .btn-primary:hover, .btn-secondary:hover, .card:hover, .pay-opt:hover, .claim-row:hover { transform: none; } .btn::after { display: none; } }
 </style>
 <style>
-  /* preview-only chrome (not part of the app) */
+  /* preview-only chrome + browse styles (not part of the app yet) */
   .pv-note { display: flex; gap: 9px; align-items: flex-start; margin-top: 18px; padding: 11px 14px; border-radius: 12px; font-size: 13px; line-height: 1.5; color: var(--purple-deep); background: var(--purple-tint); border: 1px solid rgba(91,63,214,0.16); }
   .pv-note svg { width: 16px; height: 16px; flex: none; margin-top: 1px; color: var(--purple); }
-  .pv-seg { display: inline-flex; gap: 4px; margin-top: 18px; padding: 4px; border-radius: 13px; background: rgba(255,255,255,0.6); border: 1.5px solid var(--border); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
-  .pv-seg button { font-family: var(--body); font-size: 13.5px; font-weight: 600; color: var(--muted); background: transparent; border: none; border-radius: 9px; padding: 8px 16px; cursor: pointer; transition: background .15s ease, color .15s ease; }
-  .pv-seg button.on { background: var(--purple); color: #fff; }
-  .pv-seg button:not(.on):hover { color: var(--ink); }
-  .pv-ok { display: flex; gap: 8px; align-items: flex-start; margin-top: 14px; padding: 11px 13px; border-radius: 12px; font-size: 13px; line-height: 1.45; color: #1c6b3a; background: #e3f3e9; border: 1px solid #bfe6cd; }
-  .pv-ok svg { width: 15px; height: 15px; flex: none; margin-top: 1px; }
-  .bulk-danger { margin-top: 22px; border: 1.5px solid #f0c7c3; background: rgba(253,243,242,0.72); border-radius: 16px; padding: 16px 17px; }
-  .bulk-danger-h { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: #7a1d18; }
-  .bulk-danger-h svg { width: 16px; height: 16px; flex: none; color: #b3261e; }
-  .bulk-danger-sub { font-size: 12.5px; line-height: 1.5; color: #9a5b56; margin-top: 5px; }
-  .bulk-danger-warn { font-size: 13px; line-height: 1.55; color: #7a1d18; margin-top: 9px; }
-  .bulk-danger-warn strong { color: #5e1612; font-weight: 700; }
-  .bulk-danger .btn { margin-top: 0; }
-  .bulk-danger .btn.full { margin-top: 12px; }
-  .bulk-danger .btn-row.two { margin-top: 13px; }
+  .bv-search { position: relative; margin-top: 18px; }
+  .bv-search svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--muted); }
+  .bv-search input { width: 100%; font-family: var(--body); font-size: 15px; color: var(--ink); background: rgba(255,255,255,0.82); border: 1.5px solid var(--border); border-radius: 12px; padding: 13px 14px 13px 42px; }
+  .bv-search input:focus { outline: none; border-color: var(--purple); box-shadow: 0 0 0 3px rgba(91,63,214,0.16); }
+  .bv-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .bv-chip { font-family: var(--body); font-size: 13px; font-weight: 600; color: var(--muted); background: rgba(255,255,255,0.6); border: 1.5px solid var(--border); border-radius: 999px; padding: 7px 14px; cursor: pointer; transition: background .15s ease, color .15s ease, border-color .15s ease; }
+  .bv-chip:hover { color: var(--ink); }
+  .bv-chip.on { background: var(--purple); color: #fff; border-color: var(--purple); }
+  .bv-count { margin-top: 16px; font-size: 12.5px; color: var(--muted); }
+  .bv-grid { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+  .bv-card { width: 100%; text-align: left; background: var(--surface); border: 1.5px solid var(--border); border-radius: 14px; cursor: pointer; font-family: var(--body); color: var(--ink); overflow: hidden; transition: border-color .15s ease, box-shadow .2s ease, transform .15s ease; }
+  .bv-card:hover { border-color: var(--purple); transform: translateY(-1px); }
+  .bv-head { display: flex; align-items: center; gap: 13px; padding: 14px 16px; }
+  .bv-body { flex: 1; min-width: 0; }
+  .bv-tag { display: inline-block; font-size: 10.5px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; color: var(--purple); background: var(--purple-tint); border-radius: 999px; padding: 2px 8px; }
+  .bv-title { display: block; font-size: 15px; font-weight: 600; letter-spacing: -0.01em; margin-top: 5px; line-height: 1.3; }
+  .bv-up { flex: none; text-align: right; }
+  .bv-up .lbl { display: block; font-size: 10.5px; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; color: var(--muted); }
+  .bv-up .amt { display: block; font-family: var(--display); font-weight: 700; font-size: 19px; color: var(--ink); }
+  .bv-chev { flex: none; color: #c2c0d6; display: flex; transition: transform .2s ease, color .15s ease; }
+  .bv-card.open .bv-chev { transform: rotate(90deg); color: var(--purple); }
+  .bv-detail { border-top: 1px solid var(--border); padding: 4px 16px 15px; display: none; }
+  .bv-card.open .bv-detail { display: block; }
+  .bv-ed { font-size: 12px; font-weight: 700; color: var(--muted); margin-top: 13px; }
+  .bv-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid rgba(220,214,238,0.6); }
+  .bv-row:last-of-type { border-bottom: none; }
+  .bv-row .cond { font-size: 13.5px; color: var(--ink); }
+  .bv-row .cond span { display: block; font-size: 12px; color: var(--muted); margin-top: 1px; }
+  .bv-row .val { font-family: var(--display); font-weight: 700; font-size: 15px; color: var(--ink); }
+  .bv-note { font-size: 12px; color: var(--muted); line-height: 1.5; margin-top: 13px; }
+  .bv-cta { margin-top: 13px; }
+  .bv-empty { text-align: center; color: var(--muted); font-size: 14px; padding: 30px 0; }
 </style>
 </head>
 <body>
   <div class="shell">
     <header>
-      <a class="brand" href="index.html" aria-label="Restash home">
+      <a class="brand" href="index.html" aria-label="Restash home" style="background:none;border:none;cursor:pointer;text-decoration:none;">
         <span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 13.5a6.5 6.5 0 0 1 10.4-5.2"/><path d="M16 5.7v3.2h-3.2"/><path d="M18.5 10.5a6.5 6.5 0 0 1-10.4 5.2"/><path d="M8 18.3v-3.2h3.2"/></svg></span>
         <span class="word">Restash</span>
       </a>
-      <button class="acct live" aria-label="Your account" type="button">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 19.5c0-3.6 3.1-5.5 7-5.5s7 1.9 7 5.5"/></svg>
-      </button>
     </header>
-
     <main>
       <div class="screen">
-        <div class="pv-note" id="pv-note"><span></span><span>Preview only — flip between <strong>Ready to apply</strong> and <strong>Active member</strong>. This page is a demo and isn’t linked anywhere in the app.</span></div>
-        <h1 class="h1">Your account</h1>
-        <div class="pv-seg" role="tablist" aria-label="Preview state">
-          <button type="button" data-state="apply" class="on">Ready to apply</button>
-          <button type="button" data-state="active">Active member</button>
+        <div class="pv-note" id="pv-note"><span></span><span>Preview only — this is a concept for a public <strong>“What we buy”</strong> page. Values are live from the demo catalog. Not linked anywhere in the app yet.</span></div>
+        <h1 class="h1">What we buy</h1>
+        <p class="sub">Browse buyback estimates before you sell. Search a title or pick a platform — every price is computed the same way your real estimate is. Final offer is set on inspection.</p>
+        <div class="bv-search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          <input id="bv-q" type="text" placeholder="Search a game — e.g. Zelda, God of War, Halo" autocomplete="off" />
         </div>
-        <div class="acct-layout">
-          <nav class="acct-nav" id="acct-nav" aria-label="Account sections"></nav>
-          <div class="acct-panel" id="acct-panel"></div>
-        </div>
+        <div class="bv-chips" id="bv-chips"></div>
+        <div class="bv-count" id="bv-count"></div>
+        <div class="bv-grid" id="bv-grid"></div>
       </div>
     </main>
-
     <footer>
       <div class="foot-top">
         <div class="foot-brand">
@@ -549,201 +572,93 @@
         </div>
         <nav class="foot-links">
           <a href="why-restash.html">Why Restash</a>
-          <a href="help.html">Help Center</a>
           <a href="grading.html">Grading</a>
-          <a href="bulk-agreement.html">Bulk Agreement</a>
           <a href="index.html">My Claims</a>
         </nav>
       </div>
-      <div class="foot-bottom"><div>© 2026 Restash · Cohoes, NY</div><div class="foot-fine">Preview page for the Bulk Seller program. Estimates are preliminary, not guaranteed payouts.</div></div>
+      <div class="foot-bottom"><div>© 2026 Restash · Cohoes, NY</div><div class="foot-fine">Preview page. Estimates are preliminary, not guaranteed payouts. PlayStation, Xbox, Nintendo, and all game titles are trademarks of their respective owners; Restash is not affiliated.</div></div>
     </footer>
   </div>
 
-<script>
-  const I = {
-    chevron: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>',
-    back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg>',
-    check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>',
-    info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><circle cx="12" cy="7.8" r="0.5" fill="currentColor" stroke="none"/></svg>',
-    lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',
-    star: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.5l2.5 5.3 5.8.7-4.3 4 1.1 5.7L12 16.6 6.9 19.2l1.1-5.7-4.3-4 5.8-.7Z"/></svg>',
-    shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V6Z"/><path d="M9 12l2 2 4-4"/></svg>',
-    clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>',
-    plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>',
-    phone: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3h3l1.5 4-2 1.5a12 12 0 0 0 4.5 4.5l1.5-2 4 1.5v3a2 2 0 0 1-2.2 2A16 16 0 0 1 4.5 5.2 2 2 0 0 1 6.5 3Z"/></svg>',
-    mail: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M4 6.5l8 6 8-6"/></svg>',
-    alert: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v5"/><circle cx="12" cy="16.5" r="0.5" fill="currentColor" stroke="none"/><path d="M10.3 4.2 2.8 18a2 2 0 0 0 1.7 3h15a2 2 0 0 0 1.7-3L13.7 4.2a2 2 0 0 0-3.4 0Z"/></svg>',
-    trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13M10 11v6M14 11v6"/></svg>'
-  };
-  let closeConfirm = false;
+  <script>window.RESTASH_CONFIG = { SUPABASE_URL: 'YOUR-PROJECT-REF', SUPABASE_ANON_KEY: 'YOUR', GOOGLE_MAPS_API_KEY: '' };</script>
+  <script src="js/api.js"></script>
+  <script>
+    var INFO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><circle cx="12" cy="7.8" r="0.5" fill="currentColor" stroke="none"/></svg>';
+    var CHEV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M9 6l6 6-6 6"/></svg>';
+    document.getElementById('pv-note').firstElementChild.innerHTML = INFO;
+    var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]; }); };
 
-  // --- realistic demo numbers, mirroring the app rules ---
-  const RULES = { min_paid: 50, min_age_days: 60, min_per_shipment: 15, min_games_per_month: 50 };
-  const ME = { paid: 63, ageDays: 78, clean: true };
-  const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    var P, CONDS, GAMES = [], platform = 'all', query = '';
 
-  const HEAD = (badge) => '<div class="panel-head"><span class="bulk-kicker">' + I.star + 'Beta program</span>'
-    + '<h2 class="panel-title">Bulk Seller Program' + (badge || '') + '</h2>'
-    + '<p class="panel-sub">A lane built for high-volume sellers. Send one manifest for an entire lot — we email a prepaid label, give it priority inspection on arrival, and make a single offer for everything, with a direct line to our team. Membership is by application and reviewed by Restash.</p></div>';
+    function marginFor(unit) { return unit >= P.tier_high_min ? P.margin_high : (unit >= P.tier_mid_min ? P.margin_mid : P.margin_low); }
+    function buyback(unit) { return Math.max(1, Math.round(unit * marginFor(unit))); } // per-game cash, shipping amortized across a shipment
+    function condCash(e, c) { return buyback(RestashAPI.marketValue(e, c)); }
+    function titleTop(g) { var best = 0; g.editions.forEach(function (e) { CONDS.forEach(function (c) { var v = condCash(e, c); if (v > best) best = v; }); }); return best; }
 
-  const AGREEMENT = '<div class="bulk-card"><div class="bulk-card-h">' + I.shield + 'The Bulk Seller agreement</div><ul class="bulk-rules">'
-    + '<li>Ship at least <strong>' + RULES.min_games_per_month + ' games per month</strong>.</li>'
-    + '<li>Send a minimum of <strong>' + RULES.min_per_shipment + ' games per shipment</strong>.</li>'
-    + '<li>No counterfeits or repeated condition mismatches.</li>'
-    + '<li>Sharing or selling access to your account is not allowed.</li>'
-    + '<li><strong>PayPal</strong> is the only authorized payout method.</li>'
-    + '<li>While active, you may <strong>only</strong> sell through Bulk Seller.</li>'
-    + '</ul></div>';
-
-  const req = (ok, label, val) => '<li class="req' + (ok ? ' met' : '') + '"><span class="req-ic">' + (ok ? I.check : I.lock) + '</span><span class="req-label">' + label + '</span><span class="req-val">' + val + '</span></li>';
-  const statusCard = (kind, icon, title, sub) => '<div class="bulk-status ' + kind + '"><span class="bs-ic">' + icon + '</span><div><div class="bs-title">' + title + '</div><div class="bs-sub">' + sub + '</div></div></div>';
-  const LINE = '<div class="bulk-line"><div class="bl-h">' + I.clock + '24/7 direct line</div>'
-    + '<p class="bl-sub">Active Bulk Sellers get a direct line to our team, any time.</p>'
-    + '<a class="bl-row" href="tel:+15185550100">' + I.phone + '(518) 555-0100</a>'
-    + '<a class="bl-row" href="mailto:bulk@getrestash.gg">' + I.mail + 'bulk@getrestash.gg</a></div>';
-
-  function applyPanel() {
-    const reqs = '<div class="bulk-card"><div class="bulk-card-h">' + I.check + 'Requirements to apply</div><ul class="req-list">'
-      + req(ME.paid >= RULES.min_paid, RULES.min_paid + '+ paid claims', 'You have ' + ME.paid)
-      + req(ME.ageDays >= RULES.min_age_days, RULES.min_age_days + '+ days on Restash', ME.ageDays + ' days so far')
-      + req(ME.clean, 'Account in good standing', ME.clean ? 'No flags' : 'Flagged')
-      + req(false, 'A valid government ID', 'Confirm below')
-      + '</ul></div>';
-    const form = '<div class="bulk-apply">'
-      + '<div class="bulk-consent">'
-      + '<label class="bulk-check"><input type="checkbox" id="bulk-id"><span>I can provide a valid government ID when the Restash team asks.</span></label>'
-      + '<label class="bulk-check"><input type="checkbox" id="bulk-agree"><span>I have read and accept the <a href="bulk-agreement.html" target="_blank" rel="noopener">Bulk Seller Agreement</a> and the commitments above.</span></label>'
-      + '</div>'
-      + '<p class="form-error" id="apply-msg" hidden></p>'
-      + '<button class="btn btn-primary full" id="applyBtn">' + I.star + 'Apply to the Bulk Seller program</button>'
-      + '</div>';
-    return HEAD('') + AGREEMENT + reqs + form;
-  }
-
-  function pendingPanel() {
-    return HEAD(' <span class="bulk-badge b-amber">Under review</span>')
-      + statusCard('amber', I.clock, 'Application under review',
-        'The Restash team is reviewing your application (submitted ' + today + '). We’ll email you within 1-2 weeks with a final decision. You can keep selling normally in the meantime.')
-      + AGREEMENT;
-  }
-
-  function meter(g) {
-    const ok = g >= RULES.min_games_per_month;
-    const pct = Math.min(100, Math.round(g / RULES.min_games_per_month * 100));
-    return '<div class="bulk-meter"><div class="bm-top"><span>Games shipped this month</span><span class="bm-val' + (ok ? ' ok' : '') + '">' + g + ' / ' + RULES.min_games_per_month + '</span></div>'
-      + '<div class="bm-track"><span class="bm-fill' + (ok ? ' ok' : '') + '" style="width:' + pct + '%"></span></div>'
-      + '<div class="bm-note">' + (ok ? 'You’ve met this month’s minimum.' : 'Ship ' + RULES.min_games_per_month + ' games this month to stay active.') + '</div></div>';
-  }
-
-  function dangerZone() {
-    if (closeConfirm) {
-      return '<div class="bulk-danger"><div class="bulk-danger-h">' + I.alert + 'Close membership</div>'
-        + '<p class="bulk-danger-warn">Submitting a closure <strong>closes your Bulk Seller account</strong>. You won’t be able to reopen or reapply for <strong>3 months</strong>. You also <strong>forfeit any active bulk lot claims</strong> — please finalize all your bulk lot claims before closing, or risk losing them. Expect a response within <strong>2–3 business days</strong>.</p>'
-        + '<div class="btn-row two"><button class="btn btn-danger" id="closeConfirmBtn">Yes, close my account</button><button class="btn btn-secondary" id="closeCancelBtn">Cancel</button></div>'
-        + '</div>';
+    function detailHTML(g) {
+      var multi = g.editions.length > 1;
+      var rows = g.editions.map(function (e) {
+        var head = multi ? '<div class="bv-ed">' + esc(e.name) + (e.desc ? ' — ' + esc(e.desc) : '') + '</div>' : '';
+        var conds = CONDS.map(function (c) {
+          return '<div class="bv-row"><div class="cond">' + esc(c.name) + '<span>' + esc(c.desc) + '</span></div><div class="val">$' + condCash(e, c) + '</div></div>';
+        }).join('');
+        return head + conds;
+      }).join('');
+      return '<div class="bv-detail">' + rows
+        + '<div class="bv-note">Estimated cash <strong>per game</strong>, by condition. We confirm condition and authenticity on inspection. Ship <strong>3+ games</strong> (or a $25+ estimate) to meet our minimum.</div>'
+        + '<a class="btn btn-primary full bv-cta" href="index.html">Sell yours →</a></div>';
     }
-    return '<div class="bulk-danger"><div class="bulk-danger-h">' + I.alert + 'Close membership</div>'
-      + '<p class="bulk-danger-sub">Leaving the program closes your bulk membership. You can keep selling on Restash normally afterward.</p>'
-      + '<button class="btn btn-danger full" id="closeStartBtn">' + I.trash + 'Close Bulk Seller account</button>'
-      + '</div>';
-  }
 
-  function activePanel() {
-    return HEAD(' <span class="bulk-badge b-green">Active</span>')
-      + statusCard('green', I.check, 'You’re an active Bulk Seller',
-        'Submit one manifest per lot — we email a prepaid label, inspect on arrival (priority), and send a single bulk offer. The standard one-by-one flow is turned off for your account.')
-      + '<button class="btn btn-primary full" id="manifestBtn">' + I.plus + 'Submit a bulk manifest</button>'
-      + meter(32)
-      + LINE
-      + AGREEMENT
-      + dangerZone();
-  }
+    function cardHTML(g) {
+      return '<div class="bv-card" data-id="' + esc(g.id) + '">'
+        + '<div class="bv-head"><div class="bv-body"><span class="bv-tag">' + esc(g.platform) + '</span><span class="bv-title">' + esc(g.name) + '</span></div>'
+        + '<span class="bv-up"><span class="lbl">Up to</span><span class="amt">$' + titleTop(g) + '</span></span>'
+        + '<span class="bv-chev">' + CHEV + '</span></div>'
+        + detailHTML(g) + '</div>';
+    }
 
-  function closedPanel() {
-    return HEAD(' <span class="bulk-badge b-red">Closed</span>')
-      + statusCard('grey', I.info, 'Your Bulk Seller account is closed',
-        'Closed at your request — thank you for using Restash. You may reapply after 3 months. You can keep using Restash normally.')
-      + AGREEMENT;
-  }
+    function render() {
+      var q = query.trim().toLowerCase();
+      var list = GAMES.filter(function (g) {
+        if (platform !== 'all' && g.platformId !== platform) return false;
+        if (q && g.name.toLowerCase().indexOf(q) === -1) return false;
+        return true;
+      });
+      var grid = document.getElementById('bv-grid');
+      document.getElementById('bv-count').textContent = list.length + (list.length === 1 ? ' game' : ' games');
+      grid.innerHTML = list.length ? list.map(cardHTML).join('') : '<div class="bv-empty">No games match that. Try another title or platform.</div>';
+    }
 
-  function manifestPanel() {
-    const steps = ['Submit this manifest', 'We email a prepaid label', 'Ship the lot', 'Priority inspection on arrival', 'One bulk offer — you accept or decline'];
-    return '<button class="backbtn" id="manifestBack">' + I.back + 'Bulk Seller</button>'
-      + '<h2 class="panel-title" style="margin-top:10px;">Submit a bulk manifest</h2>'
-      + '<p class="panel-sub">One manifest for the whole lot. We email a prepaid label, inspect on arrival (priority), and send a single bulk offer for everything.</p>'
-      + '<div class="bulk-steps">' + steps.map((s, i) => '<div class="bstep"><span class="bstep-n">' + (i + 1) + '</span>' + s + '</div>').join('') + '</div>'
-      + '<div class="panel" style="margin-top:18px;">'
-      + '<div class="field"><label for="bulk-manifest">Manifest</label><textarea id="bulk-manifest" rows="5" placeholder="Describe the lot — platforms, rough counts, condition mix, anything sealed or notable."></textarea></div>'
-      + '<div class="field"><label for="bulk-count">Estimated games <span class="opt">(min ' + RULES.min_per_shipment + ' per shipment)</span></label><input id="bulk-count" type="number" min="' + RULES.min_per_shipment + '" placeholder="e.g. 30"></div>'
-      + '<div class="field"><label>Payout method</label><div class="bulk-select bulk-payout-fixed"><strong>PayPal</strong><span>Sent directly to your PayPal email.</span></div></div>'
-      + '<p class="form-error" id="manifest-error" hidden></p>'
-      + '<div class="pv-ok" id="manifestOk" hidden>' + I.check + '<span>Manifest received (demo). In the real app we’d email your prepaid label.</span></div>'
-      + '<button class="btn btn-primary full" id="manifestSubmit" style="margin-top:14px;">' + I.star + 'Submit manifest &amp; get a label</button></div>'
-      + LINE;
-  }
+    function chips(platforms) {
+      var html = '<button class="bv-chip on" data-p="all" type="button">All</button>'
+        + platforms.map(function (p) { return '<button class="bv-chip" data-p="' + esc(p.id) + '" type="button">' + esc(p.name) + '</button>'; }).join('');
+      var el = document.getElementById('bv-chips');
+      el.innerHTML = html;
+      el.addEventListener('click', function (e) {
+        var b = e.target.closest('.bv-chip'); if (!b) return;
+        platform = b.dataset.p;
+        el.querySelectorAll('.bv-chip').forEach(function (c) { c.classList.toggle('on', c === b); });
+        render();
+      });
+    }
 
-  function navHTML(stateKey) {
-    const tabs = [['profile', 'Profile'], ['claims', 'Claims'], ['bulk', 'Bulk Seller'], ['controls', 'Controls']];
-    const dotStates = (stateKey === 'active' || stateKey === 'pending');
-    return tabs.map(t => {
-      const on = t[0] === 'bulk';
-      const dot = (t[0] === 'bulk' && dotStates) ? '<span class="acct-dot"></span>' : '';
-      return '<button class="acct-tab' + (on ? ' on' : '') + '" type="button" data-tab="' + t[0] + '">' + t[1] + dot + '</button>';
-    }).join('');
-  }
-
-  const panel = document.getElementById('acct-panel');
-  const nav = document.getElementById('acct-nav');
-  document.getElementById('pv-note').firstElementChild.innerHTML = I.info;
-
-  let viewState = 'apply';
-  function render(stateKey) {
-    viewState = stateKey;
-    nav.innerHTML = navHTML(stateKey);
-    panel.innerHTML = stateKey === 'apply' ? applyPanel()
-      : stateKey === 'pending' ? pendingPanel()
-      : stateKey === 'manifest' ? manifestPanel()
-      : stateKey === 'closed' ? closedPanel()
-      : activePanel();
-    document.querySelectorAll('.pv-seg button').forEach(b => {
-      const s = b.dataset.state;
-      b.classList.toggle('on', (s === 'apply' && (stateKey === 'apply' || stateKey === 'pending')) || (s === 'active' && (stateKey === 'active' || stateKey === 'manifest' || stateKey === 'closed')));
+    document.getElementById('bv-grid').addEventListener('click', function (e) {
+      var card = e.target.closest('.bv-card'); if (!card) return;
+      if (e.target.closest('.bv-cta')) return; // let the CTA link work
+      card.classList.toggle('open');
     });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
+    document.getElementById('bv-q').addEventListener('input', function (e) { query = e.target.value; render(); });
 
-  // segmented control
-  document.querySelectorAll('.pv-seg button').forEach(b => {
-    b.addEventListener('click', () => { closeConfirm = false; render(b.dataset.state); });
-  });
-
-  // delegated interactions inside the panel
-  panel.addEventListener('click', (e) => {
-    if (e.target.closest('#applyBtn')) {
-      const id = document.getElementById('bulk-id'), ag = document.getElementById('bulk-agree');
-      const msg = document.getElementById('apply-msg');
-      if (!id.checked || !ag.checked) { msg.textContent = 'Please confirm the government ID and accept the agreement to apply.'; msg.hidden = false; return; }
-      render('pending');
-      return;
-    }
-    if (e.target.closest('#manifestBtn')) { render('manifest'); return; }
-    if (e.target.closest('#manifestBack')) { render('active'); return; }
-    if (e.target.closest('#manifestSubmit')) {
-      const raw = (document.getElementById('bulk-count').value || '').trim();
-      const n = parseInt(raw, 10);
-      const err = document.getElementById('manifest-error');
-      if (isNaN(n) || n < RULES.min_per_shipment) { err.textContent = 'Enter an estimate of at least ' + RULES.min_per_shipment + ' games per shipment.'; err.hidden = false; return; }
-      err.hidden = true;
-      const ok = document.getElementById('manifestOk'); if (ok) ok.hidden = false;
-      e.target.closest('#manifestSubmit').disabled = true;
-      return;
-    }
-    if (e.target.closest('#closeStartBtn')) { closeConfirm = true; render('active'); return; }
-    if (e.target.closest('#closeCancelBtn')) { closeConfirm = false; render('active'); return; }
-    if (e.target.closest('#closeConfirmBtn')) { closeConfirm = false; render('closed'); return; }
-  });
-
-  render('apply');
-</script>
+    RestashAPI.getCatalog().then(function (cat) {
+      P = cat.pricing;
+      CONDS = cat.conditions.filter(function (c) { return !c.ineligible; });
+      cat.platforms.forEach(function (p) {
+        p.titles.forEach(function (t) { GAMES.push({ id: p.id + '-' + t.id, name: t.name, platform: p.name, platformId: p.id, editions: t.editions }); });
+      });
+      GAMES.sort(function (a, b) { return titleTop(b) - titleTop(a); });
+      chips(cat.platforms);
+      render();
+    });
+  </script>
 </body>
 </html>
