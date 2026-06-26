@@ -587,8 +587,8 @@
   .ref-teaser .rt-ic { flex: none; width: 34px; height: 34px; border-radius: 10px; background: var(--purple-tint); color: var(--purple); display: flex; align-items: center; justify-content: center; }
   .ref-teaser .rt-ic svg { width: 19px; height: 19px; }
   .ref-teaser .rt-b { flex: 1; min-width: 0; }
-  .ref-teaser .rt-t { font-size: 14px; font-weight: 700; }
-  .ref-teaser .rt-s { font-size: 12.5px; color: var(--muted); margin-top: 2px; line-height: 1.4; }
+  .ref-teaser .rt-t { display: block; font-size: 14px; font-weight: 700; line-height: 1.35; }
+  .ref-teaser .rt-s { display: block; font-size: 12.5px; color: var(--muted); margin-top: 3px; line-height: 1.45; }
   .ref-teaser .chev { flex: none; color: #c2c0d6; display: flex; }
 </style>
 </head>
@@ -1016,7 +1016,7 @@
     const msgs = c.messages || [];
     const thread = msgs.length
       ? msgs.map(m => '<div class="msg ' + (m.from === 'customer' ? 'mine' : 'them') + '"><div class="msg-bubble">' + esc(m.body) + '</div><div class="msg-meta">' + (m.from === 'customer' ? 'You' : esc(m.name || 'Restash')) + ' · ' + m.date + '</div></div>').join('')
-      : '<div class="msg-empty">No messages yet. Questions about this claim? Send us a note — we usually reply within a day.</div>';
+      : '<div class="msg-empty">Questions about this claim? Send us a note — we usually reply within a day.</div>';
     return '<div class="section"><div class="section-title">Messages</div>'
       + '<div class="msg-thread">' + thread + '</div>'
       + '<div class="msg-compose"><textarea id="cm-input" rows="2" placeholder="Write a message about this claim…"></textarea>'
@@ -1081,8 +1081,8 @@
     const fine = '<div class="bulk-card" style="margin-top:18px;"><div class="bulk-card-h">' + I.info + 'How it works</div><ul class="bulk-rules">'
       + '<li>Share your link or code with a friend.</li>'
       + '<li>They sign up and complete <strong>their first paid claim</strong>.</li>'
-      + '<li>You both get <strong>$' + r.bonus + '</strong> applied to your next accepted offer — it’s not a withdrawable balance.</li>'
-      + '<li>One bonus per new customer. Restash may adjust the program at any time.</li>'
+      + '<li>You both get <strong>$' + r.bonus + '</strong> applied to your next accepted offer.</li>'
+      + '<li>One bonus per new customer. Restash may adjust the program at any time. You agree to these terms.</li>'
       + '</ul></div>';
     return head + hero + stats + list + fine;
   }

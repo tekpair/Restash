@@ -745,7 +745,7 @@
         + '<button class="stat read"><span class="stat-top">' + I.card + '<span class="stat-label">Via PayPal</span></span><span class="stat-num">' + pp + '</span></button>'
         + '<button class="stat read"><span class="stat-top">' + I.mail + '<span class="stat-label">Via check (mail)</span></span><span class="stat-num">' + ck + '</span></button>';
       const rows = paid.length ? paid.map(c =>
-        '<button class="row" data-action="open-claim" data-ref="' + c.ref + '"><span class="row-avatar">' + initials(c.cust) + '</span><span class="row-main"><span class="row-line1"><span class="row-name">' + esc(c.cust) + '</span></span></span><span class="row-right"><span class="row-amt">$' + c.offerAmount + '</span><span class="row-date">' + esc(c.createdAt) + '</span></span><span class="chev">' + I.chevron + '</span></button>'
+        '<button class="row' + (c.flagged ? ' gold' : '') + '" data-action="open-claim" data-ref="' + c.ref + '"><span class="row-avatar">' + initials(c.cust) + '</span><span class="row-main"><span class="row-line1"><span class="row-name">' + esc(c.cust) + '</span>' + (c.flagged ? flagBadge() : '') + '</span></span><span class="row-right"><span class="row-amt">$' + c.offerAmount + '</span><span class="row-date">' + esc(c.createdAt) + '</span></span><span class="chev">' + I.chevron + '</span></button>'
       ).join('') : '<div class="empty">No payments yet.</div>';
       return '<div class="screen wrap">' + tabs()
         + '<div class="stats" style="grid-template-columns:repeat(3,1fr);">' + tiles + '</div>'
@@ -823,7 +823,7 @@
       const cl = claimsForEmail(a.email);
       const paidTotal = cl.filter(c => c.status === 'paid').reduce((s, c) => s + (c.offerAmount || 0), 0);
       const rows = cl.length ? cl.map(c =>
-        '<button class="row" data-action="open-claim" data-ref="' + c.ref + '"><span class="row-avatar">' + (c.bulk ? I.box : I.gamepad) + '</span><span class="row-main"><span class="row-line1"><span class="row-name">' + esc(claimTitle(c)) + '</span>' + badge(c.status) + bulkPill(c) + '</span><span class="row-meta">' + c.ref + ' · ' + esc(c.createdAt) + '</span></span><span class="row-right"><span class="row-amt">' + (c.bulk ? (c.offerAmount ? '$' + c.offerAmount : 'Bulk') : '$' + c.estLow + '–$' + c.estHigh) + '</span></span><span class="chev">' + I.chevron + '</span></button>'
+        '<button class="row' + (c.flagged ? ' gold' : '') + '" data-action="open-claim" data-ref="' + c.ref + '"><span class="row-avatar">' + (c.bulk ? I.box : I.gamepad) + '</span><span class="row-main"><span class="row-line1"><span class="row-name">' + esc(claimTitle(c)) + '</span>' + badge(c.status) + bulkPill(c) + (c.flagged ? flagBadge() : '') + '</span><span class="row-meta">' + c.ref + ' · ' + esc(c.createdAt) + '</span></span><span class="row-right"><span class="row-amt">' + (c.bulk ? (c.offerAmount ? '$' + c.offerAmount : 'Bulk') : '$' + c.estLow + '–$' + c.estHigh) + '</span></span><span class="chev">' + I.chevron + '</span></button>'
       ).join('') : '<div class="empty">No claims for this account.</div>';
       return '<div class="screen wrap">' + backBtn() + ''
         + '<div class="detail-head"><div class="detail-ref">' + esc(a.name) + '</div>' + (a.flagged ? '<div class="head-tags">' + flagBadge() + '</div>' : '') + '</div>'
@@ -844,8 +844,8 @@
     const list = claimsFiltered();
     if (!list.length) return '<div class="empty">No claims match this filter.</div>';
     return '<div class="rows">' + list.map(c =>
-      '<button class="row" data-action="open-claim" data-ref="' + c.ref + '"><span class="row-avatar">' + initials(c.cust) + '</span>'
-      + '<span class="row-main"><span class="row-line1"><span class="row-name">' + esc(c.cust) + '</span></span><span class="row-meta">' + c.ref + '</span></span>'
+      '<button class="row' + (c.flagged ? ' gold' : '') + '" data-action="open-claim" data-ref="' + c.ref + '"><span class="row-avatar">' + initials(c.cust) + '</span>'
+      + '<span class="row-main"><span class="row-line1"><span class="row-name">' + esc(c.cust) + '</span>' + (c.flagged ? flagBadge() : '') + '</span><span class="row-meta">' + c.ref + '</span></span>'
       + '<span class="row-right"><span class="row-amt">' + ((c.status === 'paid' || c.status === 'offer') ? '$' + c.offerAmount : '$' + c.estLow + '–$' + c.estHigh) + '</span><span class="row-date">' + esc(c.createdAt) + '</span></span>'
       + '<span class="chev">' + I.chevron + '</span></button>'
     ).join('') + '</div>';
