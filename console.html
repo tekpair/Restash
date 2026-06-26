@@ -321,6 +321,19 @@
   .inline-msg { font-size: 13px; font-weight: 500; padding: 9px 12px; border-radius: 10px; margin-top: 10px; }
   .inline-msg.err { color: var(--red); background: var(--red-soft); border: 1px solid var(--red-border); }
   .inline-msg.ok { color: var(--purple); background: var(--purple-tint-2); border: 1px solid var(--purple-tint); }
+  .msg-thread { display: flex; flex-direction: column; gap: 9px; margin-top: 2px; }
+  .msg { display: flex; flex-direction: column; max-width: 88%; }
+  .msg.mine { align-self: flex-end; align-items: flex-end; }
+  .msg.them { align-self: flex-start; align-items: flex-start; }
+  .msg-bubble { font-size: 13.5px; line-height: 1.5; padding: 9px 12px; border-radius: 13px; word-break: break-word; }
+  .msg.mine .msg-bubble { background: var(--purple); color: #fff; border-bottom-right-radius: 4px; }
+  .msg.them .msg-bubble { background: var(--surface); border: 1px solid var(--border); color: var(--ink); border-bottom-left-radius: 4px; }
+  .msg-meta { font-size: 10.5px; color: var(--muted); margin-top: 3px; padding: 0 2px; }
+  .msg-empty { font-size: 13px; color: var(--muted); line-height: 1.5; padding: 8px 0; }
+  .msg-compose { margin-top: 12px; }
+  .msg-compose textarea { width: 100%; font-family: var(--body); font-size: 14px; color: var(--ink); background: var(--surface); border: 1.5px solid var(--border); border-radius: 10px; padding: 10px 12px; resize: vertical; }
+  .msg-compose textarea:focus { outline: none; border-color: var(--purple); }
+  .msg-compose .btn { margin-top: 9px; }
 
 
   .spark { position: absolute; color: #ffe89c; opacity: 0; animation: tw 2.6s ease-in-out infinite; pointer-events: none; }
@@ -397,6 +410,7 @@
     calendar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M4 9.5h16M8 3v4M16 3v4"/></svg>',
     hash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 7.5 20M16.5 4 15 20M5 9h15M4 15h15"/></svg>',
     mail: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M4 6.5l8 6 8-6"/></svg>',
+    send: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4Z"/></svg>',
     phone: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3h3l1.5 4-2 1.5a12 12 0 0 0 4.5 4.5l1.5-2 4 1.5v3a2 2 0 0 1-2.2 2A16 16 0 0 1 4.5 5.2 2 2 0 0 1 6.5 3Z"/></svg>',
     pin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s6.5-5.3 6.5-10a6.5 6.5 0 0 0-13 0c0 4.7 6.5 10 6.5 10Z"/><circle cx="12" cy="11" r="2.3"/></svg>',
     gamepad: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 8h7a5 5 0 0 1 5 5v.2a3.1 3.1 0 0 1-5.6 1.9L14 14h-4l-.9 1.1A3.1 3.1 0 0 1 3.5 13.4V13a5 5 0 0 1 5-5Z"/><line x1="6.8" y1="11.3" x2="9.2" y2="11.3"/><line x1="8" y1="10.1" x2="8" y2="12.5"/><circle cx="15.4" cy="10.8" r="0.5" fill="currentColor" stroke="none"/><circle cx="17" cy="12.3" r="0.5" fill="currentColor" stroke="none"/></svg>',
@@ -507,6 +521,16 @@
       + '<span class="claimed">Customer claimed: ' + esc(it.claimedCondName || it.condName) + '</span></span>'
       + '<span class="grade-r"><select class="grade-sel" data-item="' + it.id + '" aria-label="Condition for ' + esc(it.titleName) + '">' + opts(it.conditionId) + '</select><span class="grade-amt">$' + it.lineMid + '</span></span></div>'
     ).join('');
+  }
+  function messagesCard(c) {
+    const msgs = c.messages || [];
+    const thread = msgs.length
+      ? msgs.map(m => '<div class="msg ' + (m.from === 'staff' ? 'mine' : 'them') + '"><div class="msg-bubble">' + esc(m.body) + '</div><div class="msg-meta">' + (m.from === 'staff' ? esc(m.name || 'You') : esc(m.name || 'Customer')) + ' · ' + esc(m.date) + '</div></div>').join('')
+      : '<div class="msg-empty">No messages yet. Reply here — the customer sees it on their claim and by email.</div>';
+    return '<div class="card"><div class="card-h">Messages with customer</div>'
+      + '<div class="msg-thread">' + thread + '</div>'
+      + '<div class="msg-compose"><textarea id="claim-msg-input" rows="2" placeholder="Reply to the customer…"></textarea>' + flashMsg('msg')
+      + '<button class="btn btn-primary full" data-action="claim-msg-send" data-value="' + esc(c.ref) + '">' + I.send + 'Send message</button></div></div>';
   }
   function timeline(history) {
     return '<div class="timeline">' + history.map((h, i) => {
@@ -791,7 +815,7 @@
         +     '<div class="kv"><span class="k">' + sendIcon + 'Send to</span><span class="v">' + esc(destOf(c)) + '</span></div>'
         +     '<div style="margin-top:14px;"><button class="btn btn-secondary full" data-action="view-account" data-value="' + esc(c.email) + '">' + I.user + 'View account</button></div></div></div>'
         +   '<div>' + lotCard + (c.customerNote ? '<div class="card"><div class="card-h">Note from the customer</div><p class="cust-note">' + esc(c.customerNote) + '</p></div>' : '') + '<div class="card"><div class="card-h">Status history</div>' + timeline(c.history) + '</div></div>'
-        + '</div>' + notesFlagsCard({ notes: c.notes, flagged: c.flagged, flagAction: 'claim-flag', noteAction: 'claim-note', value: c.ref, noun: 'claim', inputId: 'claim-note-input' }) + '</div>';
+        + '</div>' + messagesCard(c) + notesFlagsCard({ notes: c.notes, flagged: c.flagged, flagAction: 'claim-flag', noteAction: 'claim-note', value: c.ref, noun: 'claim', inputId: 'claim-note-input' }) + '</div>';
     },
     accountDetail() {
       const a = findAccount(state.activeEmail);
@@ -937,6 +961,11 @@
       const ta = document.getElementById('claim-note-input'); const txt = ta ? ta.value.trim() : '';
       if (!txt) { state.flash = { slot: 'note', kind: 'err', text: 'Write a note first.' }; render(); return; }
       try { await RestashAPI.addClaimNote(v, txt); state.flash = null; await refreshAll(v); } catch (e2) { state.flash = { slot: 'note', kind: 'err', text: e2.message }; render(); }
+    }
+    else if (a === 'claim-msg-send') {
+      const ta = document.getElementById('claim-msg-input'); const txt = ta ? ta.value.trim() : '';
+      if (!txt) { state.flash = { slot: 'msg', kind: 'err', text: 'Write a message first.' }; render(); return; }
+      try { await RestashAPI.sendStaffMessage(v, txt); state.flash = null; await refreshAll(v); } catch (e2) { state.flash = { slot: 'msg', kind: 'err', text: e2.message }; render(); }
     }
     else if (a === 'claim-take')    { await act(function () { return RestashAPI.assignClaim(ref); }, ref); }
     else if (a === 'claim-release') { await act(function () { return RestashAPI.releaseClaim(ref); }, ref); }

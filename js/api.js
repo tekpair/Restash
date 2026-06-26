@@ -36,6 +36,17 @@
   var BULK_STATUSES = ['pending', 'approved', 'suspended', 'declined', 'closed'];
   // 24/7 direct line Bulk Sellers get (placeholder contact for the demo).
   var BULK_LINE = { phone: '(518) 555-0100', email: 'bulk@getrestash.gg' };
+  // Referral program — deliberately NOT a withdrawable balance (that risks
+  // money-transmitter rules). The reward is a one-time bonus applied to the
+  // referrer's next ACCEPTED offer, earned when a friend completes their first
+  // paid claim. Both sides get it.
+  var REFERRAL = { bonus: 10, qualify: 'their first paid claim' };
+  // A short, shareable, deterministic referral code for a profile.
+  function refCode(p) {
+    var s = p.id || '', n = 0; for (var i = 0; i < s.length; i++) { n = (n * 31 + s.charCodeAt(i)) >>> 0; }
+    var first = (p.full_name || 'Restash').split(' ')[0].toUpperCase().replace(/[^A-Z0-9]/g, '');
+    return first.slice(0, 6) + (n % 9000 + 1000);
+  }
   // Compute a seller's eligibility from paid-claim count, account age, and whether
   // the account is in good standing (no counterfeit / condition-mismatch flags).
   function bulkEligibility(paidClaims, ageDays, cleanStanding) {
@@ -76,6 +87,7 @@
   }
   function mapHistory(rows) { return (rows || []).slice().sort(byCreatedAsc).map(function (h) { return { label: h.label, date: fmtDate(h.created_at), note: h.note || undefined }; }); }
   function mapNotes(rows) { return (rows || []).slice().sort(byCreatedAsc).map(function (n) { return { text: n.body, by: n.author_name || 'Staff', date: fmtDate(n.created_at) }; }); }
+  function mapMessages(rows) { return (rows || []).slice().sort(byCreatedAsc).map(function (m) { return { from: m.author, name: m.author_name || (m.author === 'staff' ? 'Restash' : 'You'), body: m.body, date: fmtDate(m.created_at), at: m.created_at }; }); }
   function deriveLabels(items) {
     var totalGames = items.reduce(function (s, i) { return s + i.qty; }, 0);
     var itemName = items.length === 1 ? (items[0].titleName + (items[0].qty > 1 ? ' ×' + items[0].qty : '')) : (totalGames + ' games');
@@ -90,14 +102,14 @@
       bulk: bulk, manifest: row.manifest || '', estCount: row.est_count != null ? Number(row.est_count) : null,
       estLow: row.est_low, estHigh: row.est_high,
       payout: row.payout, paidAmount: row.paid_amount, address: row.address || '', offerAmount: row.offer_amount, customerResponse: row.customer_response,
-      createdAt: fmtDate(row.created_at), createdAtISO: row.created_at, status: row.status, history: mapHistory(row.claim_history), customerNote: row.customer_notes || '' };
+      createdAt: fmtDate(row.created_at), createdAtISO: row.created_at, status: row.status, history: mapHistory(row.claim_history), messages: mapMessages(row.claim_messages), customerNote: row.customer_notes || '' };
   }
   function mapClaimStaff(row) {
     return { ref: row.ref, cust: row.cust_name, email: row.cust_email, phone: row.cust_phone, payout: row.payout, address: row.address || '',
       status: row.status, createdAt: fmtDate(row.created_at), estLow: row.est_low, estHigh: row.est_high, items: mapItems(row.claim_items),
       bulk: !!row.bulk, manifest: row.manifest || '', estCount: row.est_count != null ? Number(row.est_count) : null, paidAmount: row.paid_amount,
       history: mapHistory(row.claim_history), assignee: row.assignee_name || null, assigneeId: row.assignee_id || null,
-      offerAmount: row.offer_amount, customerResponse: row.customer_response, flagged: !!row.flagged, notes: mapNotes(row.claim_notes), customerNote: row.customer_notes || '' };
+      offerAmount: row.offer_amount, customerResponse: row.customer_response, flagged: !!row.flagged, notes: mapNotes(row.claim_notes), messages: mapMessages(row.claim_messages), customerNote: row.customer_notes || '' };
   }
   function mapBulk(row) {
     return { status: row.bulk_status || null, reason: row.bulk_reason || '', appliedAt: row.bulk_applied_at || null,
@@ -146,11 +158,13 @@
     async conditions() { var rows = unwrap(await sb.from('conditions').select('*').order('position')); return mapConds(rows); },
     async pricing() { var row = unwrap(await sb.from('pricing_config').select('*').eq('id', 1).single()); return mapPricing(row); },
     async submitClaim(o) { return rpc('submit_claim', { p_items: o.items, p_payout: o.payout, p_phone: o.phone || '', p_address: o.address || '', p_notes: o.notes || '' }); },
-    async myClaims() { var rows = unwrap(await sb.from('claims').select('*, claim_items(*), claim_history(*)').order('created_at', { ascending: false })); return rows.map(mapClaimCustomer); },
-    async claimByRef(ref) { var row = unwrap(await sb.from('claims').select('*, claim_items(*), claim_history(*)').eq('ref', ref).single()); return mapClaimCustomer(row); },
+    async myClaims() { var rows = unwrap(await sb.from('claims').select('*, claim_items(*), claim_history(*), claim_messages(*)').order('created_at', { ascending: false })); return rows.map(mapClaimCustomer); },
+    async claimByRef(ref) { var row = unwrap(await sb.from('claims').select('*, claim_items(*), claim_history(*), claim_messages(*)').eq('ref', ref).single()); return mapClaimCustomer(row); },
     async respondToOffer(ref, r) { return rpc('respond_to_offer', { p_ref: ref, p_response: r }); },
+    async sendClaimMessage(ref, body) { return rpc('send_claim_message', { p_ref: ref, p_body: body }); },
+    async getReferral() { return rpc('get_referral'); },
     async allClaims() { var rows = unwrap(await sb.from('claims').select('*, claim_items(*), claim_history(*)').order('created_at', { ascending: false })); return rows.map(mapClaimStaff); },
-    async staffClaimByRef(ref) { var row = unwrap(await sb.from('claims').select('*, claim_items(*), claim_history(*), claim_notes(*)').eq('ref', ref).single()); return mapClaimStaff(row); },
+    async staffClaimByRef(ref) { var row = unwrap(await sb.from('claims').select('*, claim_items(*), claim_history(*), claim_notes(*), claim_messages(*)').eq('ref', ref).single()); return mapClaimStaff(row); },
     async accounts() { var rows = unwrap(await sb.from('profiles').select('*').eq('role', 'customer').order('created_at', { ascending: false })); return rows.map(mapAccount); },
     async accountByEmail(email) { var row = unwrap(await sb.from('profiles').select('*, account_notes(*)').eq('email', email).single()); return mapAccount(row); },
     async team() { var rows = unwrap(await sb.from('team_members').select('*').order('position')); return rows.map(mapTeam); },
@@ -161,6 +175,7 @@
     authorizePayment: function (r) { return rpc('authorize_payment', { p_ref: r }); }, confirmReturn: function (r) { return rpc('confirm_return', { p_ref: r }); },
     assignClaim: function (r) { return rpc('assign_claim', { p_ref: r }); }, releaseClaim: function (r) { return rpc('release_claim', { p_ref: r }); },
     setClaimFlag: function (r, o) { return rpc('set_claim_flag', { p_ref: r, p_flag: o }); }, addClaimNote: function (r, b) { return rpc('add_claim_note', { p_ref: r, p_body: b }); },
+    sendStaffMessage: function (r, b) { return rpc('send_staff_message', { p_ref: r, p_body: b }); },
     setAccountFlag: function (i, o) { return rpc('set_account_flag', { p_profile: i, p_flag: o }); }, addAccountNote: function (i, b) { return rpc('add_account_note', { p_profile: i, p_body: b }); }
   };
   function buildNested(platforms, titles, editions) {
@@ -225,7 +240,7 @@
       Object.assign({ id: 'staff-connor', full_name: 'Connor Waugaman', email: 'admin@getrestash.gg', phone: '', address: '', role: 'staff', flagged: false, created_at: days(120), account_notes: [] }, bulkFields()),
       // Maya is a long-tenured power seller — meets the bar, so signing in as
       // her demonstrates the customer "apply for Bulk Seller" happy path.
-      Object.assign({ id: 'cust-maya', full_name: 'Maya Chen', email: 'maya.chen@email.com', phone: '(518) 555-0142', address: '203 Remsen St, Cohoes, NY 12047', role: 'customer', flagged: false, created_at: days(78), account_notes: [] }, bulkFields({ lifetime_paid: 63 })),
+      Object.assign({ id: 'cust-maya', full_name: 'Maya Chen', email: 'maya.chen@email.com', phone: '(518) 555-0142', address: '203 Remsen St, Cohoes, NY 12047', role: 'customer', flagged: false, created_at: days(78), account_notes: [], referrals: [{ name: 'Alex P.', status: 'qualified', bonus: 10, date: days(21) }, { name: 'Sam R.', status: 'qualified', bonus: 10, date: days(9) }, { name: 'Jordan T.', status: 'joined', bonus: 0, date: days(3) }] }, bulkFields({ lifetime_paid: 63 })),
       Object.assign({ id: 'cust-devon', full_name: 'Devon Brooks', email: 'devon.brooks@email.com', phone: '(518) 555-0188', address: '88 Vliet Blvd, Cohoes, NY 12047', role: 'customer', flagged: false, created_at: days(9), account_notes: [] }, bulkFields()),
       Object.assign({ id: 'cust-noah', full_name: 'Noah Kim', email: 'noah.kim@email.com', phone: '(518) 555-0195', address: '31 Howard St, Cohoes, NY 12047', role: 'customer', flagged: true, created_at: days(11), account_notes: [{ body: 'Submitted a non-working copy described as Complete. Review future claims carefully.', author_name: 'Connor Waugaman', created_at: days(10) }] }, bulkFields()),
       // A pending application waiting in the console's Bulk Sellers queue.
@@ -239,7 +254,7 @@
     function newClaim(ref, prof, items, status, extra) {
       var c = Object.assign({ id: 'dc-' + (seq++), ref: ref, customer_id: prof.id, cust_name: prof.full_name, cust_email: prof.email, cust_phone: prof.phone,
         payout: 'PayPal', address: '', est_low: 0, est_high: 0, status: status, offer_amount: null, customer_response: null, assignee_id: null, assignee_name: null,
-        flagged: false, paid_amount: null, paid_method: null, created_at: days(6), claim_items: items, claim_history: [], claim_notes: [], customer_notes: '' }, extra || {});
+        flagged: false, paid_amount: null, paid_method: null, created_at: days(6), claim_items: items, claim_history: [], claim_notes: [], claim_messages: [], customer_notes: '' }, extra || {});
       var offer = computeOffer(items, pricing); c.est_high = offer; c.est_low = Math.round(offer * 0.85);
       return c;
     }
@@ -247,7 +262,7 @@
       return Object.assign({ id: 'dc-' + (seq++), ref: ref, customer_id: prof.id, cust_name: prof.full_name, cust_email: prof.email, cust_phone: prof.phone,
         payout: 'PayPal', address: '', est_low: 0, est_high: 0, status: status, offer_amount: null, customer_response: null, assignee_id: null, assignee_name: null,
         flagged: false, paid_amount: null, paid_method: null, created_at: days(4), bulk: true, manifest: manifest, est_count: count,
-        claim_items: [], claim_history: [], claim_notes: [], customer_notes: '' }, extra || {});
+        claim_items: [], claim_history: [], claim_notes: [], claim_messages: [], customer_notes: '' }, extra || {});
     }
     var claims = [
       // Riley (active Bulk Seller) — a lot arrived and is awaiting one bulk offer.
@@ -256,7 +271,7 @@
       bulkClaim('RS-BLK3X9', profiles[5], 'accepted', '~15 Nintendo Switch games, all Complete with cases and inserts.', 15, { created_at: days(1), claim_history: [h('Bulk manifest submitted', '~15 games', days(1)), h('Accepted — prepaid label emailed', 'Priority intake; inspected on arrival.', days(1))] }),
       newClaim('RS-8M4X2A', profiles[1], [item('ed-totk', 'complete', 1, 1)], 'submitted', { created_at: days(1), claim_history: [h('Claim submitted', null, days(1))] }),
       newClaim('RS-3K9P1B', profiles[2], [item('ed-gow', 'complete', 1, 1), item('ed-rdr2', 'loose', 2, 2)], 'received', { payout: 'Check', address: '88 Vliet Blvd, Cohoes, NY 12047', assignee_id: 'staff-connor', assignee_name: 'Connor Waugaman', customer_notes: 'The God of War case has a small crack on the back but the disc is mint. Both RDR2 copies are cart-only, no boxes.', created_at: days(3), claim_history: [h('Claim submitted', null, days(3)), h('Accepted — shipping label emailed', null, days(2)), h('Games received at facility', null, days(1))] }),
-      newClaim('RS-2W8E4F', profiles[1], [item('ed-smash', 'sealed', 1, 1)], 'offer', { offer_amount: 28, created_at: days(5), claim_history: [h('Claim submitted', null, days(5)), h('Accepted — shipping label emailed', null, days(4)), h('Games received at facility', null, days(3)), h('Offer made: $28', 'Confirmed sealed; priced to current market.', days(2))] }),
+      newClaim('RS-2W8E4F', profiles[1], [item('ed-smash', 'sealed', 1, 1)], 'offer', { offer_amount: 28, created_at: days(5), claim_history: [h('Claim submitted', null, days(5)), h('Accepted — shipping label emailed', null, days(4)), h('Games received at facility', null, days(3)), h('Offer made: $28', 'Confirmed sealed; priced to current market.', days(2))], claim_messages: [{ author: 'customer', author_name: 'Maya Chen', body: 'Is $28 the best you can do? It came sealed and mint.', created_at: days(2) }, { author: 'staff', author_name: 'Connor Waugaman', body: 'Thanks Maya! $28 matches the current sealed market for this title, so it’s firm — but no pressure either way. Accept or decline whenever you’re ready and we’ll take it from there.', created_at: days(2) }] }),
       newClaim('RS-6N1R5G', profiles[2], [item('ed-forza', 'complete', 1, 1), item('ed-halo', 'complete', 1, 2)], 'paid', { offer_amount: 14, paid_amount: 14, paid_method: 'PayPal', created_at: days(12), claim_history: [h('Claim submitted', null, days(12)), h('Games received at facility', null, days(10)), h('Offer made: $14', null, days(9)), h('You accepted the offer', null, days(9)), h('Payment authorized via PayPal', 'PayPal 1–3 business days.', days(9))] }),
       newClaim('RS-1F2G3H', profiles[3], [item('ed-cuphead', 'complete', 1, 1)], 'received', { assignee_id: 'staff-connor', assignee_name: 'Connor Waugaman', created_at: days(2), claim_history: [h('Claim submitted', null, days(2)), h('Games received at facility', null, days(1))] }) ];
 
@@ -364,6 +379,17 @@
       async myClaims() { var p = sessionProfile(); if (!p) return []; return claims.filter(function (c) { return c.customer_id === p.id; }).sort(function (a, b) { return Date.parse(b.created_at) - Date.parse(a.created_at); }).map(mapClaimCustomer); },
       async claimByRef(ref) { var c = findClaim(ref); if (!c) throw new Error('Claim not found'); return mapClaimCustomer(c); },
       async respondToOffer(ref, r) { var c = findClaim(ref); if (!c) throw new Error('Claim not found'); var p = sessionProfile(); if (!p || c.customer_id !== p.id) throw new Error('Not your claim'); if (c.status !== 'offer') throw new Error('No open offer'); if (c.customer_response) throw new Error('You already responded'); c.customer_response = r; push(c, r === 'accepted' ? 'You accepted the offer' : 'You declined the offer', r === 'declined' ? "We'll return your games and email tracking." : null); },
+      async sendClaimMessage(ref, body) { var p = sessionProfile(); if (!p) throw new Error('Not signed in'); var c = findClaim(ref); if (!c || c.customer_id !== p.id) throw new Error('Not your claim'); body = (body || '').trim(); if (!body) throw new Error('Write a message first.'); if (!c.claim_messages) c.claim_messages = []; c.claim_messages.push({ author: 'customer', author_name: p.full_name, body: body, created_at: new Date().toISOString() }); return { ok: true }; },
+      async getReferral() {
+        var p = sessionProfile(); if (!p) throw new Error('Not signed in');
+        var refs = (p.referrals || []).slice().sort(function (a, b) { return Date.parse(b.date) - Date.parse(a.date); });
+        var qualified = refs.filter(function (r) { return r.status === 'qualified'; });
+        var earned = qualified.reduce(function (s, r) { return s + (r.bonus || 0); }, 0);
+        var code = refCode(p);
+        return { code: code, link: 'https://getrestash.gg/?ref=' + code, bonus: REFERRAL.bonus,
+          joinedCount: refs.length, qualifiedCount: qualified.length, pendingCount: refs.length - qualified.length, earned: earned,
+          referrals: refs.map(function (r) { return { name: r.name, status: r.status, bonus: r.bonus || 0, date: fmtDate(r.date) }; }) };
+      },
       async allClaims() { requireStaff(); return claims.slice().sort(function (a, b) { return Date.parse(b.created_at) - Date.parse(a.created_at); }).map(mapClaimStaff); },
       async staffClaimByRef(ref) { requireStaff(); var c = findClaim(ref); if (!c) throw new Error('Claim not found'); return mapClaimStaff(c); },
       async accounts() { requireStaff(); return profiles.filter(function (p) { return p.role === 'customer'; }).map(mapAccount); },
@@ -385,6 +411,7 @@
       releaseClaim: sa(function (c) { push(c, (c.assignee_name || 'A teammate') + ' released this claim'); c.assignee_id = null; c.assignee_name = null; }),
       setClaimFlag: function (ref, on) { return wrap(function () { requireStaff(); var c = findClaim(ref); c.flagged = on; }); },
       addClaimNote: function (ref, body) { return wrap(function () { var p = requireStaff(); if (!(body || '').trim()) throw new Error('Empty note'); var c = findClaim(ref); c.claim_notes.push({ body: body, author_name: p.full_name, created_at: new Date().toISOString() }); }); },
+      sendStaffMessage: function (ref, body) { return wrap(function () { var p = requireStaff(); var c = findClaim(ref); if (!c) throw new Error('Claim not found'); if (!(body || '').trim()) throw new Error('Write a message first.'); if (!c.claim_messages) c.claim_messages = []; c.claim_messages.push({ author: 'staff', author_name: p.full_name, body: body.trim(), created_at: new Date().toISOString() }); }); },
       setAccountFlag: function (id, on) { return wrap(function () { requireStaff(); var p = findProfileById(id); if (p) p.flagged = on; }); },
       addAccountNote: function (id, body) { return wrap(function () { var me = requireStaff(); if (!(body || '').trim()) throw new Error('Empty note'); var p = findProfileById(id); p.account_notes.push({ body: body, author_name: me.full_name, created_at: new Date().toISOString() }); }); }
     };
@@ -409,5 +436,6 @@
   API.BULK_STATUSES = BULK_STATUSES;
   API.bulkEligibility = bulkEligibility;
   API.daysSince = daysSince;
+  API.REFERRAL = REFERRAL;
   window.RestashAPI = API;
 })();

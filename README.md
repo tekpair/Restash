@@ -2,8 +2,9 @@
 
 A recommerce platform for buying physical video games back from sellers. Customers submit games, get an estimate, ship them in, and get paid by PayPal or check. This repo holds two front-end surfaces:
 
-- **`index.html`** — the customer app. Buyback flow: platform → title → edition → condition → cart → claim → track status → accept or decline offers. The account area is a left-nav layout — **Profile · Claims · Bulk Seller · Controls** (Profile first).
-- **`console.html`** — the internal staff console. Review claims, claim/assign ownership, inspect, make offers (with a fair-price guardrail), record payouts, manage customer accounts, **review the Bulk Seller queue**, leave notes/flags, and view the team/department directory.
+- **`index.html`** — the customer app. Buyback flow: platform → title → edition → condition → cart → claim → track status → accept or decline offers. The account area is a left-nav layout — **Home · Profile · Claims · Refer · Bulk Seller · Controls**. **Home** is a dashboard landing (active/paid claim counts, referral bonus, an offer-to-review nudge, recent claims, quick actions). Each claim has a **two-way message thread** with Restash, and there's a **referral program** (give/get a bonus on your next accepted offer — no withdrawable wallet).
+- **`console.html`** — the internal staff console. Review claims, claim/assign ownership, inspect, make offers (with a fair-price guardrail), **message customers on a claim**, record payouts, manage customer accounts, **review the Bulk Seller queue**, leave notes/flags, and view the team/department directory.
+- **`help.html`** — public Help Center (how it works + FAQ, with FAQ rich-results data). `how-it-works.html` redirects here.
 
 Contact: **hello@getrestash.gg** · Governing law: **New York (Cohoes, Albany County)**
 
@@ -119,11 +120,15 @@ tab) and approve / decline / suspend / close — each with an inline reason the
 seller sees. Rules live in one place (`RestashAPI.BULK` in `js/api.js`) and are
 shown identically on both surfaces:
 
-- **To apply:** ≥ 25 lifetime paid claims (in good standing), ≥ 30 days on
-  Restash, a government ID, and the signed Bulk Seller agreement.
-- **Once active:** ≥ 25 paid claims/month (or **suspended**), ≥ 10 games per
-  shipment, and no counterfeits / ownership issues / repeated mismatches
-  (**immediate closure**). A closed seller may reapply after 3 months.
+- **To apply:** ≥ 50 lifetime paid claims, ≥ 60 days on Restash, an account in
+  **good standing** (no counterfeit / repeated-mismatch flags), a government ID,
+  and the signed Bulk Seller agreement.
+- **Once active:** ≥ 50 **games shipped/month** (or **suspended**), ≥ 15 games
+  per shipment, **PayPal-only** payouts, and no counterfeits / ownership issues
+  / repeated mismatches (**immediate closure**). A closed seller may reapply
+  after 3 months. Active sellers can also **close their own membership** from
+  the Bulk Seller tab (warned about the 3-month lockout and forfeiting active
+  bulk lot claims).
 - **Lane lock:** an active Bulk Seller can **not** use the standard one-by-one
   flow — they're routed to the bulk lane. (Closed/suspended sellers keep using
   Restash normally.)
@@ -145,6 +150,35 @@ to make the bulk offer). The production schema + RPCs are scaffolded in
 decisions staff-only, customers can't self-set their status).
 
 ---
+
+## Site roadmap (making it fully fledged)
+
+Built so far (beyond the core buyback loop + console):
+- **Help Center** (`help.html`) consolidating how-it-works + an expanded FAQ.
+- **Two-way claim messaging** — a thread per claim on both the customer app and
+  the console (`claim_messages`; demo-seeded on `RS-2W8E4F`).
+- **Home dashboard** — the default account landing with activity stats, an
+  offer-to-review nudge, recent claims, and quick actions.
+- **Referral program** (`RestashAPI.REFERRAL`) — a give/get bonus **applied to
+  the next accepted offer** (deliberately *not* a withdrawable balance, to avoid
+  money-transmitter exposure). Demo-seeded for `maya.chen@email.com`.
+- **Live phone formatting** on all `tel` inputs, e.g. `(518) 555-0123`.
+- **Google address autocomplete** is already wired for the checkout (Check) and
+  profile address fields — it activates once `GOOGLE_MAPS_API_KEY` is set in
+  `config.js`.
+
+Next up (greenlit, not yet built), roughly in order:
+1. **Notifications + email/SMS preferences** — an account tab to manage what we
+   send and an in-app notification list.
+2. **Tracking on claims** — surface the carrier + tracking number on accepted
+   and returned claims (no full order-tracking page).
+3. **Bulk CSV upload** — let active Bulk Sellers upload a manifest as a CSV in
+   addition to the free-text box.
+
+Later / parked: inventory + payouts ledger (staff), a dedicated marketing
+landing page, reviews/social proof. Production hardening is unchanged — see the
+numbered list above (PayPal Payouts API, shipping-label API, real catalog
+pricing, verified email domain, attorney review of the legal copy).
 
 ## Do not regress
 
