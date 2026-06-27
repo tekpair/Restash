@@ -590,6 +590,75 @@
   .ref-teaser .rt-t { display: block; font-size: 14px; font-weight: 700; line-height: 1.35; }
   .ref-teaser .rt-s { display: block; font-size: 12.5px; color: var(--muted); margin-top: 3px; line-height: 1.45; }
   .ref-teaser .chev { flex: none; color: #c2c0d6; display: flex; }
+
+  /* ---- Shipping / tracking card ---- */
+  .track-card { padding: 15px 16px; }
+  .track-head { display: flex; align-items: flex-start; gap: 12px; }
+  .track-ic { flex: none; width: 36px; height: 36px; border-radius: 10px; background: var(--purple-tint); color: var(--purple); display: flex; align-items: center; justify-content: center; }
+  .track-ic svg { width: 20px; height: 20px; }
+  .track-dir { font-size: 14px; font-weight: 700; color: var(--ink); }
+  .track-sub { font-size: 12.5px; color: var(--muted); margin-top: 2px; line-height: 1.45; }
+  .track-rows { margin-top: 13px; border-top: 1px solid var(--border); }
+  .track-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--border); }
+  .track-row:last-child { border-bottom: none; }
+  .track-k { font-size: 12.5px; font-weight: 600; color: var(--muted); }
+  .track-v { font-size: 13.5px; font-weight: 600; color: var(--ink); text-align: right; }
+  .track-v.mono { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12.5px; letter-spacing: -0.01em; }
+  .track-link { display: inline-flex; align-items: center; gap: 7px; margin-top: 13px; font-size: 13px; font-weight: 700; color: var(--purple); text-decoration: none; }
+  .track-link:hover { color: var(--purple-deep); }
+  .track-link svg { width: 16px; height: 16px; }
+
+  /* ---- Notifications list + preferences ---- */
+  .notif-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .link-btn { background: none; border: none; padding: 0; font-family: var(--body); font-size: 12.5px; font-weight: 700; color: var(--purple); cursor: pointer; }
+  .link-btn:hover { color: var(--purple-deep); }
+  .notif-list { list-style: none; display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+  .notif { display: flex; gap: 11px; padding: 12px 13px; background: rgba(255,255,255,0.66); border: 1.5px solid var(--border); border-radius: 13px; }
+  .notif.unread { background: var(--purple-tint-2); border-color: var(--purple-tint); }
+  .notif-ic { flex: none; position: relative; width: 32px; height: 32px; border-radius: 9px; background: var(--purple-tint); color: var(--purple); display: flex; align-items: center; justify-content: center; }
+  .notif-ic svg { width: 17px; height: 17px; }
+  .notif.unread .notif-ic::after { content: ""; position: absolute; top: -3px; right: -3px; width: 9px; height: 9px; border-radius: 50%; background: var(--purple); border: 2px solid var(--surface); }
+  .notif-body { flex: 1; min-width: 0; }
+  .notif-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+  .notif-title { font-size: 13.5px; font-weight: 700; color: var(--ink); line-height: 1.35; }
+  .notif-time { flex: none; font-size: 11.5px; color: var(--muted); font-weight: 600; }
+  .notif-text { font-size: 12.5px; color: var(--muted); margin-top: 3px; line-height: 1.45; }
+  .notif-link { display: inline-flex; align-items: center; gap: 2px; margin-top: 7px; background: none; border: none; padding: 0; font-family: var(--body); font-size: 12px; font-weight: 700; color: var(--purple); cursor: pointer; }
+  .notif-link svg { width: 14px; height: 14px; }
+  .np-card { border: 1.5px solid var(--border); border-radius: 14px; overflow: hidden; background: rgba(255,255,255,0.5); }
+  .np-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 13px 14px; border-bottom: 1px solid var(--border); }
+  .np-row:last-child { border-bottom: none; }
+  .np-info { min-width: 0; }
+  .np-name { font-size: 13.5px; font-weight: 700; color: var(--ink); }
+  .np-desc { font-size: 12px; color: var(--muted); margin-top: 2px; line-height: 1.4; }
+  .np-toggles { flex: none; display: flex; gap: 7px; }
+  .np-toggle { display: inline-flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: none; padding: 0; cursor: pointer; font-family: var(--body); }
+  .np-track { width: 38px; height: 22px; border-radius: 999px; background: #d7d3e6; position: relative; transition: background .16s ease; }
+  .np-knob { position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.18); transition: transform .16s ease; }
+  .np-toggle.on .np-track { background: var(--purple); }
+  .np-toggle.on .np-knob { transform: translateX(16px); }
+  .np-label { font-size: 10.5px; font-weight: 700; color: var(--muted); letter-spacing: 0.02em; }
+  .np-toggle.on .np-label { color: var(--purple); }
+  .np-note { font-size: 11.5px; color: var(--muted); margin-top: 10px; line-height: 1.5; }
+
+  /* ---- Bulk CSV upload ---- */
+  .csv-import { border: 1.5px dashed var(--purple-tint); background: var(--purple-tint-2); border-radius: 13px; padding: 14px 15px; margin-bottom: 16px; }
+  .csv-head { display: flex; align-items: flex-start; gap: 11px; }
+  .csv-ic { flex: none; width: 32px; height: 32px; border-radius: 9px; background: var(--purple-tint); color: var(--purple); display: flex; align-items: center; justify-content: center; }
+  .csv-ic svg { width: 18px; height: 18px; }
+  .csv-title { font-size: 13.5px; font-weight: 700; color: var(--ink); }
+  .csv-sub { font-size: 12px; color: var(--muted); margin-top: 2px; line-height: 1.45; }
+  .csv-sub code { font-family: ui-monospace, Menlo, monospace; font-size: 11px; background: var(--purple-tint); color: var(--purple-deep); padding: 1px 4px; border-radius: 4px; }
+  .csv-actions { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 12px; }
+  .csv-btn { display: inline-flex; align-items: center; gap: 7px; background: var(--purple); color: #fff; border: none; border-radius: 10px; padding: 9px 14px; font-family: var(--body); font-size: 13px; font-weight: 700; cursor: pointer; }
+  .csv-btn:hover { background: var(--purple-deep); }
+  .csv-btn svg { width: 16px; height: 16px; }
+  .csv-template { background: #fff; color: var(--purple); border: 1.5px solid var(--purple-tint); border-radius: 10px; padding: 9px 14px; font-family: var(--body); font-size: 13px; font-weight: 700; cursor: pointer; }
+  .csv-template:hover { border-color: var(--purple); }
+  .csv-status { display: flex; align-items: flex-start; gap: 7px; margin-top: 12px; font-size: 12.5px; font-weight: 600; line-height: 1.45; padding: 9px 11px; border-radius: 10px; }
+  .csv-status svg { flex: none; width: 16px; height: 16px; margin-top: 1px; }
+  .csv-status.ok { color: #1c6b3a; background: #e4f4ea; }
+  .csv-status.err { color: var(--red); background: var(--red-soft); }
 </style>
 </head>
 <body>
@@ -652,12 +721,16 @@
     minus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/></svg>',
     x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
     download: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 11l4 4 4-4"/><path d="M5 19h14"/></svg>',
+    upload: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M8 7l4-4 4 4"/><path d="M5 19h14"/></svg>',
     clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>',
     phone: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 3h3l1.5 4-2 1.5a12 12 0 0 0 4.5 4.5l1.5-2 4 1.5v3a2 2 0 0 1-2.2 2A16 16 0 0 1 4.5 5.2 2 2 0 0 1 6.5 3Z"/></svg>',
     mail: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M4 6.5l8 6 8-6"/></svg>',
     send: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4Z"/></svg>',
     gift: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M5 12v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-8M12 8v13"/><path d="M12 8S10.5 3.5 8 4.5 9.5 8 12 8Zm0 0s1.5-4.5 4-3.5-.5 3.5-4 3.5Z"/></svg>',
     home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v9a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-9"/></svg>',
+    truck: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h11v9H3zM14 9h4l3 3v3h-7z"/><circle cx="7" cy="18" r="1.6"/><circle cx="17" cy="18" r="1.6"/></svg>',
+    external: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 5h5v5"/><path d="M19 5l-8 8"/><path d="M18 14v4a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h4"/></svg>',
+    bell: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M10.5 19a1.8 1.8 0 0 0 3 0"/></svg>',
     trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13M10 11v6M14 11v6"/></svg>',
     handheld: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7.5" y="4" width="9" height="16" rx="1.6"/><rect x="3.4" y="6.5" width="3.3" height="11" rx="1.4"/><rect x="17.3" y="6.5" width="3.3" height="11" rx="1.4"/></svg>',
     gamepad: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 8h7a5 5 0 0 1 5 5v.2a3.1 3.1 0 0 1-5.6 1.9L14 14h-4l-.9 1.1A3.1 3.1 0 0 1 3.5 13.4V13a5 5 0 0 1 5-5Z"/><line x1="6.8" y1="11.3" x2="9.2" y2="11.3"/><line x1="8" y1="10.1" x2="8" y2="12.5"/><circle cx="15.4" cy="10.8" r="0.5" fill="currentColor" stroke="none"/><circle cx="17" cy="12.3" r="0.5" fill="currentColor" stroke="none"/></svg>',
@@ -705,7 +778,7 @@
     platformId: null, titleId: null, editionId: null, condId: null,
     cart: [], payout: null, draft: {}, regDraft: {}, flash: null,
     loggedIn: false, user: { name: '', email: '', phone: '' },
-    activeClaimRef: null, acctTab: 'home', bulk: { status: null }, referral: null, confirmDelete: false, confirmBulkClose: false,
+    activeClaimRef: null, acctTab: 'home', bulk: { status: null }, referral: null, notif: null, confirmDelete: false, confirmBulkClose: false,
     claims: []
   };
 
@@ -958,7 +1031,11 @@
         + '<p class="sub">One manifest for the whole lot. We email a prepaid label, inspect on arrival (priority), and send a single bulk offer for everything.</p>'
         + '<div class="bulk-steps">' + ['Submit this manifest', 'We email a prepaid label', 'Ship the lot', 'Priority inspection on arrival', 'One bulk offer — you accept or decline'].map((s, i) => '<div class="bstep"><span class="bstep-n">' + (i + 1) + '</span>' + s + '</div>').join('') + '</div>'
         + '<div class="panel" style="margin-top:18px;">'
-        + '<div class="field"><label for="bulk-manifest">Manifest</label><textarea id="bulk-manifest" rows="5" placeholder="Describe the lot — platforms, rough counts, condition mix, anything sealed or notable."></textarea></div>'
+        + '<div class="csv-import"><div class="csv-head"><span class="csv-ic">' + I.upload + '</span><div><div class="csv-title">Have a spreadsheet? Upload a CSV</div><div class="csv-sub">We’ll build the manifest and game count from it. Columns like <code>title, platform, condition, qty</code> are detected automatically.</div></div></div>'
+        + '<div class="csv-actions"><label class="csv-btn" for="bulk-csv">' + I.upload + 'Choose CSV file</label><button class="csv-template" data-action="bulk-csv-template" type="button">Download template</button></div>'
+        + '<input id="bulk-csv" type="file" accept=".csv,text/csv" hidden>'
+        + '<div class="csv-status" id="bulk-csv-status" hidden></div></div>'
+        + '<div class="field"><label for="bulk-manifest">Manifest</label><textarea id="bulk-manifest" rows="5" placeholder="Describe the lot — platforms, rough counts, condition mix, anything sealed or notable. Or upload a CSV above to fill this in."></textarea></div>'
         + '<div class="field"><label for="bulk-count">Estimated games <span class="opt">(min ' + B.min_per_shipment + ' per shipment)</span></label><input id="bulk-count" type="number" min="' + B.min_per_shipment + '" placeholder="e.g. 30"></div>'
         + '<div class="field"><label>Payout method</label><div class="bulk-select bulk-payout-fixed"><strong>PayPal</strong><span>Sent directly to your PayPal email.</span></div></div>'
         + '<p class="form-error" id="bulk-error" hidden></p>'
@@ -1007,11 +1084,26 @@
         + moneyCard
         + lotSection
         + (c.customerNote ? '<div class="section"><div class="section-title">Your note</div><div class="panel"><p class="cust-note">' + esc(c.customerNote) + '</p></div></div>' : '')
+        + shippingCard(c)
         + summary
         + '<div class="section"><div class="section-title">Status history</div><div class="timeline">' + tl + '</div></div>'
         + messagesSection(c) + '</div>';
     }
   };
+  function shippingCard(c) {
+    const t = c.tracking;
+    if (!t) return '';
+    const dir = c.status === 'returned' ? 'Return shipment' : 'Inbound shipment';
+    const sub = c.status === 'returned' ? 'We’re shipping your games back. Track the return below.' : 'Track your games on their way to our facility.';
+    const link = t.url
+      ? '<a class="track-link" href="' + esc(t.url) + '" target="_blank" rel="noopener">' + I.truck + 'Track ' + esc(t.carrier) + ' package' + I.external + '</a>'
+      : '';
+    return '<div class="section"><div class="section-title">Shipping</div><div class="panel track-card">'
+      + '<div class="track-head"><span class="track-ic">' + I.truck + '</span><div><div class="track-dir">' + dir + '</div><div class="track-sub">' + sub + '</div></div></div>'
+      + '<div class="track-rows"><div class="track-row"><span class="track-k">Carrier</span><span class="track-v">' + esc(t.carrier) + '</span></div>'
+      + '<div class="track-row"><span class="track-k">Tracking #</span><span class="track-v mono">' + esc(t.number) + '</span></div></div>'
+      + link + '</div></div>';
+  }
   function messagesSection(c) {
     const msgs = c.messages || [];
     const thread = msgs.length
@@ -1025,20 +1117,62 @@
   }
 
   // ---- Account: left-nav tabs (Home / Profile / Claims / Refer / Bulk Seller / Controls) ----
-  const ACCT_TABS = [['home', 'Home'], ['profile', 'Profile'], ['claims', 'Claims'], ['refer', 'Refer'], ['bulk', 'Bulk Seller'], ['controls', 'Controls']];
+  const ACCT_TABS = [['home', 'Home'], ['profile', 'Profile'], ['claims', 'Claims'], ['alerts', 'Alerts'], ['refer', 'Refer'], ['bulk', 'Bulk Seller'], ['controls', 'Controls']];
   function acctNav() {
     return ACCT_TABS.map(t => {
-      const dot = (t[0] === 'bulk' && state.bulk && ['pending', 'approved', 'suspended'].indexOf(state.bulk.status) !== -1) ? '<span class="acct-dot"></span>' : '';
+      let dot = '';
+      if (t[0] === 'bulk' && state.bulk && ['pending', 'approved', 'suspended'].indexOf(state.bulk.status) !== -1) dot = '<span class="acct-dot"></span>';
+      if (t[0] === 'alerts' && state.notif && state.notif.unread > 0) dot = '<span class="acct-dot"></span>';
       return '<button class="acct-tab' + (state.acctTab === t[0] ? ' on' : '') + '" data-action="acct-tab" data-value="' + t[0] + '">' + t[1] + dot + '</button>';
     }).join('');
   }
   function acctPanelHTML() {
     if (state.acctTab === 'home') return acctHome();
     if (state.acctTab === 'claims') return acctClaims();
+    if (state.acctTab === 'alerts') return acctAlerts();
     if (state.acctTab === 'refer') return acctRefer();
     if (state.acctTab === 'bulk') return acctBulk();
     if (state.acctTab === 'controls') return acctControls();
     return acctProfile();
+  }
+  function acctAlerts() {
+    const n = state.notif || { items: [], prefs: null, unread: 0 };
+    const cats = (RestashAPI.NOTIF_CATS || []);
+    const catLabel = {}; cats.forEach(c => { catLabel[c[0]] = c[1]; });
+    const head = '<div class="panel-head"><h2 class="panel-title">Alerts</h2><p class="panel-sub">Your recent notifications, and how you’d like us to reach you.</p></div>';
+    const markBtn = n.unread > 0 ? '<button class="link-btn" data-action="mark-read">Mark all read</button>' : '';
+    const items = (n.items || []).length
+      ? '<ul class="notif-list">' + n.items.map(it => '<li class="notif' + (it.read ? '' : ' unread') + '">'
+          + '<span class="notif-ic">' + (notifIcon(it.cat) || I.bell) + '</span>'
+          + '<div class="notif-body">'
+          + '<div class="notif-top"><span class="notif-title">' + esc(it.title) + '</span><span class="notif-time">' + esc(it.at) + '</span></div>'
+          + (it.body ? '<div class="notif-text">' + esc(it.body) + '</div>' : '')
+          + (it.ref ? '<button class="notif-link" data-action="goto" data-value="claimDetail" data-ref="' + it.ref + '">View ' + it.ref + I.chevron + '</button>' : '')
+          + '</div></li>').join('') + '</ul>'
+      : '<div class="empty" style="margin-top:8px;">No notifications yet. We’ll let you know when there’s an update on a claim, offer, or payment.</div>';
+    const listSec = '<div class="section"><div class="notif-head"><div class="section-title">Notifications</div>' + markBtn + '</div>' + items + '</div>';
+    const prefs = n.prefs || {};
+    const prefRows = cats.map(c => {
+      const key = c[0], p = prefs[key] || { email: false, sms: false };
+      return '<div class="np-row"><div class="np-info"><div class="np-name">' + esc(c[1]) + '</div><div class="np-desc">' + esc(c[2] || '') + '</div></div>'
+        + '<div class="np-toggles">'
+        + npToggle(key, 'email', 'Email', p.email)
+        + npToggle(key, 'sms', 'SMS', p.sms)
+        + '</div></div>';
+    }).join('');
+    const prefSec = '<div class="section" style="margin-top:22px;"><div class="section-title">How we reach you</div>'
+      + '<div class="np-card">' + prefRows + '</div>'
+      + '<p class="np-note">Account and security messages are always sent. Standard message rates may apply for SMS.</p></div>';
+    return head + listSec + prefSec;
+  }
+  function npToggle(cat, ch, label, on) {
+    return '<button class="np-toggle' + (on ? ' on' : '') + '" role="switch" aria-checked="' + (on ? 'true' : 'false') + '" aria-label="' + label + ' for ' + cat + '" data-action="notif-toggle" data-cat="' + cat + '" data-ch="' + ch + '" data-value="' + (on ? '0' : '1') + '"><span class="np-track"><span class="np-knob"></span></span><span class="np-label">' + label + '</span></button>';
+  }
+  function notifIcon(cat) {
+    if (cat === 'payments') return I.dollar;
+    if (cat === 'offers') return I.receipt;
+    if (cat === 'promos') return I.gift;
+    return I.truck;
   }
   function acctHome() {
     const u = state.user, first = ((u.name || '').trim().split(' ')[0]) || 'there';
@@ -1349,6 +1483,74 @@
     }
   });
 
+  // ---- Bulk CSV upload --------------------------------------------
+  function parseCSVLine(line) {
+    const out = []; let cur = '', q = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (q) { if (ch === '"') { if (line[i + 1] === '"') { cur += '"'; i++; } else q = false; } else cur += ch; }
+      else if (ch === '"') q = true;
+      else if (ch === ',') { out.push(cur); cur = ''; }
+      else cur += ch;
+    }
+    out.push(cur);
+    return out.map(s => s.trim());
+  }
+  function parseManifestCSV(text) {
+    const lines = text.replace(/\r\n?/g, '\n').split('\n').filter(l => l.trim() !== '');
+    if (!lines.length) throw new Error('That file looks empty.');
+    let rows = lines.map(parseCSVLine);
+    const first = rows[0].map(c => c.toLowerCase());
+    const known = ['title', 'name', 'game', 'platform', 'console', 'system', 'condition', 'cond', 'qty', 'quantity', 'count', 'notes', 'note'];
+    const hasHeader = first.some(c => known.indexOf(c) !== -1);
+    let header = null;
+    if (hasHeader) { header = first; rows = rows.slice(1); }
+    const col = (names) => header ? header.findIndex(h => names.indexOf(h) !== -1) : -1;
+    const ti = col(['title', 'name', 'game']), pi = col(['platform', 'console', 'system']),
+          ci = col(['condition', 'cond']), qi = col(['qty', 'quantity', 'count']), ni = col(['notes', 'note']);
+    let total = 0; const lineDescs = [];
+    rows.forEach(r => {
+      if (!r.length || r.every(c => c === '')) return;
+      const title = (ti >= 0 ? r[ti] : r[0]) || '';
+      const platform = pi >= 0 ? r[pi] : (header ? '' : (r[1] || ''));
+      const cond = ci >= 0 ? r[ci] : (header ? '' : (r[2] || ''));
+      const qtyRaw = qi >= 0 ? r[qi] : (header ? '' : (r[3] || ''));
+      const note = ni >= 0 ? r[ni] : '';
+      const qty = Math.max(1, parseInt(qtyRaw, 10) || 1);
+      if (!title && !platform) return;
+      total += qty;
+      let d = (qty > 1 ? qty + '× ' : '') + (title || 'Game');
+      const extra = [platform, cond, note].filter(Boolean).join(', ');
+      if (extra) d += ' (' + extra + ')';
+      lineDescs.push('• ' + d);
+    });
+    if (!lineDescs.length) throw new Error('Couldn’t find any rows in that file.');
+    return { count: total, manifest: lineDescs.join('\n'), lines: lineDescs.length };
+  }
+  document.body.addEventListener('change', (e) => {
+    const t = e.target;
+    if (!(t && t.id === 'bulk-csv')) return;
+    const file = t.files && t.files[0];
+    const status = document.getElementById('bulk-csv-status');
+    if (!file) return;
+    const setStatus = (cls, html) => { if (status) { status.hidden = false; status.className = 'csv-status ' + cls; status.innerHTML = html; } };
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const res = parseManifestCSV(String(reader.result || ''));
+        const mEl = document.getElementById('bulk-manifest'), cEl = document.getElementById('bulk-count');
+        if (mEl) mEl.value = res.manifest;
+        if (cEl) cEl.value = res.count;
+        setStatus('ok', I.check + 'Imported <strong>' + res.lines + '</strong> line' + (res.lines === 1 ? '' : 's') + ' · <strong>' + res.count + '</strong> game' + (res.count === 1 ? '' : 's') + '. Review the manifest below, then submit.');
+      } catch (err) {
+        setStatus('err', I.alert + (err.message || 'Could not read that CSV.'));
+      }
+      t.value = '';
+    };
+    reader.onerror = () => { setStatus('err', I.alert + 'Could not read that file.'); t.value = ''; };
+    reader.readAsText(file);
+  });
+
   document.body.addEventListener('click', async (e) => {
     const el = e.target.closest('[data-action]'); if (!el) return;
     const a = el.dataset.action, v = el.dataset.value, ref = el.dataset.ref, idx = el.dataset.idx != null ? parseInt(el.dataset.idx, 10) : null;
@@ -1463,6 +1665,17 @@
     else if (a === 'acct-tab') { state.acctTab = v; state.flash = null; state.confirmDelete = false; state.confirmBulkClose = false; renderAcctPanel(); }
     else if (a === 'goto-bulk') { state.acctTab = 'bulk'; state.flash = null; goto('account'); }
     else if (a === 'goto-bulk-submit') { go('bulkSubmit'); }
+    else if (a === 'bulk-csv-template') {
+      const csv = 'title,platform,condition,qty,notes\nThe Legend of Zelda: Tears of the Kingdom,Switch,Complete,1,\nGod of War Ragnarök,PS5,Complete,2,case has light wear\nHalo Infinite,Xbox Series X,Loose,1,disc only\n';
+      try {
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url; link.download = 'restash-bulk-manifest-template.csv';
+        document.body.appendChild(link); link.click();
+        document.body.removeChild(link); setTimeout(() => URL.revokeObjectURL(url), 1000);
+      } catch (err) {}
+    }
     else if (a === 'back-to-claims') { state.acctTab = 'claims'; state.flash = null; goto('account'); }
     else if (a === 'submit-bulk') {
       const manifest = document.getElementById('bulk-manifest').value.trim();
@@ -1515,12 +1728,24 @@
       try { await RestashAPI.sendClaimMessage(ref, body); await loadClaims(); state.activeClaimRef = ref; render(); }
       catch (err) { el.disabled = false; showErr('cm-error', err.message || 'Could not send your message.'); }
     }
+    else if (a === 'notif-toggle') {
+      const cat = el.dataset.cat, ch = el.dataset.ch, val = el.dataset.value === '1';
+      try {
+        await RestashAPI.updateNotifPrefs(cat, ch, val);
+        if (state.notif && state.notif.prefs && state.notif.prefs[cat]) state.notif.prefs[cat][ch] = val;
+        renderAcctPanel();
+      } catch (err) { state.flash = { slot: 'data', kind: 'err', text: err.message || 'Could not update preference.' }; renderAcctPanel(); }
+    }
+    else if (a === 'mark-read') {
+      try { await RestashAPI.markNotificationsRead(); state.notif = await RestashAPI.getNotifications(); render(); }
+      catch (err) {}
+    }
     else if (a === 'copy-ref') {
       const link = el.dataset.value || '';
       try { await navigator.clipboard.writeText(link); el.textContent = 'Copied!'; setTimeout(() => { el.textContent = 'Copy link'; }, 1600); }
       catch (e) { const t = document.getElementById('ref-link-input'); if (t) { t.select(); } }
     }
-    else if (a === 'logout') { try { await RestashAPI.signOut(); } catch (e) {} state.loggedIn = false; state.user = { name: '', email: '', phone: '' }; state.bulk = { status: null }; state.referral = null; state.claims = []; go('platform'); }
+    else if (a === 'logout') { try { await RestashAPI.signOut(); } catch (e) {} state.loggedIn = false; state.user = { name: '', email: '', phone: '' }; state.bulk = { status: null }; state.referral = null; state.notif = null; state.claims = []; go('platform'); }
     else if (a === 'delete-account') { state.confirmDelete = true; renderAcctPanel(); }
     else if (a === 'cancel-delete') { state.confirmDelete = false; renderAcctPanel(); }
     else if (a === 'confirm-delete') {
@@ -1545,10 +1770,12 @@
                      : { name: '', email: u.email || '', phone: '' };
       state.bulk = p ? { status: p.bulk_status || null, reason: p.bulk_reason || '', appliedAt: p.bulk_applied_at || null, decidedAt: p.bulk_decided_at || null } : { status: null };
       try { state.referral = await RestashAPI.getReferral(); } catch (e) { state.referral = null; }
+      try { state.notif = await RestashAPI.getNotifications(); } catch (e) { state.notif = null; }
     } else {
       state.user = { name: '', email: '', phone: '' };
       state.bulk = { status: null };
       state.referral = null;
+      state.notif = null;
     }
   }
   async function loadClaims() {
