@@ -353,17 +353,30 @@
   .kv .v.mono { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12.5px; }
   .track-link { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 12.5px; font-weight: 700; color: var(--purple); text-decoration: none; }
   .track-link svg { width: 15px; height: 15px; }
-  .track-card-h svg { width: 14px; height: 14px; vertical-align: -2px; margin-right: 6px; color: var(--muted); }
+  .track-card-h { display: flex; align-items: center; gap: 7px; }
+  .track-card-ic { display: inline-flex; color: var(--muted); }
+  .track-card-ic svg { width: 15px; height: 15px; }
   .track-form { display: flex; flex-direction: column; gap: 10px; }
   .track-inputs { display: flex; flex-wrap: wrap; gap: 8px; }
-  .track-sel-wrap { position: relative; flex: none; }
-  .track-sel-wrap::after { content: ""; position: absolute; right: 11px; top: 50%; width: 9px; height: 9px; margin-top: -6px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: rotate(45deg); pointer-events: none; }
-  .track-sel { -webkit-appearance: none; -moz-appearance: none; appearance: none; font-family: var(--body); font-size: 13.5px; font-weight: 500; color: var(--ink); background: var(--surface); border: 1.5px solid var(--border); border-radius: 10px; padding: 10px 32px 10px 12px; cursor: pointer; }
-  .track-sel:hover { border-color: #c5c0e0; }
   .track-num { flex: 1; min-width: 150px; font-family: var(--body); font-size: 13.5px; color: var(--ink); background: var(--surface); border: 1.5px solid var(--border); border-radius: 10px; padding: 10px 12px; }
-  .track-sel:focus, .track-num:focus { outline: none; border-color: var(--purple); box-shadow: 0 0 0 3px rgba(91,63,214,0.14); }
+  .track-num:focus { outline: none; border-color: var(--purple); box-shadow: 0 0 0 3px rgba(91,63,214,0.14); }
   .track-form .inline-msg { margin-top: 0; }
   .track-form .btn { width: 100%; }
+  /* Custom carrier dropdown */
+  .cdd { position: relative; flex: none; }
+  .cdd-btn { display: inline-flex; align-items: center; justify-content: space-between; gap: 12px; min-width: 172px; font-family: var(--body); font-size: 13.5px; font-weight: 600; color: var(--ink); background: var(--surface); border: 1.5px solid var(--border); border-radius: 10px; padding: 10px 12px; cursor: pointer; }
+  .cdd-btn.placeholder .cdd-val { color: var(--muted); font-weight: 500; }
+  .cdd-btn:hover { border-color: #c5c0e0; }
+  .cdd.open .cdd-btn { border-color: var(--purple); box-shadow: 0 0 0 3px rgba(91,63,214,0.14); }
+  .cdd-caret { flex: none; width: 8px; height: 8px; margin-top: -3px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: rotate(45deg); transition: transform .16s ease; }
+  .cdd.open .cdd-caret { margin-top: 1px; transform: rotate(-135deg); }
+  .cdd-menu { position: absolute; top: calc(100% + 6px); left: 0; min-width: 100%; background: var(--surface); border: 1.5px solid var(--border); border-radius: 12px; box-shadow: 0 14px 34px rgba(27,29,58,0.16); padding: 5px; z-index: 30; display: none; }
+  .cdd.open .cdd-menu { display: block; }
+  .cdd-opt { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; text-align: left; background: none; border: none; border-radius: 8px; padding: 9px 11px; font-family: var(--body); font-size: 13.5px; font-weight: 600; color: var(--ink); cursor: pointer; }
+  .cdd-opt:hover { background: var(--purple-tint-2); color: var(--purple); }
+  .cdd-opt.on { color: var(--purple); }
+  .cdd-check { display: inline-flex; color: var(--purple); }
+  .cdd-check svg { width: 15px; height: 15px; }
 
   .spark { position: absolute; color: #ffe89c; opacity: 0; animation: tw 2.6s ease-in-out infinite; pointer-events: none; }
   .spark svg { width: 11px; height: 11px; }
@@ -478,8 +491,8 @@
   }
 
   const FILTERS = [['all', 'All'], ['priority', 'Priority'], ['submitted', 'New'], ['reviewing', 'Review'], ['accepted', 'Accepted'], ['received', 'Received'], ['offer', 'Offer sent'], ['paid', 'Paid'], ['declined', 'Declined'], ['returned', 'Returned']];
-  const TAB_VIEW = { claims: 'dashboard', accounts: 'accounts', bulk: 'bulkSellers', payouts: 'payouts', team: 'team', resources: 'resources' };
-  const TAB_LABEL = { claims: 'Claims', accounts: 'Accounts', bulk: 'Bulk Sellers', payouts: 'Payouts', team: 'Team', resources: 'Resources' };
+  const TAB_VIEW = { claims: 'dashboard', accounts: 'accounts', bulk: 'bulkSellers', inventory: 'inventory', payouts: 'payouts', team: 'team', resources: 'resources' };
+  const TAB_LABEL = { claims: 'Claims', accounts: 'Accounts', bulk: 'Bulk Sellers', inventory: 'Inventory', payouts: 'Payouts', team: 'Team', resources: 'Resources' };
   // Back button returns to whichever tab you opened the detail from (so a seller
   // opened from Bulk Sellers goes back to Bulk Sellers, a payout to Payouts…).
   function backBtn() { return '<button class="backbtn" data-action="back-to-tab">' + I.back + (TAB_LABEL[state.tab] || 'Back') + '</button>'; }
@@ -526,6 +539,9 @@
   function flashMsg(slot) { return (state.flash && state.flash.slot === slot) ? '<div class="inline-msg ' + state.flash.kind + '">' + esc(state.flash.text) + '</div>' : ''; }
 
   function counts() { const o = { submitted: 0, reviewing: 0, accepted: 0, received: 0, offer: 0, paid: 0, declined: 0, returned: 0 }; state.claims.forEach(c => { o[c.status] = (o[c.status] || 0) + 1; }); return o; }
+  // Inventory helpers — units and a best-known dollar value for a lot on hand.
+  function invUnits(c) { return c.bulk ? (c.estCount || 0) : (c.items || []).reduce((s, i) => s + (i.qty || 1), 0); }
+  function invValue(c) { if (c.offerAmount) return c.offerAmount; if (!c.bulk && c.estLow != null && c.estHigh != null) return Math.round((c.estLow + c.estHigh) / 2); return null; }
   // Bulk-seller lots still in the active pipeline — we promised these priority intake + inspection.
   const PRIORITY_ACTIVE = ['submitted', 'reviewing', 'accepted', 'received', 'offer'];
   function isPriority(c) { return !!c.bulk && PRIORITY_ACTIVE.indexOf(c.status) !== -1; }
@@ -552,7 +568,6 @@
       + '<span class="chev">' + I.chevron + '</span></button>'
     ).join('');
     return '<div class="prio-band"><div class="prio-head"><span class="prio-title">' + I.star + 'Bulk seller priority</span><span class="prio-count">' + list.length + '</span></div>'
-      + '<div class="prio-sub">Active lots from Bulk Sellers — give these priority intake, inspection, and offers.</div>'
       + '<div class="prio-rows">' + rows + '</div></div>';
   }
   function accountsFiltered() { const q = state.search.trim().toLowerCase(); return state.accounts.filter(a => !q || (a.name + ' ' + a.email).toLowerCase().indexOf(q) !== -1); }
@@ -593,13 +608,16 @@
         + '<div class="kv"><span class="k">' + I.hash + 'Tracking #</span><span class="v mono">' + esc(t.number) + '</span></div>'
         + (t.url ? '<a class="track-link" href="' + esc(t.url) + '" target="_blank" rel="noopener">' + I.external + 'Open on ' + esc(t.carrier) + '</a>' : '') + '</div>'
       : '<p class="track-none">No ' + dir.toLowerCase() + ' tracking yet. Add it so the customer can follow their shipment.</p>';
-    const opts = carriers.map(k => '<option value="' + esc(k) + '"' + (t && t.carrier === k ? ' selected' : '') + '>' + esc(k) + '</option>').join('');
-    const form = '<div class="track-form">'
-      + '<div class="track-inputs"><div class="track-sel-wrap"><select id="track-carrier" class="track-sel"><option value="">Select a carrier…</option>' + opts + '</select></div>'
+    const sel = t ? t.carrier : '';
+    const opts = carriers.map(k => '<button type="button" class="cdd-opt' + (sel === k ? ' on' : '') + '" data-action="carrier-pick" data-value="' + esc(k) + '">' + esc(k) + (sel === k ? '<span class="cdd-check">' + I.check + '</span>' : '') + '</button>').join('');
+    const dd = '<div class="cdd" id="carrier-dd"><input type="hidden" id="track-carrier" value="' + esc(sel) + '">'
+      + '<button type="button" class="cdd-btn' + (sel ? '' : ' placeholder') + '" data-action="carrier-toggle"><span class="cdd-val">' + (sel ? esc(sel) : 'Select a carrier…') + '</span><span class="cdd-caret"></span></button>'
+      + '<div class="cdd-menu">' + opts + '</div></div>';
+    const form = '<div class="track-form"><div class="track-inputs">' + dd
       + '<input id="track-number" class="track-num" type="text" placeholder="Tracking number" value="' + (t ? esc(t.number) : '') + '"></div>'
       + flashMsg('track')
       + '<button class="btn btn-secondary full" data-action="set-tracking" data-value="' + esc(c.ref) + '">' + (t ? 'Update tracking' : 'Add tracking') + '</button></div>';
-    return '<div class="card"><div class="card-h track-card-h">' + I.truck + dir + ' tracking</div>' + current + form + '</div>';
+    return '<div class="card"><div class="card-h track-card-h"><span class="track-card-ic">' + I.truck + '</span><span>' + dir + ' tracking</span></div>' + current + form + '</div>';
   }
   function timeline(history) {
     return '<div class="timeline">' + history.map((h, i) => {
@@ -754,7 +772,7 @@
 
   const tbRight = () => state.loggedIn ? '<span class="tb-user">' + esc(state.admin.name) + '</span><button class="tb-logout" data-action="logout">' + I.logout + 'Sign out</button>' : '';
   function tabs() {
-    const T = [['claims', 'Claims'], ['accounts', 'Accounts'], ['bulk', 'Bulk Sellers'], ['payouts', 'Payouts'], ['team', 'Team'], ['resources', 'Resources']];
+    const T = [['claims', 'Claims'], ['accounts', 'Accounts'], ['bulk', 'Bulk Sellers'], ['inventory', 'Inventory'], ['payouts', 'Payouts'], ['team', 'Team'], ['resources', 'Resources']];
     return '<div class="tabs">' + T.map(t => '<button class="tab' + (state.tab === t[0] ? ' on' : '') + '" data-action="tab" data-value="' + t[0] + '">' + t[1] + '</button>').join('') + '</div>';
   }
 
@@ -820,6 +838,30 @@
       return '<div class="screen wrap">' + tabs()
         + '<div class="stats" style="grid-template-columns:repeat(3,1fr);">' + tiles + '</div>'
         + '<div class="rows" style="margin-top:22px;">' + rows + '</div></div>';
+    },
+    inventory() {
+      const onHand = state.claims.filter(c => c.status === 'received' || c.status === 'offer').sort((a, b) => Date.parse(a.createdAt) - Date.parse(b.createdAt));
+      const incoming = state.claims.filter(c => c.status === 'accepted');
+      const units = onHand.reduce((s, c) => s + invUnits(c), 0);
+      const estValue = onHand.reduce((s, c) => s + (invValue(c) || 0), 0);
+      const stat = (icon, label, num) => '<button class="stat read"><span class="stat-top">' + icon + '<span class="stat-label">' + label + '</span></span><span class="stat-num">' + num + '</span></button>';
+      const tiles = stat(I.box, 'Lots on hand', onHand.length) + stat(I.gamepad, 'Games on hand', units) + stat(I.dollar, 'Est. value on hand', '$' + estValue) + stat(I.truck, 'Incoming', incoming.length);
+      const rows = onHand.length ? onHand.map(c => {
+        const v = invValue(c), u = invUnits(c);
+        return '<button class="row' + (c.flagged ? ' gold' : '') + '" data-action="open-claim" data-ref="' + c.ref + '"><span class="row-avatar">' + (c.bulk ? I.box : I.gamepad) + '</span>'
+          + '<span class="row-main"><span class="row-line1"><span class="row-name">' + esc(c.cust) + '</span>' + badge(c.status) + bulkPill(c) + (c.flagged ? flagBadge() : '') + '</span><span class="row-meta">' + c.ref + ' · ' + esc(claimTitle(c)) + ' · ' + u + ' game' + (u === 1 ? '' : 's') + '</span></span>'
+          + '<span class="row-right"><span class="row-amt">' + (v != null ? '$' + v : '—') + '</span><span class="row-date">' + (c.status === 'offer' ? 'Offer out' : 'Inspecting') + '</span></span>'
+          + '<span class="chev">' + I.chevron + '</span></button>';
+      }).join('') : '<div class="empty">Nothing on hand right now. Accepted lots show up here once they arrive for inspection.</div>';
+      const incHtml = incoming.length
+        ? '<div class="card-h" style="margin-top:26px;">Incoming (' + incoming.length + ')</div><div class="rows" style="margin-top:0;">' + incoming.sort((a, b) => Date.parse(a.createdAt) - Date.parse(b.createdAt)).map(c =>
+            '<button class="row" data-action="open-claim" data-ref="' + c.ref + '"><span class="row-avatar">' + (c.bulk ? I.box : I.gamepad) + '</span><span class="row-main"><span class="row-line1"><span class="row-name">' + esc(c.cust) + '</span>' + bulkPill(c) + (c.tracking ? '<span class="badge s-purple">Tracked</span>' : '') + '</span><span class="row-meta">' + c.ref + ' · ' + esc(claimTitle(c)) + ' · ' + invUnits(c) + ' game' + (invUnits(c) === 1 ? '' : 's') + '</span></span><span class="chev">' + I.chevron + '</span></button>'
+          ).join('') + '</div>'
+        : '';
+      return '<div class="screen wrap">' + tabs()
+        + '<div class="stats">' + tiles + '</div>'
+        + '<div class="card-h" style="margin-top:22px;">On hand (' + onHand.length + ')</div><div class="rows" style="margin-top:0;">' + rows + '</div>'
+        + incHtml + '</div>';
     },
     team() {
       const card = (m) => '<div class="card team-card"><div class="team-top"><span class="row-avatar">' + initials(m.name) + '</span><div class="team-id"><div class="team-name">' + esc(m.name) + '</div><div class="team-role">' + esc(m.role) + '</div></div></div>'
@@ -950,9 +992,27 @@
     }
   });
 
+  // Close the custom carrier dropdown when clicking anywhere outside it.
+  document.body.addEventListener('click', (e) => {
+    const dd = document.getElementById('carrier-dd');
+    if (dd && dd.classList.contains('open') && !e.target.closest('#carrier-dd')) dd.classList.remove('open');
+  }, true);
+
   document.body.addEventListener('click', async (e) => {
     const el = e.target.closest('[data-action]'); if (!el) return;
     const a = el.dataset.action, v = el.dataset.value, ref = el.dataset.ref;
+
+    // Custom carrier dropdown — handled in-place, no re-render (keeps the number field intact).
+    if (a === 'carrier-toggle') { const dd = document.getElementById('carrier-dd'); if (dd) dd.classList.toggle('open'); return; }
+    if (a === 'carrier-pick') {
+      const dd = document.getElementById('carrier-dd'); if (!dd) return;
+      const inp = document.getElementById('track-carrier'); if (inp) inp.value = v;
+      const btn = dd.querySelector('.cdd-btn'), val = dd.querySelector('.cdd-val');
+      if (val) val.textContent = v; if (btn) btn.classList.remove('placeholder');
+      dd.querySelectorAll('.cdd-opt').forEach(o => o.classList.toggle('on', o.dataset.value === v));
+      dd.classList.remove('open');
+      return;
+    }
 
     if (a === 'signin') {
       const email = document.getElementById('lg-email').value.trim();

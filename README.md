@@ -167,7 +167,11 @@ Built so far (beyond the core buyback loop + console):
 - **Live phone formatting** on all `tel` inputs, e.g. `(518) 555-0123`.
 - **Google address autocomplete** is wired for the checkout (Check) and profile
   address fields — it activates once `GOOGLE_MAPS_API_KEY` is set in `config.js`.
-  Suggestions are **not country-restricted** (works worldwide).
+  Suggestions are **restricted to the U.S.** (`country: ['us']`).
+- **Continental-U.S.-only addresses** — checkout (Check payout) and profile saves
+  reject AK, HI, and the U.S. territories (`nonContinentalRegion`), with a
+  helper note on the address fields. (Autocomplete is country-level, so the
+  continental filter is enforced by this submit-time check.)
 - **Notifications + email/SMS preferences** — an **Alerts** account tab with an
   in-app notification list and per-category email/SMS toggles
   (`RestashAPI.NOTIF_CATS`, `getNotifications` / `updateNotifPrefs` /
@@ -185,12 +189,19 @@ Built so far (beyond the core buyback loop + console):
   Seller lots into a dedicated gold "Priority" section (plus a Priority filter
   chip), so the priority intake/inspection we promise them is visible at a glance
   (`priorityClaims`, `PRIORITY_ACTIVE`).
+- **Marketing landing page** — a dedicated front door (`views.landing`) shown to
+  logged-out visitors: hero, value props, how-it-works, why-Restash, and CTAs
+  into the buyback flow. It's the default boot view when signed out.
+- **Staff Inventory** — a console tab showing games **on hand** (received +
+  offer-out lots) with units and estimated value, plus an **Incoming** list
+  (accepted/in-transit). The **Payouts** tab remains the running payment ledger.
 
 Next up (greenlit, not yet built), roughly in order:
-1. **Staff inventory + payouts ledger** — a console view of received lots and a
-   running record of authorized payments.
-2. **Marketing landing page** — a dedicated front door above the buyback flow.
-3. **Reviews / social proof** — seller testimonials surfaced on the landing page.
+1. **Saved/again selling** — let returning sellers re-submit common titles fast.
+2. **Seller profile polish** — avatars, payout defaults, saved addresses.
+3. **Admin analytics** — simple volume/throughput charts in the console.
+
+(Reviews / social proof was considered and **skipped** for now.)
 
 Later / parked: production hardening is unchanged — see the numbered list above
 (PayPal Payouts API, shipping-label API, real catalog pricing, verified email

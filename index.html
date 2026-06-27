@@ -661,6 +661,48 @@
   .csv-status svg { flex: none; width: 16px; height: 16px; margin-top: 1px; }
   .csv-status.ok { color: #1c6b3a; background: #e4f4ea; }
   .csv-status.err { color: var(--red); background: var(--red-soft); }
+
+  /* ---- Marketing landing page ---- */
+  .lp { padding-top: 6px; }
+  .lp-hero { text-align: center; padding: 18px 0 30px; }
+  .lp-eyebrow { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 700; letter-spacing: 0.01em; color: var(--purple); background: var(--purple-tint); padding: 7px 13px; border-radius: 999px; }
+  .lp-eyebrow svg { width: 14px; height: 14px; }
+  .lp-title { font-family: var(--display); font-weight: 800; font-size: 40px; line-height: 1.05; letter-spacing: -0.03em; color: var(--ink); margin-top: 18px; }
+  .lp-title span { color: var(--purple); }
+  .lp-sub { font-size: 16px; line-height: 1.55; color: var(--muted); margin: 16px auto 0; max-width: 540px; }
+  .lp-cta-row { display: flex; flex-wrap: wrap; gap: 11px; justify-content: center; margin-top: 26px; }
+  .lp-cta { width: auto; padding-left: 22px; padding-right: 22px; }
+  .lp-plats { display: flex; flex-wrap: wrap; gap: 9px; justify-content: center; margin-top: 26px; }
+  .lp-plat { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 600; color: var(--ink); background: var(--surface); border: 1.5px solid var(--border); border-radius: 999px; padding: 7px 14px; }
+  .lp-plat svg { width: 16px; height: 16px; color: var(--purple); }
+  .lp-props { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px; }
+  .lp-prop { display: flex; gap: 12px; background: var(--surface); border: 1.5px solid var(--border); border-radius: 15px; padding: 16px; }
+  .lp-prop-ic { flex: none; width: 38px; height: 38px; border-radius: 11px; background: var(--purple-tint); color: var(--purple); display: flex; align-items: center; justify-content: center; }
+  .lp-prop-ic svg { width: 20px; height: 20px; }
+  .lp-prop-b { min-width: 0; }
+  .lp-prop-t { font-size: 14.5px; font-weight: 700; color: var(--ink); letter-spacing: -0.01em; }
+  .lp-prop-s { font-size: 12.5px; color: var(--muted); line-height: 1.5; margin-top: 3px; }
+  .lp-h2 { font-family: var(--display); font-weight: 800; font-size: 24px; letter-spacing: -0.02em; color: var(--ink); text-align: center; }
+  .lp-how { margin-top: 42px; }
+  .lp-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 22px; }
+  .lp-step { position: relative; background: var(--surface); border: 1.5px solid var(--border); border-radius: 15px; padding: 20px 16px 18px; text-align: center; }
+  .lp-step-n { position: absolute; top: 12px; left: 14px; font-family: var(--display); font-weight: 800; font-size: 13px; color: #c9c3e6; }
+  .lp-step-ic { display: inline-flex; width: 46px; height: 46px; border-radius: 13px; background: var(--purple-tint); color: var(--purple); align-items: center; justify-content: center; margin-bottom: 12px; }
+  .lp-step-ic svg { width: 23px; height: 23px; }
+  .lp-step-t { font-size: 15px; font-weight: 700; color: var(--ink); }
+  .lp-step-s { font-size: 12.5px; color: var(--muted); line-height: 1.5; margin-top: 5px; }
+  .lp-why { margin-top: 42px; }
+  .lp-why-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 22px; }
+  .lp-final { margin-top: 44px; text-align: center; background: linear-gradient(135deg, var(--purple) 0%, var(--purple-deep) 100%); border-radius: 20px; padding: 38px 22px; }
+  .lp-final-t { font-family: var(--display); font-weight: 800; font-size: 26px; letter-spacing: -0.02em; color: #fff; }
+  .lp-final-s { font-size: 14.5px; color: rgba(255,255,255,0.85); margin-top: 8px; }
+  .lp-final .lp-cta { margin-top: 22px; background: #fff; color: var(--purple); }
+  .lp-final .lp-cta:hover { background: #f3f0ff; }
+  @media (max-width: 560px) {
+    .lp-title { font-size: 31px; }
+    .lp-props, .lp-why-grid, .lp-steps { grid-template-columns: 1fr; }
+    .lp-cta-row .lp-cta { width: 100%; }
+  }
 </style>
 </head>
 <body>
@@ -733,6 +775,9 @@
     truck: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h11v9H3zM14 9h4l3 3v3h-7z"/><circle cx="7" cy="18" r="1.6"/><circle cx="17" cy="18" r="1.6"/></svg>',
     external: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 5h5v5"/><path d="M19 5l-8 8"/><path d="M18 14v4a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h4"/></svg>',
     bell: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M10.5 19a1.8 1.8 0 0 0 3 0"/></svg>',
+    bolt: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>',
+    tag: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9z"/><circle cx="7.5" cy="7.5" r="1.4"/></svg>',
+    shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 5 6v5c0 4.4 3 8.3 7 9.5 4-1.2 7-5.1 7-9.5V6z"/><path d="M9 12l2 2 4-4"/></svg>',
     trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13M10 11v6M14 11v6"/></svg>',
     handheld: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7.5" y="4" width="9" height="16" rx="1.6"/><rect x="3.4" y="6.5" width="3.3" height="11" rx="1.4"/><rect x="17.3" y="6.5" width="3.3" height="11" rx="1.4"/></svg>',
     gamepad: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 8h7a5 5 0 0 1 5 5v.2a3.1 3.1 0 0 1-5.6 1.9L14 14h-4l-.9 1.1A3.1 3.1 0 0 1 3.5 13.4V13a5 5 0 0 1 5-5Z"/><line x1="6.8" y1="11.3" x2="9.2" y2="11.3"/><line x1="8" y1="10.1" x2="8" y2="12.5"/><circle cx="15.4" cy="10.8" r="0.5" fill="currentColor" stroke="none"/><circle cx="17" cy="12.3" r="0.5" fill="currentColor" stroke="none"/></svg>',
@@ -877,6 +922,39 @@
     welcome() {
       return '<div class="screen welcome" data-action="enter-app"><div class="wc-inner"><span class="wc-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 13.5a6.5 6.5 0 0 1 10.4-5.2"/><path d="M16 5.7v3.2h-3.2"/><path d="M18.5 10.5a6.5 6.5 0 0 1-10.4 5.2"/><path d="M8 18.3v-3.2h3.2"/></svg></span><h1 class="wc-title">Welcome to Restash</h1><p class="wc-sub">Instant cash. Zero hassle. Skip the marketplace.</p><span class="wc-prog"><span class="wc-bar"></span></span></div></div>';
     },
+    landing() {
+      const bonus = RestashAPI.REFERRAL.bonus;
+      const plats = (PLATFORMS || []).map(p => '<span class="lp-plat">' + (I[p.icon] || I.handheld) + esc(p.name) + '</span>').join('');
+      const prop = (icon, t, s) => '<div class="lp-prop"><span class="lp-prop-ic">' + icon + '</span><div class="lp-prop-b"><div class="lp-prop-t">' + t + '</div><div class="lp-prop-s">' + s + '</div></div></div>';
+      const step = (n, icon, t, s) => '<div class="lp-step"><span class="lp-step-n">' + n + '</span><span class="lp-step-ic">' + icon + '</span><div class="lp-step-t">' + t + '</div><div class="lp-step-s">' + s + '</div></div>';
+      return '<div class="screen lp">'
+        + '<section class="lp-hero">'
+        +   '<span class="lp-eyebrow">' + I.bolt + 'Instant offers · Free shipping · Paid in 1–5 days</span>'
+        +   '<h1 class="lp-title">Turn your games into cash. <span>Today.</span></h1>'
+        +   '<p class="lp-sub">Get an instant, no-obligation offer on your PlayStation, Xbox, and Nintendo Switch games. Ship free, get paid by PayPal or check — and skip the marketplace hassle entirely.</p>'
+        +   '<div class="lp-cta-row"><button class="btn btn-primary lp-cta" data-action="enter-app">' + I.dollar + 'Get an instant offer</button><a class="btn btn-secondary lp-cta" href="help.html">How it works</a></div>'
+        +   '<div class="lp-plats">' + plats + '</div>'
+        + '</section>'
+        + '<section class="lp-props">'
+        +   prop(I.bolt, 'Instant offers', 'Pick your games and see a fair price right away — no listings, no waiting.')
+        +   prop(I.truck, 'Free shipping', 'We email a prepaid label the moment we accept your claim.')
+        +   prop(I.dollar, 'Fast payouts', 'PayPal in 1–3 business days, or a check in 3–5.')
+        +   prop(I.shield, 'No selling fees', 'The offer you accept is exactly what you get. No surprises.')
+        + '</section>'
+        + '<section class="lp-how"><h2 class="lp-h2">How it works</h2><div class="lp-steps">'
+        +   step(1, I.tag, 'Get your offer', 'Add your games and their condition for an instant, no-obligation quote.')
+        +   step(2, I.truck, 'Ship it free', 'Accept and we email a prepaid label — pack it up and drop it off.')
+        +   step(3, I.dollar, 'Get paid', 'We confirm on arrival and send your money by PayPal or check.')
+        + '</div></section>'
+        + '<section class="lp-why"><h2 class="lp-h2">Why sellers choose Restash</h2><div class="lp-why-grid">'
+        +   prop(I.check, 'A real price, up front', 'No fees, no lowballers, no weeks of waiting — just a fair number you can accept on the spot.')
+        +   prop(I.shield, 'Safe and simple', 'No meetups or shipping disputes. One prepaid, tracked label does it all.')
+        +   prop(I.gift, 'Refer & earn', 'Invite a friend and you both get $' + bonus + ' toward your next accepted offer.')
+        +   prop(I.box, 'Selling a whole lot?', 'Bulk Sellers send one manifest for an entire collection and get priority handling.')
+        + '</div></section>'
+        + '<section class="lp-final"><h2 class="lp-final-t">Ready to cash in your shelf?</h2><p class="lp-final-s">It takes about a minute to get your first offer.</p><button class="btn btn-primary lp-cta" data-action="enter-app">' + I.dollar + 'Get an instant offer</button></section>'
+        + '</div>';
+    },
     platform() {
       // Active Bulk Sellers can't use the standard one-by-one flow.
       if (state.loggedIn && state.bulk && state.bulk.status === 'approved') return bulkLaneGate();
@@ -951,7 +1029,7 @@
         + '<div class="field"><label for="cf-email">Email</label><input id="cf-email" type="email" placeholder="you@email.com" value="' + val('email') + '"></div>'
         + '<div class="field"><label for="cf-phone">Phone</label><input id="cf-phone" type="tel" placeholder="(518) 555-0123" value="' + val('phone') + '"></div>'
         + '<div class="field"><span class="flabel">How would you like to be paid?</span><div class="pay-grid"><button type="button" class="pay-opt' + sel('PayPal') + '" data-action="pick-payout" data-value="PayPal"><span class="pico brandfull">' + I.paypal + '</span><span><span class="pname">PayPal</span><span class="pdesc">To your PayPal email</span></span></button><button type="button" class="pay-opt' + sel('Check') + '" data-action="pick-payout" data-value="Check"><span class="pico brandcheck">' + I.receipt + '</span><span><span class="pname">Check</span><span class="pdesc">Mailed to your address</span></span></button></div></div>'
-        + '<div class="field" id="cf-addr-field"' + (state.payout === 'Check' ? '' : ' hidden') + '><label for="cf-addr">Mailing address <span class="opt">(for your check)</span></label><input id="cf-addr" type="text" placeholder="Street, City, State ZIP" value="' + val('address') + '"></div>'
+        + '<div class="field" id="cf-addr-field"' + (state.payout === 'Check' ? '' : ' hidden') + '><label for="cf-addr">Mailing address <span class="opt">(for your check)</span></label><input id="cf-addr" type="text" placeholder="Street, City, State ZIP" value="' + val('address') + '"><p class="field-hint">' + I.pin + 'Restash buys within the continental U.S. only.</p></div>'
         + '<div class="field"><label for="cf-notes">Notes <span class="opt">(optional)</span></label><textarea id="cf-notes" rows="3" placeholder="Anything we should know about your games?">' + esc(d.notes || '') + '</textarea></div>'
         + '<div class="notice"><span class="nico">' + I.info + '</span><p>An estimate and a submitted claim don\u2019t guarantee a sale. We accept a limited number of games right now and personally choose which to inspect — you\u2019ll get the decision in <strong>My Claims</strong> and by email. If a game\u2019s condition differs from what you selected, we re-grade it on inspection and adjust the offer, with the reason shown on your claim — and you still review before any payment. Payouts are sent only to a PayPal account or check in the <strong>same name as your Restash account</strong>.</p></div>'
         + '<div class="agree"><input type="checkbox" id="cf-terms"' + (d.terms ? ' checked' : '') + '><label for="cf-terms">I certify under penalty of perjury that I am the legal owner of these games and that they are authentic, and I agree to the <a data-action="goto" data-value="terms">Terms of Service</a> and <a data-action="goto" data-value="privacy">Privacy Policy</a>.</label></div>'
@@ -1230,7 +1308,7 @@
       + '<div class="field"><label for="ac-name">Full name</label><input id="ac-name" type="text" value="' + esc(u.name) + '"></div>'
       + '<div class="field"><label for="ac-email">Email</label><input id="ac-email" type="email" value="' + esc(u.email) + '" readonly></div>'
       + '<div class="field"><label for="ac-phone">Phone</label><input id="ac-phone" type="tel" value="' + esc(u.phone) + '"></div>'
-      + '<div class="field"><label for="ac-addr">Mailing address <span class="opt">(for checks)</span></label><input id="ac-addr" type="text" placeholder="Street, City, State ZIP" value="' + esc(u.address || '') + '"></div>'
+      + '<div class="field"><label for="ac-addr">Mailing address <span class="opt">(for checks)</span></label><input id="ac-addr" type="text" placeholder="Street, City, State ZIP" value="' + esc(u.address || '') + '"><p class="field-hint">' + I.pin + 'Restash buys within the continental U.S. only.</p></div>'
       + '<div class="field"><label for="ac-pass">New password</label><input id="ac-pass" type="password" placeholder="Leave blank to keep current"></div>'
       + flashMsg('profile')
       + '<button class="btn btn-primary full" data-action="save-profile">Save changes</button></div>';
@@ -1400,10 +1478,11 @@
   let welcomeTimer;
   function enterApp() {
     clearTimeout(welcomeTimer);
-    if (state.view !== 'welcome') return;
-    const el = document.querySelector('.welcome');
-    if (el) { el.classList.add('leaving'); setTimeout(() => { if (state.view === 'welcome') go('platform'); }, 350); }
-    else { go('platform'); }
+    if (state.view === 'welcome') {
+      const el = document.querySelector('.welcome');
+      if (el) { el.classList.add('leaving'); setTimeout(() => { if (state.view === 'welcome') go('platform'); }, 350); return; }
+    }
+    go('platform');
   }
   function render() {
     document.getElementById('progress').innerHTML = progressHTML();
@@ -1444,7 +1523,7 @@
       if (!el || el.dataset.acAttached) return;
       el.dataset.acAttached = '1';
       try {
-        const ac = new google.maps.places.Autocomplete(el, { types: ['address'], fields: ['formatted_address'] });
+        const ac = new google.maps.places.Autocomplete(el, { types: ['address'], componentRestrictions: { country: ['us'] }, fields: ['formatted_address'] });
         ac.addListener('place_changed', function () { const p = ac.getPlace(); if (p && p.formatted_address) { el.value = p.formatted_address; el.dispatchEvent(new Event('input', { bubbles: true })); } });
       } catch (e) { /* Places unavailable — leave as a plain input */ }
     });
@@ -1458,6 +1537,16 @@
   function flashMsg(slot) { return (state.flash && state.flash.slot === slot) ? '<div class="inline-msg ' + state.flash.kind + '">' + esc(state.flash.text) + '</div>' : ''; }
   const emailOk = v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
   const phoneOk = v => v.replace(/\D/g, '').length >= 10;
+  // Restash ships/buys within the continental U.S. only — reject AK, HI, and the
+  // U.S. territories (matched by state name or postal abbreviation in the address).
+  const NON_CONTINENTAL = [
+    [/\b(alaska|ak)\b/i, 'Alaska'], [/\b(hawaii|hi)\b/i, 'Hawaii'],
+    [/\b(puerto rico|pr)\b/i, 'Puerto Rico'], [/\b(guam|gu)\b/i, 'Guam'],
+    [/\b(u\.?s\.? virgin islands|virgin islands|vi)\b/i, 'the U.S. Virgin Islands'],
+    [/\b(american samoa|as)\b/i, 'American Samoa'],
+    [/\b(northern mariana islands|mp)\b/i, 'the Northern Mariana Islands']
+  ];
+  function nonContinentalRegion(addr) { const s = ' ' + (addr || '') + ' '; for (const [re, name] of NON_CONTINENTAL) { if (re.test(s)) return name; } return null; }
 
   function addCurrentItemToCart() {
     const p = plat(), t = title(), e = edition(), cd = cond();
@@ -1585,6 +1674,7 @@
       if (!state.payout) return showErr('cf-error', 'Please choose how you\u2019d like to be paid.');
       const address = state.payout === 'Check' ? document.getElementById('cf-addr').value.trim() : '';
       if (state.payout === 'Check' && !address) return showErr('cf-error', 'Please enter the mailing address for your check.');
+      if (state.payout === 'Check') { const nc = nonContinentalRegion(address); if (nc) return showErr('cf-error', 'Restash currently buys within the continental U.S. only — we can’t ship to or pay ' + nc + '.'); }
       if (!terms) return showErr('cf-error', 'Please certify ownership and agree to the Terms to continue.');
       const notesEl = document.getElementById('cf-notes');
       const notes = notesEl ? notesEl.value.trim() : '';
@@ -1658,9 +1748,12 @@
       } catch (err) { el.disabled = false; showErr('auth-error', err.message || 'Could not update your password. The reset link may have expired — request a new one.'); }
     }
     else if (a === 'save-profile') {
+      const addr = document.getElementById('ac-addr').value.trim();
+      const ncr = nonContinentalRegion(addr);
+      if (ncr) { state.flash = { slot: 'profile', kind: 'err', text: 'Restash currently buys within the continental U.S. only — we can’t use an address in ' + ncr + '.' }; return renderAcctPanel(); }
       el.disabled = true;
       try {
-        const p = await RestashAPI.updateProfile({ full_name: document.getElementById('ac-name').value.trim(), phone: document.getElementById('ac-phone').value.trim(), address: document.getElementById('ac-addr').value.trim() });
+        const p = await RestashAPI.updateProfile({ full_name: document.getElementById('ac-name').value.trim(), phone: document.getElementById('ac-phone').value.trim(), address: addr });
         const pw = document.getElementById('ac-pass'); if (pw && pw.value) { await RestashAPI.updatePassword(pw.value); pw.value = ''; }
         state.user = Object.assign({}, state.user, { name: p.full_name, email: p.email, phone: p.phone, address: p.address });
         state.flash = { slot: 'profile', kind: 'ok', text: 'Profile saved.' };
@@ -1820,7 +1913,7 @@
       return;
     }
     state.booted = true;
-    state.view = state.recovery ? 'resetPassword' : (state.loggedIn ? 'platform' : 'welcome');
+    state.view = state.recovery ? 'resetPassword' : (state.loggedIn ? 'platform' : 'landing');
     render();
   }
   boot();
