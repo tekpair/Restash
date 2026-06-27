@@ -161,11 +161,13 @@ Built so far (beyond the core buyback loop + console):
   offer-to-review nudge, recent claims, and quick actions.
 - **Referral program** (`RestashAPI.REFERRAL`) — a give/get bonus **applied to
   the next accepted offer** (deliberately *not* a withdrawable balance, to avoid
-  money-transmitter exposure). Demo-seeded for `maya.chen@email.com`.
+  money-transmitter exposure). Demo-seeded for `maya.chen@email.com`. Includes an
+  **optional referral-code field on the create-account form** that pre-fills from
+  a `?ref=CODE` link and credits the referrer (`applyReferralCode`).
 - **Live phone formatting** on all `tel` inputs, e.g. `(518) 555-0123`.
-- **Google address autocomplete** is already wired for the checkout (Check) and
-  profile address fields — it activates once `GOOGLE_MAPS_API_KEY` is set in
-  `config.js`.
+- **Google address autocomplete** is wired for the checkout (Check) and profile
+  address fields — it activates once `GOOGLE_MAPS_API_KEY` is set in `config.js`.
+  Suggestions are **not country-restricted** (works worldwide).
 - **Notifications + email/SMS preferences** — an **Alerts** account tab with an
   in-app notification list and per-category email/SMS toggles
   (`RestashAPI.NOTIF_CATS`, `getNotifications` / `updateNotifPrefs` /
@@ -179,6 +181,10 @@ Built so far (beyond the core buyback loop + console):
 - **Bulk CSV upload** — Bulk Sellers can upload a `.csv` manifest (with a
   downloadable template) on the bulk-submit screen; it parses `title, platform,
   condition, qty, notes` columns to fill the manifest text and game count.
+- **Bulk-seller priority band** — the console claims dashboard pulls active Bulk
+  Seller lots into a dedicated gold "Priority" section (plus a Priority filter
+  chip), so the priority intake/inspection we promise them is visible at a glance
+  (`priorityClaims`, `PRIORITY_ACTIVE`).
 
 Next up (greenlit, not yet built), roughly in order:
 1. **Staff inventory + payouts ledger** — a console view of received lots and a

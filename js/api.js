@@ -141,7 +141,7 @@
     demo: false,
     async currentUser() { var d = unwrap(await sb.auth.getSession()); return (d && d.session) ? d.session.user : null; },
     onAuthChange: function (cb) { var s = sb.auth.onAuthStateChange(function (_e, sess) { cb(sess ? sess.user : null); }); return function () { if (s && s.data && s.data.subscription) s.data.subscription.unsubscribe(); }; },
-    async signUp(o) { return unwrap(await sb.auth.signUp({ email: o.email, password: o.password, options: { data: { full_name: o.name || '', phone: o.phone || '' } } })); },
+    async signUp(o) { return unwrap(await sb.auth.signUp({ email: o.email, password: o.password, options: { data: { full_name: o.name || '', phone: o.phone || '', referral_code: (o.refCode || '').trim().toUpperCase() || null } } })); },
     async signIn(o) { return unwrap(await sb.auth.signInWithPassword({ email: o.email, password: o.password })); },
     async signOut() { await sb.auth.signOut(); },
     async updatePassword(p) { return unwrap(await sb.auth.updateUser({ password: p })); },
@@ -295,6 +295,15 @@
     function findClaim(ref) { return claims.filter(function (c) { return c.ref === ref; })[0]; }
     function findProfileById(id) { return profiles.filter(function (p) { return p.id === id; })[0]; }
     function findProfileByEmail(e) { return profiles.filter(function (p) { return p.email === e; })[0]; }
+    function findProfileByRefCode(code) { code = (code || '').trim().toUpperCase(); if (!code) return null; return profiles.filter(function (p) { return p.role === 'customer' && refCode(p) === code; })[0] || null; }
+    function shortName(full) { var parts = (full || 'New seller').trim().split(/\s+/); return parts.length > 1 ? parts[0] + ' ' + parts[1].charAt(0).toUpperCase() + '.' : parts[0]; }
+    function applyReferralCode(newProf, code) {
+      var ref = findProfileByRefCode(code); if (!ref || ref.id === newProf.id) return;
+      newProf.referred_by = ref.id;
+      if (!ref.referrals) ref.referrals = [];
+      ref.referrals.push({ name: shortName(newProf.full_name), status: 'joined', bonus: 0, date: new Date().toISOString() });
+      notify(ref.id, 'promos', shortName(newProf.full_name) + ' joined with your referral', 'You’ll earn $' + REFERRAL.bonus + ' toward your next offer when they complete their first paid claim.', null);
+    }
     function sessionProfile() { if (!demoApi._session) return null; return findProfileById(demoApi._session.id) || demoApi._session._prof; }
     function requireStaff() { var p = sessionProfile(); if (!p || p.role !== 'staff') throw new Error('Staff only'); return p; }
     function push(c, label, note) { c.claim_history.push(h(label, note, new Date().toISOString())); }
@@ -312,7 +321,7 @@
       onAuthChange: function () { return function () {}; },
       async signUp(o) {
         var prof = findProfileByEmail(o.email);
-        if (!prof) { prof = Object.assign({ id: 'cust-' + (seq++), full_name: o.name || 'New User', email: o.email, phone: o.phone || '', address: '', role: 'customer', flagged: false, created_at: new Date().toISOString(), account_notes: [] }, bulkFields()); profiles.push(prof); }
+        if (!prof) { prof = Object.assign({ id: 'cust-' + (seq++), full_name: o.name || 'New User', email: o.email, phone: o.phone || '', address: '', role: 'customer', flagged: false, created_at: new Date().toISOString(), account_notes: [] }, bulkFields()); profiles.push(prof); applyReferralCode(prof, o.refCode); }
         demoApi._session = { id: prof.id, email: prof.email, _prof: prof }; return { user: { id: prof.id } };
       },
       async signIn(o) {

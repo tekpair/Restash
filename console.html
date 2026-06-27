@@ -87,6 +87,19 @@
   .chip:hover { border-color: var(--purple); color: var(--purple); }
   .chip.on { background: var(--purple); border-color: var(--purple); color: #fff; }
 
+  /* Bulk-seller priority band — gold-accented, sits above the filterable claim list. */
+  .prio-band { margin-top: 18px; border: 1.5px solid #efdca6; border-radius: 16px; background: linear-gradient(135deg, #fffaf0 0%, #fdf2d9 100%); padding: 16px 17px; box-shadow: inset 3px 0 0 var(--amber); }
+  .prio-head { display: flex; align-items: center; gap: 9px; }
+  .prio-title { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--gold-label); }
+  .prio-title svg { width: 15px; height: 15px; }
+  .prio-count { display: inline-flex; align-items: center; justify-content: center; min-width: 21px; height: 21px; padding: 0 6px; border-radius: 999px; background: var(--amber); color: #fff; font-size: 12px; font-weight: 800; }
+  .prio-sub { font-size: 12.5px; color: var(--gold-label); opacity: 0.9; margin-top: 5px; line-height: 1.45; }
+  .prio-rows { display: flex; flex-direction: column; gap: 9px; margin-top: 13px; }
+  .prio-row { display: flex; align-items: center; gap: 13px; width: 100%; text-align: left; background: rgba(255,255,255,0.78); border: 1.5px solid #f0e2b6; border-radius: 12px; padding: 12px 14px; cursor: pointer; font-family: var(--body); color: var(--ink); transition: border-color .15s ease, background .15s ease; }
+  .prio-row:hover { border-color: var(--amber); background: #fff; }
+  .prio-row:focus-visible { outline: none; border-color: var(--amber); box-shadow: 0 0 0 3px rgba(154,106,6,0.18); }
+  .prio-ic { flex: none; width: 38px; height: 38px; border-radius: 10px; background: var(--gold-soft); color: var(--gold-label); display: flex; align-items: center; justify-content: center; }
+  .prio-ic svg { width: 20px; height: 20px; }
   .rows { margin-top: 16px; display: flex; flex-direction: column; gap: 10px; }
   .row { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; background: var(--surface); border: 1.5px solid var(--border); border-radius: 14px; padding: 15px 17px; cursor: pointer; font-family: var(--body); color: var(--ink); transition: border-color .15s ease, background .15s ease; }
   .row:hover { border-color: var(--purple); background: var(--purple-tint-2); }
@@ -340,12 +353,17 @@
   .kv .v.mono { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12.5px; }
   .track-link { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 12.5px; font-weight: 700; color: var(--purple); text-decoration: none; }
   .track-link svg { width: 15px; height: 15px; }
-  .track-form { display: flex; flex-wrap: wrap; gap: 8px; }
-  .track-sel, .track-num { font-family: var(--body); font-size: 13.5px; color: var(--ink); background: var(--surface); border: 1.5px solid var(--border); border-radius: 10px; padding: 9px 11px; }
-  .track-sel { flex: none; }
-  .track-num { flex: 1; min-width: 140px; }
-  .track-sel:focus, .track-num:focus { outline: none; border-color: var(--purple); }
-  .track-form .btn { flex-basis: 100%; }
+  .track-card-h svg { width: 14px; height: 14px; vertical-align: -2px; margin-right: 6px; color: var(--muted); }
+  .track-form { display: flex; flex-direction: column; gap: 10px; }
+  .track-inputs { display: flex; flex-wrap: wrap; gap: 8px; }
+  .track-sel-wrap { position: relative; flex: none; }
+  .track-sel-wrap::after { content: ""; position: absolute; right: 11px; top: 50%; width: 9px; height: 9px; margin-top: -6px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: rotate(45deg); pointer-events: none; }
+  .track-sel { -webkit-appearance: none; -moz-appearance: none; appearance: none; font-family: var(--body); font-size: 13.5px; font-weight: 500; color: var(--ink); background: var(--surface); border: 1.5px solid var(--border); border-radius: 10px; padding: 10px 32px 10px 12px; cursor: pointer; }
+  .track-sel:hover { border-color: #c5c0e0; }
+  .track-num { flex: 1; min-width: 150px; font-family: var(--body); font-size: 13.5px; color: var(--ink); background: var(--surface); border: 1.5px solid var(--border); border-radius: 10px; padding: 10px 12px; }
+  .track-sel:focus, .track-num:focus { outline: none; border-color: var(--purple); box-shadow: 0 0 0 3px rgba(91,63,214,0.14); }
+  .track-form .inline-msg { margin-top: 0; }
+  .track-form .btn { width: 100%; }
 
   .spark { position: absolute; color: #ffe89c; opacity: 0; animation: tw 2.6s ease-in-out infinite; pointer-events: none; }
   .spark svg { width: 11px; height: 11px; }
@@ -459,7 +477,7 @@
     return { paidClaims: paid, ageDays: RestashAPI.daysSince(a.createdAt) };
   }
 
-  const FILTERS = [['all', 'All'], ['submitted', 'New'], ['reviewing', 'Review'], ['accepted', 'Accepted'], ['received', 'Received'], ['offer', 'Offer sent'], ['paid', 'Paid'], ['declined', 'Declined'], ['returned', 'Returned']];
+  const FILTERS = [['all', 'All'], ['priority', 'Priority'], ['submitted', 'New'], ['reviewing', 'Review'], ['accepted', 'Accepted'], ['received', 'Received'], ['offer', 'Offer sent'], ['paid', 'Paid'], ['declined', 'Declined'], ['returned', 'Returned']];
   const TAB_VIEW = { claims: 'dashboard', accounts: 'accounts', bulk: 'bulkSellers', payouts: 'payouts', team: 'team', resources: 'resources' };
   const TAB_LABEL = { claims: 'Claims', accounts: 'Accounts', bulk: 'Bulk Sellers', payouts: 'Payouts', team: 'Team', resources: 'Resources' };
   // Back button returns to whichever tab you opened the detail from (so a seller
@@ -508,13 +526,34 @@
   function flashMsg(slot) { return (state.flash && state.flash.slot === slot) ? '<div class="inline-msg ' + state.flash.kind + '">' + esc(state.flash.text) + '</div>' : ''; }
 
   function counts() { const o = { submitted: 0, reviewing: 0, accepted: 0, received: 0, offer: 0, paid: 0, declined: 0, returned: 0 }; state.claims.forEach(c => { o[c.status] = (o[c.status] || 0) + 1; }); return o; }
+  // Bulk-seller lots still in the active pipeline — we promised these priority intake + inspection.
+  const PRIORITY_ACTIVE = ['submitted', 'reviewing', 'accepted', 'received', 'offer'];
+  function isPriority(c) { return !!c.bulk && PRIORITY_ACTIVE.indexOf(c.status) !== -1; }
+  function priorityClaims() { return state.claims.filter(isPriority).sort((a, b) => Date.parse(a.createdAt) - Date.parse(b.createdAt)); }
   function claimsFiltered() {
     const q = state.search.trim().toLowerCase();
     return state.claims.filter(c => {
-      if (state.filter !== 'all' && c.status !== state.filter) return false;
+      const prio = isPriority(c);
+      if (state.filter === 'priority') { if (!prio) return false; }
+      else if (state.filter === 'all') { if (prio && !q) return false; } // priority lots live in their own band
+      else if (c.status !== state.filter) return false;
       if (!q) return true;
       return (c.cust + ' ' + c.ref + ' ' + c.email + ' ' + c.items.map(i => i.titleName).join(' ')).toLowerCase().indexOf(q) !== -1;
     }).sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
+  }
+  function priorityBandHTML() {
+    if (state.filter !== 'all' || state.search.trim()) return '';
+    const list = priorityClaims();
+    if (!list.length) return '';
+    const rows = list.map(c =>
+      '<button class="prio-row" data-action="open-claim" data-ref="' + c.ref + '"><span class="prio-ic">' + I.box + '</span>'
+      + '<span class="row-main"><span class="row-line1"><span class="row-name">' + esc(c.cust) + '</span>' + badge(c.status) + (c.flagged ? flagBadge() : '') + '</span><span class="row-meta">' + c.ref + ' · ' + esc(claimTitle(c)) + ' · ' + esc(c.createdAt) + '</span></span>'
+      + '<span class="row-right"><span class="row-amt">' + (c.offerAmount ? '$' + c.offerAmount : 'Bulk') + '</span></span>'
+      + '<span class="chev">' + I.chevron + '</span></button>'
+    ).join('');
+    return '<div class="prio-band"><div class="prio-head"><span class="prio-title">' + I.star + 'Bulk seller priority</span><span class="prio-count">' + list.length + '</span></div>'
+      + '<div class="prio-sub">Active lots from Bulk Sellers — give these priority intake, inspection, and offers.</div>'
+      + '<div class="prio-rows">' + rows + '</div></div>';
   }
   function accountsFiltered() { const q = state.search.trim().toLowerCase(); return state.accounts.filter(a => !q || (a.name + ' ' + a.email).toLowerCase().indexOf(q) !== -1); }
 
@@ -555,11 +594,12 @@
         + (t.url ? '<a class="track-link" href="' + esc(t.url) + '" target="_blank" rel="noopener">' + I.external + 'Open on ' + esc(t.carrier) + '</a>' : '') + '</div>'
       : '<p class="track-none">No ' + dir.toLowerCase() + ' tracking yet. Add it so the customer can follow their shipment.</p>';
     const opts = carriers.map(k => '<option value="' + esc(k) + '"' + (t && t.carrier === k ? ' selected' : '') + '>' + esc(k) + '</option>').join('');
-    const form = '<div class="track-form"><select id="track-carrier" class="track-sel"><option value="">Carrier…</option>' + opts + '</select>'
-      + '<input id="track-number" class="track-num" type="text" placeholder="Tracking number" value="' + (t ? esc(t.number) : '') + '">'
+    const form = '<div class="track-form">'
+      + '<div class="track-inputs"><div class="track-sel-wrap"><select id="track-carrier" class="track-sel"><option value="">Select a carrier…</option>' + opts + '</select></div>'
+      + '<input id="track-number" class="track-num" type="text" placeholder="Tracking number" value="' + (t ? esc(t.number) : '') + '"></div>'
       + flashMsg('track')
-      + '<button class="btn btn-secondary full" data-action="set-tracking" data-value="' + esc(c.ref) + '">' + I.truck + (t ? 'Update tracking' : 'Add tracking') + '</button></div>';
-    return '<div class="card"><div class="card-h">' + I.truck + dir + ' tracking</div>' + current + form + '</div>';
+      + '<button class="btn btn-secondary full" data-action="set-tracking" data-value="' + esc(c.ref) + '">' + (t ? 'Update tracking' : 'Add tracking') + '</button></div>';
+    return '<div class="card"><div class="card-h track-card-h">' + I.truck + dir + ' tracking</div>' + current + form + '</div>';
   }
   function timeline(history) {
     return '<div class="timeline">' + history.map((h, i) => {
@@ -739,6 +779,7 @@
       const chips = FILTERS.map(f => '<button class="chip' + (state.filter === f[0] ? ' on' : '') + '" data-action="filter" data-value="' + f[0] + '">' + f[1] + '</button>').join('');
       return '<div class="screen wrap">' + tabs()
         + '<div class="stats">' + tiles + '</div>'
+        + priorityBandHTML()
         + '<div class="toolbar"><div class="search">' + I.search + '<input id="admin-search" type="text" placeholder="Search by customer, reference, or game" value="' + esc(state.search) + '"></div><div class="chips">' + chips + '</div></div>'
         + '<div id="list-region">' + claimsListHTML() + '</div></div>';
     },
