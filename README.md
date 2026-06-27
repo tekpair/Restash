@@ -166,19 +166,33 @@ Built so far (beyond the core buyback loop + console):
 - **Google address autocomplete** is already wired for the checkout (Check) and
   profile address fields — it activates once `GOOGLE_MAPS_API_KEY` is set in
   `config.js`.
+- **Notifications + email/SMS preferences** — an **Alerts** account tab with an
+  in-app notification list and per-category email/SMS toggles
+  (`RestashAPI.NOTIF_CATS`, `getNotifications` / `updateNotifPrefs` /
+  `markNotificationsRead`). Notifications are generated server-side on offers,
+  payments, acceptance, and tracking updates. Demo-seeded for
+  `maya.chen@email.com`. An unread dot shows on the nav tab.
+- **Tracking on claims** — carrier + tracking number on accepted / in-inspection
+  / returned claims, with a deep link to the carrier (`RestashAPI.CARRIERS`,
+  `setTracking`). Customers see a **Shipping** card; staff get an inline setter
+  on the claim detail. Demo-seeded on `RS-8M4X2A` (USPS) and `RS-BLK3X9` (UPS).
+- **Bulk CSV upload** — Bulk Sellers can upload a `.csv` manifest (with a
+  downloadable template) on the bulk-submit screen; it parses `title, platform,
+  condition, qty, notes` columns to fill the manifest text and game count.
 
 Next up (greenlit, not yet built), roughly in order:
-1. **Notifications + email/SMS preferences** — an account tab to manage what we
-   send and an in-app notification list.
-2. **Tracking on claims** — surface the carrier + tracking number on accepted
-   and returned claims (no full order-tracking page).
-3. **Bulk CSV upload** — let active Bulk Sellers upload a manifest as a CSV in
-   addition to the free-text box.
+1. **Staff inventory + payouts ledger** — a console view of received lots and a
+   running record of authorized payments.
+2. **Marketing landing page** — a dedicated front door above the buyback flow.
+3. **Reviews / social proof** — seller testimonials surfaced on the landing page.
 
-Later / parked: inventory + payouts ledger (staff), a dedicated marketing
-landing page, reviews/social proof. Production hardening is unchanged — see the
-numbered list above (PayPal Payouts API, shipping-label API, real catalog
-pricing, verified email domain, attorney review of the legal copy).
+Later / parked: production hardening is unchanged — see the numbered list above
+(PayPal Payouts API, shipping-label API, real catalog pricing, verified email
+domain, attorney review of the legal copy). The notification/tracking demo
+methods are wired to RPC stubs (`get_notifications`, `update_notif_prefs`,
+`mark_notifications_read`, `set_tracking`) that still need their SQL functions +
+tables (`notifications`, `notif_prefs`, claim `carrier` / `tracking_number`
+columns) for the Supabase backend.
 
 ## Do not regress
 

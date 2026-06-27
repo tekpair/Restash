@@ -16,6 +16,7 @@
 
   // ---- shared helpers ---------------------------------------------
   function fmtDate(iso) { if (!iso) return ''; return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); }
+  function relTime(iso) { if (!iso) return ''; var s = Math.max(0, Math.floor((Date.now() - Date.parse(iso)) / 1000)); if (s < 60) return 'just now'; var m = Math.floor(s / 60); if (m < 60) return m + 'm ago'; var h = Math.floor(m / 60); if (h < 24) return h + 'h ago'; var d = Math.floor(h / 24); if (d < 7) return d + 'd ago'; return fmtDate(iso); }
   function unwrap(res) { if (res && res.error) throw new Error(res.error.message || 'Request failed'); return res ? res.data : null; }
   function bySortKey(k) { return function (a, b) { return (a[k] || 0) - (b[k] || 0); }; }
   function byCreatedAsc(a, b) { return Date.parse(a.created_at) - Date.parse(b.created_at); }
@@ -47,6 +48,17 @@
     var first = (p.full_name || 'Restash').split(' ')[0].toUpperCase().replace(/[^A-Z0-9]/g, '');
     return first.slice(0, 6) + (n % 9000 + 1000);
   }
+  // Notification categories (shown in the customer "Alerts" tab) + defaults.
+  var NOTIF_CATS = [
+    ['claims', 'Claim updates', 'Status changes on your claims'],
+    ['offers', 'Offers', 'When an offer is ready to review'],
+    ['payments', 'Payments', 'When a payment is sent'],
+    ['promos', 'News & referrals', 'Promos and referral rewards']
+  ];
+  function defaultNotifPrefs() { return { claims: { email: true, sms: false }, offers: { email: true, sms: true }, payments: { email: true, sms: false }, promos: { email: false, sms: false } }; }
+  // Shipping carriers we hand off to + their public tracking URL prefixes.
+  var CARRIERS = { USPS: 'https://tools.usps.com/go/TrackConfirmAction?tLabels=', UPS: 'https://www.ups.com/track?tracknum=', FedEx: 'https://www.fedex.com/fedextrack/?trknbr=' };
+  function trackingUrl(carrier, num) { var base = CARRIERS[carrier]; return base ? base + encodeURIComponent(num) : ''; }
   // Compute a seller's eligibility from paid-claim count, account age, and whether
   // the account is in good standing (no counterfeit / condition-mismatch flags).
   function bulkEligibility(paidClaims, ageDays, cleanStanding) {
@@ -95,6 +107,7 @@
     return { itemName: itemName, platform: plats.length === 1 ? plats[0] : plats.length + ' platforms' };
   }
   function bulkLabel(row) { var n = row.est_count != null ? Number(row.est_count) : null; return 'Bulk lot' + (n ? ' · ~' + n + ' games' : ''); }
+  function mapTracking(row) { return (row.carrier && row.tracking_number) ? { carrier: row.carrier, number: row.tracking_number, url: trackingUrl(row.carrier, row.tracking_number) } : null; }
   function mapClaimCustomer(row) {
     var items = mapItems(row.claim_items), labels = deriveLabels(items);
     var bulk = !!row.bulk;
@@ -102,14 +115,14 @@
       bulk: bulk, manifest: row.manifest || '', estCount: row.est_count != null ? Number(row.est_count) : null,
       estLow: row.est_low, estHigh: row.est_high,
       payout: row.payout, paidAmount: row.paid_amount, address: row.address || '', offerAmount: row.offer_amount, customerResponse: row.customer_response,
-      createdAt: fmtDate(row.created_at), createdAtISO: row.created_at, status: row.status, history: mapHistory(row.claim_history), messages: mapMessages(row.claim_messages), customerNote: row.customer_notes || '' };
+      createdAt: fmtDate(row.created_at), createdAtISO: row.created_at, status: row.status, history: mapHistory(row.claim_history), messages: mapMessages(row.claim_messages), customerNote: row.customer_notes || '', tracking: mapTracking(row) };
   }
   function mapClaimStaff(row) {
     return { ref: row.ref, cust: row.cust_name, email: row.cust_email, phone: row.cust_phone, payout: row.payout, address: row.address || '',
       status: row.status, createdAt: fmtDate(row.created_at), estLow: row.est_low, estHigh: row.est_high, items: mapItems(row.claim_items),
       bulk: !!row.bulk, manifest: row.manifest || '', estCount: row.est_count != null ? Number(row.est_count) : null, paidAmount: row.paid_amount,
       history: mapHistory(row.claim_history), assignee: row.assignee_name || null, assigneeId: row.assignee_id || null,
-      offerAmount: row.offer_amount, customerResponse: row.customer_response, flagged: !!row.flagged, notes: mapNotes(row.claim_notes), messages: mapMessages(row.claim_messages), customerNote: row.customer_notes || '' };
+      offerAmount: row.offer_amount, customerResponse: row.customer_response, flagged: !!row.flagged, notes: mapNotes(row.claim_notes), messages: mapMessages(row.claim_messages), customerNote: row.customer_notes || '', tracking: mapTracking(row) };
   }
   function mapBulk(row) {
     return { status: row.bulk_status || null, reason: row.bulk_reason || '', appliedAt: row.bulk_applied_at || null,
@@ -163,6 +176,9 @@
     async respondToOffer(ref, r) { return rpc('respond_to_offer', { p_ref: ref, p_response: r }); },
     async sendClaimMessage(ref, body) { return rpc('send_claim_message', { p_ref: ref, p_body: body }); },
     async getReferral() { return rpc('get_referral'); },
+    async getNotifications() { return rpc('get_notifications'); },
+    async updateNotifPrefs(cat, ch, val) { return rpc('update_notif_prefs', { p_cat: cat, p_channel: ch, p_value: !!val }); },
+    async markNotificationsRead() { return rpc('mark_notifications_read'); },
     async allClaims() { var rows = unwrap(await sb.from('claims').select('*, claim_items(*), claim_history(*)').order('created_at', { ascending: false })); return rows.map(mapClaimStaff); },
     async staffClaimByRef(ref) { var row = unwrap(await sb.from('claims').select('*, claim_items(*), claim_history(*), claim_notes(*), claim_messages(*)').eq('ref', ref).single()); return mapClaimStaff(row); },
     async accounts() { var rows = unwrap(await sb.from('profiles').select('*').eq('role', 'customer').order('created_at', { ascending: false })); return rows.map(mapAccount); },
@@ -176,6 +192,7 @@
     assignClaim: function (r) { return rpc('assign_claim', { p_ref: r }); }, releaseClaim: function (r) { return rpc('release_claim', { p_ref: r }); },
     setClaimFlag: function (r, o) { return rpc('set_claim_flag', { p_ref: r, p_flag: o }); }, addClaimNote: function (r, b) { return rpc('add_claim_note', { p_ref: r, p_body: b }); },
     sendStaffMessage: function (r, b) { return rpc('send_staff_message', { p_ref: r, p_body: b }); },
+    setTracking: function (r, c, n) { return rpc('set_tracking', { p_ref: r, p_carrier: c, p_number: n }); },
     setAccountFlag: function (i, o) { return rpc('set_account_flag', { p_profile: i, p_flag: o }); }, addAccountNote: function (i, b) { return rpc('add_account_note', { p_profile: i, p_body: b }); }
   };
   function buildNested(platforms, titles, editions) {
@@ -240,7 +257,7 @@
       Object.assign({ id: 'staff-connor', full_name: 'Connor Waugaman', email: 'admin@getrestash.gg', phone: '', address: '', role: 'staff', flagged: false, created_at: days(120), account_notes: [] }, bulkFields()),
       // Maya is a long-tenured power seller — meets the bar, so signing in as
       // her demonstrates the customer "apply for Bulk Seller" happy path.
-      Object.assign({ id: 'cust-maya', full_name: 'Maya Chen', email: 'maya.chen@email.com', phone: '(518) 555-0142', address: '203 Remsen St, Cohoes, NY 12047', role: 'customer', flagged: false, created_at: days(78), account_notes: [], referrals: [{ name: 'Alex P.', status: 'qualified', bonus: 10, date: days(21) }, { name: 'Sam R.', status: 'qualified', bonus: 10, date: days(9) }, { name: 'Jordan T.', status: 'joined', bonus: 0, date: days(3) }] }, bulkFields({ lifetime_paid: 63 })),
+      Object.assign({ id: 'cust-maya', full_name: 'Maya Chen', email: 'maya.chen@email.com', phone: '(518) 555-0142', address: '203 Remsen St, Cohoes, NY 12047', role: 'customer', flagged: false, created_at: days(78), account_notes: [], referrals: [{ name: 'Alex P.', status: 'qualified', bonus: 10, date: days(21) }, { name: 'Sam R.', status: 'qualified', bonus: 10, date: days(9) }, { name: 'Jordan T.', status: 'joined', bonus: 0, date: days(3) }], notif_prefs: defaultNotifPrefs(), notifications: [ { id: 'ntf-seed-1', cat: 'offers', title: 'Offer ready on RS-2W8E4F', body: '$28 — review and respond.', ref: 'RS-2W8E4F', read: false, created_at: days(2) }, { id: 'ntf-seed-2', cat: 'claims', title: 'Inbound tracking added to RS-8M4X2A', body: 'USPS · 9400111899223817428490', ref: 'RS-8M4X2A', read: false, created_at: days(1) }, { id: 'ntf-seed-3', cat: 'promos', title: 'Sam R. just earned you $10', body: 'Your referral bonus applies to your next accepted offer.', ref: null, read: true, created_at: days(9) }, { id: 'ntf-seed-4', cat: 'payments', title: 'Payment sent for RS-9K2P1Q', body: '$24 via PayPal — 1–3 business days.', ref: null, read: true, created_at: days(40) } ] }, bulkFields({ lifetime_paid: 63 })),
       Object.assign({ id: 'cust-devon', full_name: 'Devon Brooks', email: 'devon.brooks@email.com', phone: '(518) 555-0188', address: '88 Vliet Blvd, Cohoes, NY 12047', role: 'customer', flagged: false, created_at: days(9), account_notes: [] }, bulkFields()),
       Object.assign({ id: 'cust-noah', full_name: 'Noah Kim', email: 'noah.kim@email.com', phone: '(518) 555-0195', address: '31 Howard St, Cohoes, NY 12047', role: 'customer', flagged: true, created_at: days(11), account_notes: [{ body: 'Submitted a non-working copy described as Complete. Review future claims carefully.', author_name: 'Connor Waugaman', created_at: days(10) }] }, bulkFields()),
       // A pending application waiting in the console's Bulk Sellers queue.
@@ -268,8 +285,8 @@
       // Riley (active Bulk Seller) — a lot arrived and is awaiting one bulk offer.
       bulkClaim('RS-BLK7Q2', profiles[5], 'received', '~30 PS2/PS3 games, mostly Complete, a few Loose sports titles. Two sealed. All tested working before packing.', 30, { assignee_id: 'staff-connor', assignee_name: 'Connor Waugaman', created_at: days(2), claim_history: [h('Bulk manifest submitted', '~30 games', days(2)), h('Accepted — prepaid label emailed', 'Priority intake; inspected on arrival.', days(2)), h('Games received at facility', 'Bulk lot — priority inspection.', days(1))] }),
       // Riley — a second lot in transit (label emailed, not yet arrived).
-      bulkClaim('RS-BLK3X9', profiles[5], 'accepted', '~15 Nintendo Switch games, all Complete with cases and inserts.', 15, { created_at: days(1), claim_history: [h('Bulk manifest submitted', '~15 games', days(1)), h('Accepted — prepaid label emailed', 'Priority intake; inspected on arrival.', days(1))] }),
-      newClaim('RS-8M4X2A', profiles[1], [item('ed-totk', 'complete', 1, 1)], 'submitted', { created_at: days(1), claim_history: [h('Claim submitted', null, days(1))] }),
+      bulkClaim('RS-BLK3X9', profiles[5], 'accepted', '~15 Nintendo Switch games, all Complete with cases and inserts.', 15, { carrier: 'UPS', tracking_number: '1Z999AA10123456784', created_at: days(1), claim_history: [h('Bulk manifest submitted', '~15 games', days(1)), h('Accepted — prepaid label emailed', 'Priority intake; inspected on arrival.', days(1)), h('Inbound tracking added', 'UPS · 1Z999AA10123456784', days(1))] }),
+      newClaim('RS-8M4X2A', profiles[1], [item('ed-totk', 'complete', 1, 1)], 'accepted', { carrier: 'USPS', tracking_number: '9400111899223817428490', created_at: days(2), claim_history: [h('Claim submitted', null, days(2)), h('Accepted — shipping label emailed', null, days(1)), h('Inbound tracking added', 'USPS · 9400111899223817428490', days(1))] }),
       newClaim('RS-3K9P1B', profiles[2], [item('ed-gow', 'complete', 1, 1), item('ed-rdr2', 'loose', 2, 2)], 'received', { payout: 'Check', address: '88 Vliet Blvd, Cohoes, NY 12047', assignee_id: 'staff-connor', assignee_name: 'Connor Waugaman', customer_notes: 'The God of War case has a small crack on the back but the disc is mint. Both RDR2 copies are cart-only, no boxes.', created_at: days(3), claim_history: [h('Claim submitted', null, days(3)), h('Accepted — shipping label emailed', null, days(2)), h('Games received at facility', null, days(1))] }),
       newClaim('RS-2W8E4F', profiles[1], [item('ed-smash', 'sealed', 1, 1)], 'offer', { offer_amount: 28, created_at: days(5), claim_history: [h('Claim submitted', null, days(5)), h('Accepted — shipping label emailed', null, days(4)), h('Games received at facility', null, days(3)), h('Offer made: $28', 'Confirmed sealed; priced to current market.', days(2))], claim_messages: [{ author: 'customer', author_name: 'Maya Chen', body: 'Is $28 the best you can do? It came sealed and mint.', created_at: days(2) }, { author: 'staff', author_name: 'Connor Waugaman', body: 'Thanks Maya! $28 matches the current sealed market for this title, so it’s firm — but no pressure either way. Accept or decline whenever you’re ready and we’ll take it from there.', created_at: days(2) }] }),
       newClaim('RS-6N1R5G', profiles[2], [item('ed-forza', 'complete', 1, 1), item('ed-halo', 'complete', 1, 2)], 'paid', { offer_amount: 14, paid_amount: 14, paid_method: 'PayPal', created_at: days(12), claim_history: [h('Claim submitted', null, days(12)), h('Games received at facility', null, days(10)), h('Offer made: $14', null, days(9)), h('You accepted the offer', null, days(9)), h('Payment authorized via PayPal', 'PayPal 1–3 business days.', days(9))] }),
@@ -281,6 +298,8 @@
     function sessionProfile() { if (!demoApi._session) return null; return findProfileById(demoApi._session.id) || demoApi._session._prof; }
     function requireStaff() { var p = sessionProfile(); if (!p || p.role !== 'staff') throw new Error('Staff only'); return p; }
     function push(c, label, note) { c.claim_history.push(h(label, note, new Date().toISOString())); }
+    var notifSeq = 1;
+    function notify(custId, cat, title, body, ref) { var p = findProfileById(custId); if (!p) return; if (!p.notifications) p.notifications = []; if (!p.notif_prefs) p.notif_prefs = defaultNotifPrefs(); p.notifications.push({ id: 'ntf-' + (notifSeq++), cat: cat, title: title, body: body || '', ref: ref || null, read: false, created_at: new Date().toISOString() }); }
     function isStaffEmail(e) { e = (e || '').toLowerCase(); return /(^|[.@])(admin|staff|connor|kamryn)([.@])/.test(e) || e === 'admin@getrestash.gg' || /@getrestash\.gg$/.test(e); }
     function suggested(c) { return computeOffer(c.claim_items, pricing); }
     // Lifetime paid claims = seeded history (lifetime_paid) + live paid claims.
@@ -390,28 +409,39 @@
           joinedCount: refs.length, qualifiedCount: qualified.length, pendingCount: refs.length - qualified.length, earned: earned,
           referrals: refs.map(function (r) { return { name: r.name, status: r.status, bonus: r.bonus || 0, date: fmtDate(r.date) }; }) };
       },
+      async getNotifications() {
+        var p = sessionProfile(); if (!p) throw new Error('Not signed in');
+        if (!p.notifications) p.notifications = [];
+        if (!p.notif_prefs) p.notif_prefs = defaultNotifPrefs();
+        var list = p.notifications.slice().sort(function (a, b) { return Date.parse(b.created_at) - Date.parse(a.created_at); });
+        return { prefs: p.notif_prefs, unread: list.filter(function (n) { return !n.read; }).length,
+          items: list.map(function (n) { return { id: n.id, cat: n.cat, title: n.title, body: n.body || '', ref: n.ref || null, read: !!n.read, date: fmtDate(n.created_at), at: relTime(n.created_at) }; }) };
+      },
+      async updateNotifPrefs(cat, ch, val) { var p = sessionProfile(); if (!p) throw new Error('Not signed in'); if (!p.notif_prefs) p.notif_prefs = defaultNotifPrefs(); if (!p.notif_prefs[cat]) throw new Error('Unknown category'); if (ch !== 'email' && ch !== 'sms') throw new Error('Unknown channel'); p.notif_prefs[cat][ch] = !!val; return { ok: true }; },
+      async markNotificationsRead() { var p = sessionProfile(); if (!p) throw new Error('Not signed in'); (p.notifications || []).forEach(function (n) { n.read = true; }); return { ok: true }; },
       async allClaims() { requireStaff(); return claims.slice().sort(function (a, b) { return Date.parse(b.created_at) - Date.parse(a.created_at); }).map(mapClaimStaff); },
       async staffClaimByRef(ref) { requireStaff(); var c = findClaim(ref); if (!c) throw new Error('Claim not found'); return mapClaimStaff(c); },
       async accounts() { requireStaff(); return profiles.filter(function (p) { return p.role === 'customer'; }).map(mapAccount); },
       async accountByEmail(e) { requireStaff(); var p = findProfileByEmail(e); if (!p) throw new Error('Account not found'); return mapAccount(p); },
       async team() { return team.map(mapTeam); },
       reviewClaim: sa(function (c) { st(c, 'submitted', 'reviewing', 'Under review'); }),
-      acceptClaim: sa(function (c) { st(c, ['submitted', 'reviewing'], 'accepted', 'Accepted — shipping label emailed'); }),
+      acceptClaim: sa(function (c) { st(c, ['submitted', 'reviewing'], 'accepted', 'Accepted — shipping label emailed'); notify(c.customer_id, 'claims', c.ref + ' accepted', 'Ship your games with the prepaid label we emailed.', c.ref); }),
       declineClaim: sa(function (c, x) { st(c, ['submitted', 'reviewing'], 'declined', 'Declined — not accepted', x || "We weren't able to accept this claim this cycle."); }),
       markReceived: sa(function (c) { st(c, 'accepted', 'received', 'Games received at facility'); }),
       regradeItem: function (itemId, condId) { return wrap(function () { requireStaff(); var c = claims.filter(function (cl) { return cl.claim_items.some(function (i) { return i.id === itemId; }); })[0]; if (!c) throw new Error('Item not found'); if (c.status !== 'received') throw new Error('Items can only be re-graded during inspection'); var it = c.claim_items.filter(function (i) { return i.id === itemId; })[0]; var e = ed[it.edition_id], cn = condById[condId]; if (!cn) throw new Error('Unknown condition'); var old = it.cond_name; it.condition_id = condId; it.cond_name = cn.name; it.unit_market = marketValue(e, cn); it.line_mid = Math.round(it.unit_market * it.qty); if (old !== cn.name) push(c, 'Re-graded ' + it.title_name + ': ' + old + ' → ' + cn.name, 'Condition confirmed on inspection.'); }); },
       makeOffer: function (ref, amt, x) { return wrap(function () { requireStaff(); var c = findClaim(ref); if (!c) throw new Error('Claim not found'); if (c.bulk) throw new Error('Use the bulk offer for a bulk claim'); if (c.status !== 'received') throw new Error('Can only offer on a received claim'); var s = suggested(c); if (s <= 0) throw new Error('This claim has no eligible value — reject and return it instead.'); var lo = Math.max(1, Math.floor(s * 0.85)), hi = Math.max(lo, Math.ceil(s * 1.15)); if (!amt || amt < lo || amt > hi) throw new Error('Offer must be between $' + lo + ' and $' + hi + ' for this claim (algorithm suggests $' + s + ')');
-        c.status = 'offer'; c.offer_amount = amt; c.customer_response = null; push(c, 'Offer made: $' + amt, (x || '').trim() || null); }); },
+        c.status = 'offer'; c.offer_amount = amt; c.customer_response = null; push(c, 'Offer made: $' + amt, (x || '').trim() || null); notify(c.customer_id, 'offers', 'Offer ready on ' + c.ref, '$' + amt + ' — review and respond.', c.ref); }); },
       // One bulk offer for the whole lot — no per-item band (no items to price).
-      makeBulkOffer: function (ref, amt, x) { return wrap(function () { requireStaff(); var c = findClaim(ref); if (!c) throw new Error('Claim not found'); if (!c.bulk) throw new Error('Not a bulk claim'); if (c.status !== 'received') throw new Error('Can only offer on a received claim'); amt = parseInt(amt, 10); if (!amt || amt < 1) throw new Error('Enter a bulk offer amount.'); c.status = 'offer'; c.offer_amount = amt; c.customer_response = null; push(c, 'Bulk offer made: $' + amt, (x || '').trim() || null); }); },
+      makeBulkOffer: function (ref, amt, x) { return wrap(function () { requireStaff(); var c = findClaim(ref); if (!c) throw new Error('Claim not found'); if (!c.bulk) throw new Error('Not a bulk claim'); if (c.status !== 'received') throw new Error('Can only offer on a received claim'); amt = parseInt(amt, 10); if (!amt || amt < 1) throw new Error('Enter a bulk offer amount.'); c.status = 'offer'; c.offer_amount = amt; c.customer_response = null; push(c, 'Bulk offer made: $' + amt, (x || '').trim() || null); notify(c.customer_id, 'offers', 'Bulk offer ready on ' + c.ref, '$' + amt + ' for your lot — review and respond.', c.ref); }); },
       rejectReturn: sa(function (c, x) { if (c.status !== 'received') throw new Error('Claim is not in inspection'); c.status = 'returned'; push(c, 'Rejected on inspection — returning to seller', (x || '').trim() || "We'll email tracking."); }),
-      authorizePayment: sa(function (c) { if (c.status !== 'offer' || c.customer_response !== 'accepted') throw new Error('Customer has not accepted an offer'); c.status = 'paid'; c.paid_amount = c.offer_amount; c.paid_method = c.payout; push(c, 'Payment authorized via ' + c.payout, c.payout === 'PayPal' ? 'PayPal 1–3 business days.' : 'Check 3–5 business days.'); }),
+      authorizePayment: sa(function (c) { if (c.status !== 'offer' || c.customer_response !== 'accepted') throw new Error('Customer has not accepted an offer'); c.status = 'paid'; c.paid_amount = c.offer_amount; c.paid_method = c.payout; push(c, 'Payment authorized via ' + c.payout, c.payout === 'PayPal' ? 'PayPal 1–3 business days.' : 'Check 3–5 business days.'); notify(c.customer_id, 'payments', 'Payment sent for ' + c.ref, '$' + c.paid_amount + ' via ' + c.payout + (c.payout === 'PayPal' ? ' — 1–3 business days.' : ' — 3–5 business days.'), c.ref); }),
       confirmReturn: sa(function (c) { if (c.status !== 'offer' || c.customer_response !== 'declined') throw new Error('No declined offer to return'); c.status = 'returned'; push(c, 'Games returned to seller', "We'll email tracking."); }),
       assignClaim: sa(function (c) { var p = requireStaff(); c.assignee_id = p.id; c.assignee_name = p.full_name; push(c, (p.full_name || 'A teammate') + ' is handling this claim'); }),
       releaseClaim: sa(function (c) { push(c, (c.assignee_name || 'A teammate') + ' released this claim'); c.assignee_id = null; c.assignee_name = null; }),
       setClaimFlag: function (ref, on) { return wrap(function () { requireStaff(); var c = findClaim(ref); c.flagged = on; }); },
       addClaimNote: function (ref, body) { return wrap(function () { var p = requireStaff(); if (!(body || '').trim()) throw new Error('Empty note'); var c = findClaim(ref); c.claim_notes.push({ body: body, author_name: p.full_name, created_at: new Date().toISOString() }); }); },
       sendStaffMessage: function (ref, body) { return wrap(function () { var p = requireStaff(); var c = findClaim(ref); if (!c) throw new Error('Claim not found'); if (!(body || '').trim()) throw new Error('Write a message first.'); if (!c.claim_messages) c.claim_messages = []; c.claim_messages.push({ author: 'staff', author_name: p.full_name, body: body.trim(), created_at: new Date().toISOString() }); }); },
+      setTracking: function (ref, carrier, number) { return wrap(function () { requireStaff(); var c = findClaim(ref); if (!c) throw new Error('Claim not found'); if (['accepted', 'received', 'returned'].indexOf(c.status) === -1) throw new Error('Tracking can only be added once a claim is accepted, in inspection, or being returned.'); if (!CARRIERS[carrier]) throw new Error('Pick a carrier.'); number = (number || '').trim(); if (!number) throw new Error('Enter a tracking number.'); var first = !c.tracking_number; c.carrier = carrier; c.tracking_number = number; var dir = c.status === 'returned' ? 'Return' : 'Inbound'; push(c, (first ? dir + ' tracking added' : dir + ' tracking updated'), carrier + ' · ' + number); notify(c.customer_id, 'claims', dir + ' tracking added to ' + c.ref, carrier + ' ' + number, c.ref); }); },
       setAccountFlag: function (id, on) { return wrap(function () { requireStaff(); var p = findProfileById(id); if (p) p.flagged = on; }); },
       addAccountNote: function (id, body) { return wrap(function () { var me = requireStaff(); if (!(body || '').trim()) throw new Error('Empty note'); var p = findProfileById(id); p.account_notes.push({ body: body, author_name: me.full_name, created_at: new Date().toISOString() }); }); }
     };
@@ -437,5 +467,7 @@
   API.bulkEligibility = bulkEligibility;
   API.daysSince = daysSince;
   API.REFERRAL = REFERRAL;
+  API.NOTIF_CATS = NOTIF_CATS;
+  API.CARRIERS = CARRIERS;
   window.RestashAPI = API;
 })();
