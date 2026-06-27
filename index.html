@@ -213,6 +213,8 @@
   .field input, .field textarea { width: 100%; font-family: var(--body); font-size: 15px; color: var(--ink); background: var(--surface); border: 1.5px solid var(--border); border-radius: 11px; padding: 12px 13px; resize: vertical; }
   .field input::placeholder, .field textarea::placeholder { color: #a7a6c0; }
   .field input:focus, .field textarea:focus { outline: none; border-color: var(--purple); box-shadow: 0 0 0 3px rgba(91,63,214,0.16); }
+  .field-hint { display: flex; align-items: flex-start; gap: 6px; margin-top: 7px; font-size: 12px; color: var(--muted); line-height: 1.45; }
+  .field-hint svg { flex: none; width: 14px; height: 14px; margin-top: 1px; color: var(--purple); }
   .form-error { margin-top: 12px; font-size: 13.5px; font-weight: 500; color: var(--red); }
   .inline-msg { font-size: 13.5px; font-weight: 500; padding: 10px 13px; border-radius: 11px; margin-top: 12px; line-height: 1.45; }
   .inline-msg.err { color: #b3261e; background: #fbeae8; border: 1px solid #f0c7c3; }
@@ -625,7 +627,7 @@
   .notif-text { font-size: 12.5px; color: var(--muted); margin-top: 3px; line-height: 1.45; }
   .notif-link { display: inline-flex; align-items: center; gap: 2px; margin-top: 7px; background: none; border: none; padding: 0; font-family: var(--body); font-size: 12px; font-weight: 700; color: var(--purple); cursor: pointer; }
   .notif-link svg { width: 14px; height: 14px; }
-  .np-card { border: 1.5px solid var(--border); border-radius: 14px; overflow: hidden; background: rgba(255,255,255,0.5); }
+  .np-card { margin-top: 12px; border: 1.5px solid var(--border); border-radius: 14px; overflow: hidden; background: rgba(255,255,255,0.5); }
   .np-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 13px 14px; border-bottom: 1px solid var(--border); }
   .np-row:last-child { border-bottom: none; }
   .np-info { min-width: 0; }
@@ -995,6 +997,7 @@
         + '<div class="field"><label for="rg-email">Email</label><input id="rg-email" type="email" placeholder="you@email.com" value="' + esc(rd.email || '') + '"></div>'
         + '<div class="field"><label for="rg-phone">Phone</label><input id="rg-phone" type="tel" placeholder="(518) 555-0123" value="' + esc(rd.phone || '') + '"></div>'
         + '<div class="field"><label for="rg-pass">Password</label><input id="rg-pass" type="password" placeholder="At least 8 characters" value="' + esc(rd.pass || '') + '"></div>'
+        + '<div class="field"><label for="rg-ref">Referral code <span class="opt">(optional)</span></label><input id="rg-ref" type="text" autocapitalize="characters" placeholder="e.g. MAYA1234" value="' + esc(rd.refCode || '') + '"><p class="field-hint">' + I.gift + 'Got a code from a friend? You both get $' + RestashAPI.REFERRAL.bonus + ' when you complete your first paid claim.</p></div>'
         + '<div class="agree"><input type="checkbox" id="rg-terms"' + (rd.terms ? ' checked' : '') + '><label for="rg-terms">I agree to the <a data-action="goto" data-value="terms">Terms of Service</a> and <a data-action="goto" data-value="privacy">Privacy Policy</a>.</label></div>'
         + '<p class="form-error" id="auth-error" hidden></p>'
         + '<button class="btn btn-primary full" data-action="do-register">Create account</button>'
@@ -1141,16 +1144,16 @@
     const catLabel = {}; cats.forEach(c => { catLabel[c[0]] = c[1]; });
     const head = '<div class="panel-head"><h2 class="panel-title">Alerts</h2><p class="panel-sub">Your recent notifications, and how you’d like us to reach you.</p></div>';
     const markBtn = n.unread > 0 ? '<button class="link-btn" data-action="mark-read">Mark all read</button>' : '';
-    const items = (n.items || []).length
-      ? '<ul class="notif-list">' + n.items.map(it => '<li class="notif' + (it.read ? '' : ' unread') + '">'
+    const listSec = (n.items || []).length
+      ? '<div class="section"><div class="notif-head"><div class="section-title">Notifications</div>' + markBtn + '</div>'
+          + '<ul class="notif-list">' + n.items.map(it => '<li class="notif' + (it.read ? '' : ' unread') + '">'
           + '<span class="notif-ic">' + (notifIcon(it.cat) || I.bell) + '</span>'
           + '<div class="notif-body">'
           + '<div class="notif-top"><span class="notif-title">' + esc(it.title) + '</span><span class="notif-time">' + esc(it.at) + '</span></div>'
           + (it.body ? '<div class="notif-text">' + esc(it.body) + '</div>' : '')
           + (it.ref ? '<button class="notif-link" data-action="goto" data-value="claimDetail" data-ref="' + it.ref + '">View ' + it.ref + I.chevron + '</button>' : '')
-          + '</div></li>').join('') + '</ul>'
-      : '<div class="empty" style="margin-top:8px;">No notifications yet. We’ll let you know when there’s an update on a claim, offer, or payment.</div>';
-    const listSec = '<div class="section"><div class="notif-head"><div class="section-title">Notifications</div>' + markBtn + '</div>' + items + '</div>';
+          + '</div></li>').join('') + '</ul></div>'
+      : '';
     const prefs = n.prefs || {};
     const prefRows = cats.map(c => {
       const key = c[0], p = prefs[key] || { email: false, sms: false };
@@ -1386,7 +1389,7 @@
     const n = document.getElementById('rg-name'); if (!n) return;
     const g = id => { const el = document.getElementById(id); return el ? el.value : ''; };
     const t = document.getElementById('rg-terms');
-    state.regDraft = { name: n.value, email: g('rg-email'), phone: g('rg-phone'), pass: g('rg-pass'), terms: t ? t.checked : false };
+    state.regDraft = { name: n.value, email: g('rg-email'), phone: g('rg-phone'), pass: g('rg-pass'), refCode: g('rg-ref'), terms: t ? t.checked : false };
   }
   function syncAcct() {
     const b = document.getElementById('acctBtn'); b.classList.toggle('live', state.loggedIn); b.setAttribute('aria-label', state.loggedIn ? 'Your account' : 'Account');
@@ -1441,7 +1444,7 @@
       if (!el || el.dataset.acAttached) return;
       el.dataset.acAttached = '1';
       try {
-        const ac = new google.maps.places.Autocomplete(el, { types: ['address'], componentRestrictions: { country: ['us'] }, fields: ['formatted_address'] });
+        const ac = new google.maps.places.Autocomplete(el, { types: ['address'], fields: ['formatted_address'] });
         ac.addListener('place_changed', function () { const p = ac.getPlace(); if (p && p.formatted_address) { el.value = p.formatted_address; el.dispatchEvent(new Event('input', { bubbles: true })); } });
       } catch (e) { /* Places unavailable — leave as a plain input */ }
     });
@@ -1615,6 +1618,8 @@
       const email = document.getElementById('rg-email').value.trim();
       const phone = document.getElementById('rg-phone').value.trim();
       const pass = document.getElementById('rg-pass').value;
+      const refEl = document.getElementById('rg-ref');
+      const refCode = refEl ? refEl.value.trim().toUpperCase() : '';
       const terms = document.getElementById('rg-terms').checked;
       if (!name) return showErr('auth-error', 'Please enter your name.');
       if (!emailOk(email)) return showErr('auth-error', 'Please enter a valid email.');
@@ -1623,7 +1628,7 @@
       if (!terms) return showErr('auth-error', 'Please agree to the Terms and Privacy Policy to continue.');
       el.disabled = true;
       try {
-        await RestashAPI.signUp({ name, email, phone, password: pass });
+        await RestashAPI.signUp({ name, email, phone, password: pass, refCode });
         state.regDraft = {};
         const u = await RestashAPI.currentUser();
         if (u) { await loadSession(); await loadClaims(); afterAuth(); }
@@ -1791,6 +1796,11 @@
 
   async function boot() {
     loadPlaces();
+    // A ?ref=CODE link pre-fills the referral field on the create-account form.
+    try {
+      const rc = new URLSearchParams(window.location.search).get('ref');
+      if (rc) state.regDraft = Object.assign({}, state.regDraft, { refCode: rc.trim().toUpperCase() });
+    } catch (e) {}
     if (!RestashAPI.configured) { configBanner(); return; }
     // Password-reset link: detect the recovery flow up front (the URL hash may be
     // consumed during auth init) and via the live auth event as a backup.
